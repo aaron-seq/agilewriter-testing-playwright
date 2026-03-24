@@ -11,10 +11,10 @@
 
 | TC   | IDs       | File                                       | Owner       | Status |
 |------|-----------|--------------------------------------------|-------------|--------|
-| TC0  | Setup     | `tests/AW_00_auth.setup.ts`                | Inayathulla | ✅ Done |
-| TC1  | AW01–AW02 | `tests/AW_01_02_login_authentication.spec.ts` | Inayathulla | ✅ Done |
-| TC2  | AW03      | `tests/AW_03_client_selection_integration.spec.ts` | Inayathulla | ✅ Done |
-| TC3  | AW04      | `tests/AW_04_agile_mapping_access.spec.ts` | Inayathulla | ✅ Done |
+| TC0  | Setup     | `tests/AW_00_auth.setup.ts`                | Inayathulla | Done |
+| TC1  | AW01–AW02 | `tests/AW_01_02_login_authentication.spec.ts` | Inayathulla | Done |
+| TC2  | AW03      | `tests/AW_03_client_selection_integration.spec.ts` | Inayathulla | Done |
+| TC3  | AW04      | `tests/AW_04_agile_mapping_access.spec.ts` | Inayathulla | Done |
 
 ---
 
