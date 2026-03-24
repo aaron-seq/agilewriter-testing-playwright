@@ -12,7 +12,7 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'setup',
-      testMatch: /auth\.setup\.ts/,
+      testMatch: /AW_00_auth\.setup\.ts/,
     },
     {
       name: 'smarter-tests',

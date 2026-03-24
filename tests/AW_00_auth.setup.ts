@@ -28,7 +28,7 @@ setup('authenticate via Microsoft SSO', async ({ page }) => {
 
   // Wait for popup to close and land on dashboard
   await page.waitForURL(`${process.env.BASE_URL}/**`, { timeout: 60000 });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Save session
   await page.context().storageState({ path: authFile });
