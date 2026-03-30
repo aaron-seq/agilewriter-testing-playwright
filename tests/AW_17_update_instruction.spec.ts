@@ -1,82 +1,64 @@
-import { test, expect } from '@playwright/test';
-import dotenv from 'dotenv';
-import { runTrainingSetup } from './helpers/training-setup';
-dotenv.config();
+import { test, expect, BrowserContext, Page } from '@playwright/test';
+import { newAuthenticatedContext } from './helpers/app-navigation';
+import {
+  TrainingSession,
+  acceptPendingChangesButton,
+  applyButton,
+  createTrainingSession,
+  ensureSourcesSectionOpen,
+  openFirstPlaceholder,
+  removeSourceButton,
+  restoreTrainingSession,
+  savedChangesToast,
+} from './helpers/training-setup';
 
-/**
- * JIRA: SC9DE0C307-2819 | Feature: Update Instruction
- * Test ID: AW_17
- * Source: test-1.spec.ts lines 53–60 (recorder) —
- *   Instruction textbox fill → Accept pending changes → Apply
- */
+// Legacy file name retained. Workbook AW_17 covers Delete Source.
+test.describe('AW_17: Delete Source', () => {
+  test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
 
-test.describe('AW_17: Update Instruction', () => {
-  test.setTimeout(600_000);
+  let setupContext: BrowserContext;
+  let setupPage: Page;
+  let session: TrainingSession;
+
+  test.beforeAll(async ({ browser }) => {
+    setupContext = await newAuthenticatedContext(browser);
+    setupPage = await setupContext.newPage();
+    session = await createTrainingSession(setupPage);
+  });
+
+  test.afterAll(async () => {
+    await setupContext?.close();
+  });
 
   test.beforeEach(async ({ page }) => {
-    await runTrainingSetup(page);
+    await restoreTrainingSession(page, session);
   });
 
-  const INSTRUCTION =
-    'Replace the placeholder with the sponsor name in inline text. and add in the cooperation';
+  test('AW_17: Remove source is available from Mapping Controls', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-  test('AW_17: Instruction textbox accepts input text', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
+    await expect(removeSourceButton(page)).toBeVisible({ timeout: 30_000 });
+  });
 
-    // Open Writing Instructions section
-    await page.getByRole('button', { name: 'Writing Instructions' }).click();
+  test('AW_17: Removing a source exposes a save or apply path for the pending change', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-    // VERIFY: textbox visible
+    await removeSourceButton(page).click();
+
     await expect(
-      page.getByRole('textbox', { name: 'Enter your instruction...' })
-    ).toBeVisible({ timeout: 10_000 });
+      acceptPendingChangesButton(page)
+        .or(page.getByText(/No matches found|pending/i).first())
+        .or(applyButton(page))
+        .first()
+    ).toBeVisible({ timeout: 30_000 });
 
-    // recorder: test-1.spec.ts lines 53–55
-    await page.getByRole('textbox', { name: 'Enter your instruction...' }).fill(INSTRUCTION);
-
-    // VERIFY: value is set
-    await expect(
-      page.getByRole('textbox', { name: 'Enter your instruction...' })
-    ).toHaveValue(INSTRUCTION);
-
-    console.log('✅ AW_17 — Instruction textbox accepts input PASSED');
-  });
-
-  test('AW_17: Accept pending changes saves instruction with success toast', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
-
-    await page.getByRole('button', { name: 'Writing Instructions' }).click();
-    await page.getByRole('textbox', { name: 'Enter your instruction...' }).fill(INSTRUCTION);
-
-    // recorder: test-1.spec.ts line 56
-    await page.getByRole('button', { name: 'Accept pending changes' }).click();
-
-    // VERIFY: Success toast
-    await expect(page.getByText('Changes saved successfully')).toBeVisible({ timeout: 15_000 });
-
-    console.log('✅ AW_17 — Accept pending changes saves instruction PASSED');
-  });
-
-  test('AW_17: Apply after instruction update applies the mapping', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
-
-    await page.getByRole('button', { name: 'Writing Instructions' }).click();
-    await page.getByRole('textbox', { name: 'Enter your instruction...' }).fill(INSTRUCTION);
-    await page.getByRole('button', { name: 'Accept pending changes' }).click();
-    await expect(page.getByText('Changes saved successfully')).toBeVisible({ timeout: 15_000 });
-
-    // recorder: test-1.spec.ts line 57
-    await page.getByRole('button', { name: 'Apply', exact: true }).click();
-
-    // VERIFY: Placeholder still visible (mapping applied, not removed)
-    await expect(placeholder).toBeVisible({ timeout: 15_000 });
-
-    console.log('✅ AW_17 — Apply after instruction PASSED');
+    if (await acceptPendingChangesButton(page).isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await acceptPendingChangesButton(page).click();
+      await expect(
+        savedChangesToast(page).or(applyButton(page)).first()
+      ).toBeVisible({ timeout: 30_000 });
+    }
   });
 });

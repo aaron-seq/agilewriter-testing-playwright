@@ -1,142 +1,224 @@
-// tests/helpers/training-setup.ts
-import { Page } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 import dotenv from 'dotenv';
+import { openAgileMapping, openDashboard } from './app-navigation';
+
 dotenv.config();
 
-const BASE_URL = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+const TRAINING_TIMEOUT = 2_100_000;
+const UI_TIMEOUT = 60_000;
 
-/**
- * Shared training setup helper used by AW_13 through AW_19.
- *
- * Pipeline:
- * 1. Navigate to BASE_URL
- * 2. SSO auth via Microsoft (cookie-based — completes instantly if session is valid)
- * 3. Open AgileMapping
- * 4. Fill output filename
- * 5. Select destination template  → CSR_Table_Trimmed.docx  (SharePoint > CSR folder)
- * 6. Select source documents      → Protocol Example (28Sep2023)_trimmed.docx
- * 7. Click Start Training
- * 8. Wait for workspace ready:
- *    a. URL transitions to /train?id=...
- *    b. "Connecting to SharePoint" loading message visible
- *    c. "Generating interactive document preview" visible
- *    d. "Create Final Doc" button visible           (primary workspace ready signal)
- *    e. "Apply All [Alt+Y]" button visible          (secondary workspace ready signal)
- *    f. First placeholder button visible            (confirms placeholders rendered)
- *
- * Timeouts:
- *   - Auth redirect:            60 seconds
- *   - URL transition to /train: 60 seconds
- *   - Loading workspace:        30 seconds
- *   - Doc preview generation:   60 seconds
- *   - Create Final Doc button: 120 seconds
- *   - Apply All button:       1_800_000ms (30 minutes) — training pipeline hard ceiling
- *   - Placeholder visible:      120 seconds (after Apply All appears)
- */
-export async function runTrainingSetup(page: Page): Promise<void> {
-  // ── 1. Navigate ──────────────────────────────────────────────────────────
-  await page.goto(BASE_URL);
-  await page.waitForLoadState('domcontentloaded');
+export interface TrainingSession {
+  trainUrl: string;
+  outputFileName: string;
+}
 
-  // ── 2. Auth ──────────────────────────────────────────────────────────────
-  // Cookie-based SSO — if user.json storageState is loaded, this resolves
-  // instantly without showing a popup. If session expired, it triggers SSO flow.
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+async function isVisible(locator: Locator, timeout = 2_000): Promise<boolean> {
+  return locator.isVisible({ timeout }).catch(() => false);
+}
 
-  await page.waitForURL(
-    (url: URL) =>
-      url.href.startsWith(BASE_URL) && !url.href.includes('/signin'),
-    { timeout: 60_000 }
-  );
-  await page.waitForLoadState('domcontentloaded');
+async function waitForPickerSearch(page: Page): Promise<void> {
+  await expect(
+    page.getByRole('textbox', { name: /Search files/i })
+  ).toBeVisible({ timeout: UI_TIMEOUT });
+}
 
-  // ── 3. Open AgileMapping ──────────────────────────────────────────────────
-  await page.getByRole('button', { name: 'Open AgileMapping' }).click();
+async function ensureWorkspaceHealthy(page: Page, step: string): Promise<void> {
+  const timeoutHeading = page.getByRole('heading', { name: /This site can.t be reached/i });
 
-  // ── 4. Fill output filename ───────────────────────────────────────────────
-  await page.getByRole('textbox', { name: 'Enter desired output filename' }).fill(
-    'AW_test_' + Date.now()
-  );
+  if (await isVisible(timeoutHeading)) {
+    throw new Error(`App is unavailable while ${step}: Chromium reached a network timeout page at ${page.url()}.`);
+  }
 
-  // ── 5. Select destination template ───────────────────────────────────────
-  // Source: test-1.spec.ts lines 13–20 (recorder)
-  await page.getByRole('button', { name: 'Select destination template [' }).click();
+  if (page.url().includes('/signin')) {
+    throw new Error(`Cached auth was lost while ${step}. Current URL: ${page.url()}.`);
+  }
+}
 
-  // Wait for search box to appear inside the template picker
-  await page.waitForSelector(
-    'input[aria-label="Search files"], [role="textbox"][aria-label="Search files"]',
-    { state: 'visible', timeout: 30_000 }
-  );
+export function firstPlaceholder(page: Page): Locator {
+  return page.getByRole('button', { name: /Sponsor.*Name/i }).first();
+}
 
-  await page.getByRole('textbox', { name: 'Search files' }).fill('CSR_Table_Trimmed.docx');
-  await page.getByRole('button', { name: 'Expand CSR' }).click();
-  await page.getByRole('checkbox', { name: 'Select CSR_Table_Trimmed.docx' }).check();
-  await page.getByRole('button', { name: 'Select [ENTER]' }).click();
+export function applyAllButton(page: Page): Locator {
+  return page.getByRole('button', { name: /Apply All/i });
+}
 
-  // ── 6. Select source documents ────────────────────────────────────────────
-  // Source: test-1.spec.ts lines 22–30 (recorder)
-  await page.getByRole('button', { name: 'Select source documents [Alt+' }).click();
+export function createFinalDocButton(page: Page): Locator {
+  return page.getByRole('button', { name: /Create\s*Final\s*Doc/i });
+}
 
-  // Wait for search box to appear inside the source picker
-  await page.waitForSelector(
-    'input[aria-label="Search files"], [role="textbox"][aria-label="Search files"]',
-    { state: 'visible', timeout: 30_000 }
-  );
+export function mappingControlsHeading(page: Page): Locator {
+  return page.getByRole('heading', { name: /Mapping Controls/i });
+}
 
-  await page.getByRole('textbox', { name: 'Search files' }).fill(
-    'Protocol Example (28Sep2023)_trimmed.docx'
-  );
-  await page.getByRole('button', { name: 'Expand Protocol' }).click();
-  await page.getByRole('checkbox', { name: 'Select Protocol Example (' }).check();
-  await page.getByRole('button', { name: 'Done [ENTER]' }).click();
+export function sourcesToggle(page: Page): Locator {
+  return page.getByRole('button', { name: /Sources/i });
+}
 
-  // ── 7. Start Training ─────────────────────────────────────────────────────
-  await page.getByRole('button', { name: 'Start Training [Alt+G]' }).click();
-  console.log('[training-setup] Start Training clicked, waiting for /train URL...');
+export function writingInstructionsToggle(page: Page): Locator {
+  return page.getByRole('button', { name: /Writing Instructions/i });
+}
 
-  // ── 8a. URL transition ────────────────────────────────────────────────────
-  await page.waitForURL(/.*\/train\?id=.*/, { timeout: 60_000 });
-  console.log('[training-setup] /train URL confirmed:', page.url());
+export function addSourceButton(page: Page): Locator {
+  return page.getByRole('button', { name: /Add source/i });
+}
 
-  // ── 8b. Connecting to SharePoint loading message ──────────────────────────
+export function removeSourceButton(page: Page): Locator {
+  return page.getByRole('button', { name: /Remove source/i }).first();
+}
+
+export function transformButton(page: Page): Locator {
+  return page.getByRole('button', { name: /^Transform$/i }).first();
+}
+
+export function applyButton(page: Page): Locator {
+  return page.getByRole('button', { name: /^Apply$/i }).first();
+}
+
+export function acceptPendingChangesButton(page: Page): Locator {
+  return page.getByRole('button', { name: /Accept pending changes/i });
+}
+
+export function instructionEditor(page: Page): Locator {
+  return page.locator('textarea, [contenteditable="true"], input[type="text"]').last();
+}
+
+export function transformEditor(page: Page): Locator {
+  return page.locator('textarea, [contenteditable="true"], input[type="text"]').last();
+}
+
+export function appliedMappingsToast(page: Page): Locator {
+  return page.getByText(/Applied all(?:\s+\d+)?\s+mappings?\.?/i).first();
+}
+
+export function savedChangesToast(page: Page): Locator {
+  return page.getByText(/Changes saved successfully|saved successfully/i).first();
+}
+
+export async function dismissNotificationIfVisible(page: Page): Promise<void> {
+  const dismissButton = page.getByRole('button', { name: /Dismiss notification/i });
+  if (await isVisible(dismissButton, 3_000)) {
+    await dismissButton.click();
+  }
+}
+
+export async function waitForWorkspaceReady(
+  page: Page,
+  options: { requireApplyAll?: boolean } = {}
+): Promise<void> {
+  await ensureWorkspaceHealthy(page, 'waiting for the training workspace');
+  await expect(page).toHaveURL(/.*\/train\?id=.*/, { timeout: UI_TIMEOUT });
+
+  const workspaceSignal = createFinalDocButton(page)
+    .or(applyAllButton(page))
+    .or(firstPlaceholder(page))
+    .or(page.getByRole('button', { name: /Show mapping controls/i }))
+    .or(page.getByRole('button', { name: /Show document list/i }));
+
+  await expect(workspaceSignal.first()).toBeVisible({ timeout: TRAINING_TIMEOUT });
+
+  await expect(
+    page.getByRole('button', { name: /Show mapping controls/i })
+      .or(page.getByRole('button', { name: /Show document list/i }))
+      .first()
+  ).toBeVisible({ timeout: UI_TIMEOUT });
+
+  if (options.requireApplyAll) {
+    await expect(createFinalDocButton(page)).toBeEnabled({ timeout: TRAINING_TIMEOUT });
+    await expect(applyAllButton(page)).toBeVisible({ timeout: UI_TIMEOUT });
+  }
+
+  await expect(firstPlaceholder(page)).toBeVisible({ timeout: UI_TIMEOUT });
+}
+
+async function selectDestinationTemplate(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Select destination template/i }).click();
+  await waitForPickerSearch(page);
+  await page.getByRole('textbox', { name: /Search files/i }).fill('CSR_Table_Trimmed.docx');
+  await page.getByRole('button', { name: /Expand CSR/i }).click();
+  await page.getByRole('checkbox', { name: /Select CSR_Table_Trimmed\.docx/i }).check();
+  await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
+}
+
+async function selectSourceDocuments(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Select source documents/i }).click();
+  await waitForPickerSearch(page);
   await page
-    .getByText(/Connecting to SharePoint/i)
-    .waitFor({ state: 'visible', timeout: 30_000 })
-    .catch(() => {
-      // Not always visible if loading is very fast — safe to skip
-      console.log('[training-setup] "Connecting to SharePoint" not seen — likely loaded fast');
-    });
+    .getByRole('textbox', { name: /Search files/i })
+    .fill('Protocol Example (28Sep2023)_trimmed.docx');
+  await page.getByRole('button', { name: /Expand Protocol/i }).click();
+  await page.getByRole('checkbox', { name: /Select Protocol Example/i }).check();
+  await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
+}
 
-  // ── 8c. Generating interactive document preview ───────────────────────────
-  await page
-    .getByText(/Generating interactive document preview/i)
-    .waitFor({ state: 'visible', timeout: 60_000 })
-    .catch(() => {
-      console.log('[training-setup] "Generating interactive document preview" not seen — likely loaded fast');
-    });
-  console.log('[training-setup] Document preview generation stage visible');
+export async function createTrainingSession(page: Page): Promise<TrainingSession> {
+  await openAgileMapping(page);
 
-  // ── 8d. Create Final Doc button ───────────────────────────────────────────
-  // Primary signal that the workspace UI has fully mounted
-  await page
-    .getByRole('button', { name: /Create\s*Final\s*Doc/i })
-    .waitFor({ state: 'visible', timeout: 120_000 });
-  console.log('[training-setup] "Create Final Doc" button visible — workspace mounted');
+  const outputFileName = `AW_test_${Date.now()}`;
+  await page.getByRole('textbox', { name: /Enter desired output filename/i }).fill(outputFileName);
 
-  // ── 8e. Apply All button ──────────────────────────────────────────────────
-  // Secondary signal — appears only after the training AI pipeline finishes.
-  // Hard ceiling: 30 minutes. Training is typically 5–10 min on this environment.
-  await page
-    .getByRole('button', { name: 'Apply All [Alt+Y]' })
-    .waitFor({ state: 'visible', timeout: 1_800_000 });
-  console.log('[training-setup] "Apply All" button visible — AI training pipeline complete');
+  await selectDestinationTemplate(page);
+  await selectSourceDocuments(page);
 
-  // ── 8f. First placeholder button ─────────────────────────────────────────
-  // Confirms placeholder buttons have rendered in the template preview panel.
-  // These are the buttons tests click to open Mapping Controls.
-  await page
-    .getByRole('button', { name: /Sponsor.*Name/ })
-    .first()
-    .waitFor({ state: 'visible', timeout: 120_000 });
-  console.log('[training-setup] Placeholder buttons visible — setup complete ✅');
+  await page.getByRole('button', { name: /Start Training/i }).click();
+  await waitForWorkspaceReady(page, { requireApplyAll: true });
+
+  return {
+    trainUrl: page.url(),
+    outputFileName,
+  };
+}
+
+export async function restoreTrainingSession(page: Page, session: TrainingSession): Promise<void> {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    await page.goto(session.trainUrl, { waitUntil: 'domcontentloaded' });
+
+    if (page.url().includes('/signin')) {
+      await openDashboard(page);
+      continue;
+    }
+
+    try {
+      await waitForWorkspaceReady(page, { requireApplyAll: true });
+      return;
+    } catch (error) {
+      if (attempt === 2 || !page.url().includes('/signin')) {
+        throw error;
+      }
+
+      await openDashboard(page);
+    }
+  }
+}
+
+export async function openFirstPlaceholder(page: Page): Promise<Locator> {
+  const placeholder = firstPlaceholder(page);
+  await expect(placeholder).toBeVisible({ timeout: UI_TIMEOUT });
+  await placeholder.click();
+  await expect(mappingControlsHeading(page)).toBeVisible({ timeout: UI_TIMEOUT });
+  return placeholder;
+}
+
+export async function ensureSourcesSectionOpen(page: Page): Promise<void> {
+  if (
+    !(await isVisible(transformButton(page), 2_000)) &&
+    !(await isVisible(addSourceButton(page), 2_000)) &&
+    !(await isVisible(removeSourceButton(page), 2_000))
+  ) {
+    await sourcesToggle(page).click();
+  }
+
+  await expect(
+    transformButton(page).or(addSourceButton(page)).or(removeSourceButton(page)).first()
+  ).toBeVisible({ timeout: UI_TIMEOUT });
+}
+
+export async function ensureWritingInstructionsOpen(page: Page): Promise<Locator> {
+  const editor = instructionEditor(page);
+
+  if (!(await isVisible(editor, 2_000))) {
+    await writingInstructionsToggle(page).click();
+  }
+
+  await expect(editor).toBeVisible({ timeout: UI_TIMEOUT });
+  return editor;
 }

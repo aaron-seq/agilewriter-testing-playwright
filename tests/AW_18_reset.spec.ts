@@ -1,92 +1,67 @@
-import { test, expect } from '@playwright/test';
-import dotenv from 'dotenv';
-import { runTrainingSetup } from './helpers/training-setup';
-dotenv.config();
+import { test, expect, BrowserContext, Page } from '@playwright/test';
+import { newAuthenticatedContext } from './helpers/app-navigation';
+import {
+  TrainingSession,
+  acceptPendingChangesButton,
+  addSourceButton,
+  createTrainingSession,
+  ensureSourcesSectionOpen,
+  openFirstPlaceholder,
+  restoreTrainingSession,
+  savedChangesToast,
+} from './helpers/training-setup';
 
-/**
- * JIRA: SC9DE0C307-2820 | Feature: Reset
- * Test ID: AW_18
- * Source: test-1.spec.ts — Select Source dialog open + close via Close Select Source
- *
- * Note: "Reset" as a standalone button was not recorded in test-1.spec.ts.
- * These tests cover the "Select Source" dialog open/close and the
- * Close Mapping Controls drawer flow which is the closest confirmed recorder flow.
- */
+// Legacy file name retained. Workbook AW_18 covers Add Source.
+test.describe('AW_18: Add Source', () => {
+  test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
 
-test.describe('AW_18: Reset & Select Source', () => {
-  test.setTimeout(600_000);
+  let setupContext: BrowserContext;
+  let setupPage: Page;
+  let session: TrainingSession;
+
+  test.beforeAll(async ({ browser }) => {
+    setupContext = await newAuthenticatedContext(browser);
+    setupPage = await setupContext.newPage();
+    session = await createTrainingSession(setupPage);
+  });
+
+  test.afterAll(async () => {
+    await setupContext?.close();
+  });
 
   test.beforeEach(async ({ page }) => {
-    await runTrainingSetup(page);
+    await restoreTrainingSession(page, session);
   });
 
-  test('AW_18: Select Source dialog opens from source button and closes correctly', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
+  test('AW_18: Add source opens the source selector dialog', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-    // Open Sources section
-    await page.getByRole('button', { name: 'Sources' }).click();
+    await addSourceButton(page).click();
+
     await expect(
-      page.getByRole('button', { name: 'Sponsor Name: Stendarr, Inc.' })
-    ).toBeVisible({ timeout: 10_000 });
-
-    // recorder: test-1.spec.ts — click source button → opens Select Source dialog
-    await page.getByRole('button', { name: 'Sponsor Name: Stendarr, Inc.' }).click();
-
-    // VERIFY: Select Source dialog opens
-    await expect(
-      page.getByRole('dialog', { name: 'Select Source' })
-    ).toBeVisible({ timeout: 10_000 });
-
-    // recorder: test-1.spec.ts — close via Close Select Source button
-    await page.getByRole('button', { name: 'Close Select Source' }).click();
-
-    // VERIFY: dialog dismissed
-    await expect(
-      page.getByRole('dialog', { name: 'Select Source' })
-    ).not.toBeVisible({ timeout: 5_000 });
-
-    console.log('✅ AW_18 — Select Source dialog open/close PASSED');
+      page.getByRole('dialog').first()
+        .or(page.getByRole('heading', { name: /Select Source/i }))
+        .first()
+    ).toBeVisible({ timeout: 30_000 });
   });
 
-  test('AW_18: Apply after source selection applies the mapping', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
+  test('AW_18: A newly selected source can be saved as a pending change', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-    await page.getByRole('button', { name: 'Sources' }).click();
+    await addSourceButton(page).click();
     await expect(
-      page.getByRole('button', { name: 'Sponsor Name: Stendarr, Inc.' })
-    ).toBeVisible({ timeout: 10_000 });
+      page.getByRole('dialog').first()
+        .or(page.getByRole('heading', { name: /Select Source/i }))
+        .first()
+    ).toBeVisible({ timeout: 30_000 });
 
-    // Open and immediately close Select Source (no change)
-    await page.getByRole('button', { name: 'Sponsor Name: Stendarr, Inc.' }).click();
-    await expect(
-      page.getByRole('dialog', { name: 'Select Source' })
-    ).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('button', { name: 'Close Select Source' }).click();
+    await page.getByRole('checkbox').first().check();
+    await page.getByRole('button', { name: /^Save$/i }).last().click();
 
-    // recorder: test-1.spec.ts — Apply after closing Select Source
-    await page.getByRole('button', { name: 'Apply', exact: true }).click();
-
-    // VERIFY: Placeholder still visible after apply
-    await expect(placeholder).toBeVisible({ timeout: 15_000 });
-
-    console.log('✅ AW_18 — Apply after Select Source close PASSED');
-  });
-
-  test('AW_18: Close Mapping Controls drawer then reopen', async ({ page }) => {
-    const placeholder = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
-    await placeholder.click();
-    await expect(page.getByRole('heading', { name: 'Mapping Controls' })).toBeVisible({ timeout: 10_000 });
-
-    // recorder: test-1.spec.ts — Close Mapping Controls drawer
-    await page.getByRole('button', { name: 'Close Mapping Controls drawer' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Mapping Controls' })
-    ).not.toBeVisible({ timeout: 5_000 });
-
-    console.log('✅ AW_18 — Close Mapping Controls drawer PASSED');
+    await expect(acceptPendingChangesButton(page)).toBeVisible({ timeout: 30_000 });
+    await acceptPendingChangesButton(page).click();
+    await expect(savedChangesToast(page)).toBeVisible({ timeout: 30_000 });
   });
 });

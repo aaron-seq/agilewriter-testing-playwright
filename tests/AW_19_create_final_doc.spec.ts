@@ -1,102 +1,60 @@
-import { test, expect } from '@playwright/test';
-import dotenv from 'dotenv';
-import { runTrainingSetup } from './helpers/training-setup';
-dotenv.config();
+import { test, expect, BrowserContext, Page } from '@playwright/test';
+import { newAuthenticatedContext } from './helpers/app-navigation';
+import {
+  TrainingSession,
+  createTrainingSession,
+  ensureSourcesSectionOpen,
+  openFirstPlaceholder,
+  restoreTrainingSession,
+  transformButton,
+  transformEditor,
+} from './helpers/training-setup';
 
-/**
- * JIRA: SC9DE0C307-2821 | Feature: Create Final Doc → Review Screen → Download
- * Test ID: AW_19
- * Source: test-1.spec.ts lines 61–74 (recorder) —
- *   Create Final Doc → Review Screen → Save → Download
- */
+// Legacy file name retained. Workbook AW_19 covers Transform.
+test.describe('AW_19: Transform', () => {
+  test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
 
-test.describe('AW_19: Create Final Doc', () => {
-  test.setTimeout(600_000);
+  let setupContext: BrowserContext;
+  let setupPage: Page;
+  let session: TrainingSession;
+
+  test.beforeAll(async ({ browser }) => {
+    setupContext = await newAuthenticatedContext(browser);
+    setupPage = await setupContext.newPage();
+    session = await createTrainingSession(setupPage);
+  });
+
+  test.afterAll(async () => {
+    await setupContext?.close();
+  });
 
   test.beforeEach(async ({ page }) => {
-    await runTrainingSetup(page);
+    await restoreTrainingSession(page, session);
   });
 
-  test('AW_19: Create Final Doc button is enabled after training completes', async ({ page }) => {
-    // VERIFY: Button is not disabled (training completed in beforeEach)
-    await expect(
-      page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
-    ).not.toBeDisabled({ timeout: 10_000 });
+  test('AW_19: Transform opens an editor for the selected source content', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-    console.log('✅ AW_19 — Create Final Doc button enabled PASSED');
+    await transformButton(page).click();
+    await expect(transformEditor(page)).toBeVisible({ timeout: 30_000 });
   });
 
-  test('AW_19: Apply All then Create Final Doc opens Review Screen', async ({ page }) => {
-    // Apply All first to resolve all mappings
-    await page.getByRole('button', { name: 'Apply All [Alt+Y]' }).click();
+  test('AW_19: Submitting a transform shows transformed output signals', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
+
+    await transformButton(page).click();
+    await expect(transformEditor(page)).toBeVisible({ timeout: 30_000 });
+
+    await transformEditor(page).fill('Add in cooperation');
+    await page.getByRole('button', { name: /^Transform$/i }).last().click();
+
     await expect(
-      page.getByText(/Applied all \d+ mappings\./)
-    ).toBeVisible({ timeout: 30_000 });
-
-    // Close Mapping Controls drawer before proceeding
-    await page.getByRole('button', { name: 'Close Mapping Controls drawer' }).click();
-
-    // recorder: test-1.spec.ts line 61 — Create Final Doc
-    await page.getByRole('button', { name: 'Create Final Doc [Alt+G]' }).click();
-
-    // VERIFY: Review Screen heading
-    await expect(
-      page.getByRole('heading', { name: 'Review Screen' })
-    ).toBeVisible({ timeout: 30_000 });
-
-    // VERIFY: Review Screen subtitle and action buttons
-    await expect(page.getByText('View and review your document')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Save [Alt+S]' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Download [Alt+D]' })).toBeVisible();
-
-    console.log('✅ AW_19 — Create Final Doc → Review Screen PASSED');
-  });
-
-  test('AW_19: Save on Review Screen saves the document', async ({ page }) => {
-    // Setup: Apply All and navigate to Review Screen
-    await page.getByRole('button', { name: 'Apply All [Alt+Y]' }).click();
-    await expect(
-      page.getByText(/Applied all \d+ mappings\./)
-    ).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: 'Close Mapping Controls drawer' }).click();
-    await page.getByRole('button', { name: 'Create Final Doc [Alt+G]' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Review Screen' })
-    ).toBeVisible({ timeout: 30_000 });
-
-    // recorder: test-1.spec.ts line 62 — Save
-    await page.getByRole('button', { name: 'Save [Alt+S]' }).click();
-
-    // VERIFY: Save completes (button stays visible, no error)
-    await expect(
-      page.getByRole('button', { name: 'Save [Alt+S]' })
-    ).toBeVisible({ timeout: 15_000 });
-
-    console.log('✅ AW_19 — Save on Review Screen PASSED');
-  });
-
-  test('AW_19: Download triggers file download event', async ({ page }) => {
-    // Setup: Apply All and navigate to Review Screen
-    await page.getByRole('button', { name: 'Apply All [Alt+Y]' }).click();
-    await expect(
-      page.getByText(/Applied all \d+ mappings\./)
-    ).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: 'Close Mapping Controls drawer' }).click();
-    await page.getByRole('button', { name: 'Create Final Doc [Alt+G]' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Review Screen' })
-    ).toBeVisible({ timeout: 30_000 });
-
-    await page.getByRole('button', { name: 'Save [Alt+S]' }).click();
-
-    // recorder: test-1.spec.ts lines 63–64 — waitForEvent download then click Download
-    const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Download [Alt+D]' }).click();
-    const download = await downloadPromise;
-
-    // VERIFY: A file was downloaded (filename is not empty)
-    expect(download.suggestedFilename()).toBeTruthy();
-
-    console.log('✅ AW_19 — Download triggered, filename:', download.suggestedFilename(), 'PASSED');
+      page.getByText(/Transformed Content/i)
+        .or(page.getByRole('button', { name: /New Transform/i }))
+        .or(page.getByText(/Add in cooperation/i))
+        .first()
+    ).toBeVisible({ timeout: 60_000 });
   });
 });

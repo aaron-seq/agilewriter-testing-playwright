@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
+import { openAgileMapping } from './helpers/app-navigation';
 dotenv.config();
 
 /**
@@ -19,21 +20,7 @@ dotenv.config();
  * 8. Verify navigation to the "Generate Document" page.
  */
 test('AW_11: Training Initialization', async ({ page }) => {
-  // Navigate to the base URL
-  await page.goto(process.env.BASE_URL as string);
-
-  // Authentication - Instantly completes if session is valid or cookies are present
-  // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-
-  // Wait for the redirect to complete and land on the dashboard
-  await page.waitForURL(
-    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
-    { timeout: 60000 }
-  );
-
-  // Action -> Click Open AgileMapping
-  await page.getByRole('button', { name: 'Open AgileMapping' }).click();
+  await openAgileMapping(page);
 
   // Action -> Enter desired output filename
   await page.getByRole('textbox', { name: 'Enter desired output filename' }).fill('test_AW_11_' + Date.now());

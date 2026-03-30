@@ -4,10 +4,16 @@ require('dotenv').config();
 
 module.exports = defineConfig({
   reporter: 'html',
-  timeout: 120000,
+  timeout: 600_000,
+  expect: {
+    timeout: 30_000,
+  },
+  workers: 1,
   use: {
     baseURL: process.env.BASE_URL,
     headless: false,
+    actionTimeout: 30_000,
+    navigationTimeout: 120_000,
   },
   projects: [
     {

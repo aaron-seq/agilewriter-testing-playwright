@@ -1,27 +1,10 @@
 import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
+import { openDashboard } from './helpers/app-navigation';
 dotenv.config();
 
-test('AW_03: Client Selection & Integration', async ({ page, context }) => {
-  // 1. Navigate to the application
-  await page.goto(`${process.env.BASE_URL}/signin`);
-
-  // 2. Click "Sign in with Microsoft"
-  // Since cookies are stored, this might login immediately or popup
-  const popupPromise = page.waitForEvent('popup').catch(() => null);
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-  const popup = await popupPromise;
-  if (popup) {
-    // Wait for the popup to close as authentication is usually completed there
-    await popup.waitForEvent('close');
-  }
-
-  // 3. Wait for redirect to dashboard
-  await page.waitForURL(
-    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
-    { timeout: 60000 }
-  );
-  await page.waitForLoadState('networkidle');
+test('AW_03: Client Selection & Integration', async ({ page }) => {
+  await openDashboard(page);
 
   // ACTION -> Click Client button & Select required client
   // Click "ORG" (Organization Selection)

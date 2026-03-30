@@ -1,27 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { openAgileMapping } from './helpers/app-navigation';
 
 test('AW_12_Source Document Handling', async ({ page }) => {
-  // Navigate to the base URL
-  await page.goto(process.env.BASE_URL as string);
-
-  // Authentication - Instantly completes if session is valid or cookies are present
-  // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-
-  // Wait for the redirect to complete and land on the dashboard
-  await page.waitForURL(
-    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
-    { timeout: 60_000 }
-  );
-
-  await expect(page.locator('h2')).toContainText('Services');
-
-  // Action -> Click Open AgileMapping
-  await expect(page.getByLabel('Open AgileMapping').getByRole('heading')).toContainText('AgileMapping');
-  await page.getByRole('button', { name: 'Open AgileMapping' }).click();
-
-  // Wait for Train Document screen
-  await expect(page.getByRole('heading')).toContainText('Train Document');
+  await openAgileMapping(page);
 
   await page.getByRole('textbox', { name: 'Enter desired output filename' }).click();
   await page.getByRole('textbox', { name: 'Enter desired output filename' }).fill('AW_12_test_001');

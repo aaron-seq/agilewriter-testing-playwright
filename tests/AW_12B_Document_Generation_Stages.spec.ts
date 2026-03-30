@@ -1,23 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { openAgileMapping } from './helpers/app-navigation';
 
 test('AW_12B_Document_Generation_Stages', async ({ page }) => {
-  await page.goto(process.env.BASE_URL as string);
-
-  // Playwright global session cache enabled, overriding manual SSO login
-
-  await page.waitForURL(
-    (url: URL) =>
-      url.href.startsWith(process.env.BASE_URL as string) &&
-      !url.href.includes('/signin'),
-    { timeout: 60_000 }
-  );
-
-  //await expect(page.locator('h2')).toContainText('Services');
-  await expect(
-    page.getByLabel('Open AgileMapping').getByRole('heading')
-  ).toContainText('AgileMapping');
-
-  await page.getByRole('button', { name: 'Open AgileMapping' }).click();
+  await openAgileMapping(page);
 
   await expect(
     page.getByRole('button', { name: 'Start Training [Alt+G]' })

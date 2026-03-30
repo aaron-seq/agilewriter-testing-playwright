@@ -1,28 +1,11 @@
 import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
+import { openAgileMapping } from './helpers/app-navigation';
 dotenv.config();
 
 test('AW_05: File Name Validation', async ({ page }) => {
-  // 1. Navigate to the dashboard (reusing auth state)
-  await page.goto(process.env.BASE_URL as string);
+  await openAgileMapping(page);
 
-  // Re-login button if needed (MSAL can be tricky with sessionStorage)
-  const signInButton = page.getByRole('button', { name: 'Microsoft Logo Sign In with' });
-  if (await signInButton.isVisible()) {
-    await signInButton.click();
-  }
-
-  // Wait for redirect to land on dashboard
-  await page.waitForURL(
-    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
-    { timeout: 60000 }
-  );
-  await page.waitForLoadState('networkidle');
-
-  // 2. Click Agile Mapping
-  await page.getByText(/Agile\s*Mapping/i).first().click();
-
-  // 3. Wait for the "Train Document" page
   await expect(page.getByRole('heading', { name: /Train\s*Document/i })).toBeVisible();
 
   const fileNameInput = page.getByPlaceholder('Enter desired output filename');

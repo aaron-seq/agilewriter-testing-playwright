@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
+import { openAgileMapping } from './helpers/app-navigation';
 dotenv.config();
 
 /**
@@ -28,21 +29,7 @@ test.describe('AW_08–AW_10: Source Selection & Preview', () => {
   // CANONICAL beforeEach — DO NOT MODIFY
   // ─────────────────────────────────────────────────────────────────────────
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/`);
-    await page.waitForLoadState('domcontentloaded');
-
-    await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-
-    await page.waitForURL(
-      (url: URL) => url.href.startsWith(BASE_URL) && !url.href.includes('/signin'),
-      { timeout: 60000 }
-    );
-    await page.waitForLoadState('domcontentloaded');
-
-    await page.getByRole('button', { name: 'Open AgileMapping' }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Train Document' })
-    ).toBeVisible({ timeout: 15000 });
+    await openAgileMapping(page);
   });
 
   // ─────────────────────────────────────────────────────────────────────────
