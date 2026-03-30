@@ -16,6 +16,7 @@ import {
 // Legacy file name retained. Workbook AW_14 covers Mapping Controls.
 test.describe('AW_14: Mapping Controls', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
+  test.setTimeout(2_100_000);
 
   let setupContext: BrowserContext;
   let setupPage: Page;

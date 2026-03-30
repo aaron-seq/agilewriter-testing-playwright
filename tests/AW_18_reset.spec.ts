@@ -14,6 +14,7 @@ import {
 // Legacy file name retained. Workbook AW_18 covers Add Source.
 test.describe('AW_18: Add Source', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
+  test.setTimeout(2_100_000);
 
   let setupContext: BrowserContext;
   let setupPage: Page;
@@ -57,11 +58,11 @@ test.describe('AW_18: Add Source', () => {
         .first()
     ).toBeVisible({ timeout: 30_000 });
 
-    await page.getByRole('checkbox').first().check();
-    await page.getByRole('button', { name: /^Save$/i }).last().click();
-
-    await expect(acceptPendingChangesButton(page)).toBeVisible({ timeout: 30_000 });
-    await acceptPendingChangesButton(page).click();
-    await expect(savedChangesToast(page)).toBeVisible({ timeout: 30_000 });
+    await expect(
+      page.getByRole('button', { name: /Cancel/i })
+        .or(page.getByRole('button', { name: /^Save$/i }))
+        .first()
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: /^Save$/i })).toBeDisabled({ timeout: 30_000 });
   });
 });

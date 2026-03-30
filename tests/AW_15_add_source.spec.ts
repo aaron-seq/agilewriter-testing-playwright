@@ -11,6 +11,7 @@ import {
 // Legacy file name retained. Workbook AW_15 covers document generation stages.
 test.describe('AW_15: Document Generation Stages', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
+  test.setTimeout(2_100_000);
 
   let setupContext: BrowserContext;
   let setupPage: Page;

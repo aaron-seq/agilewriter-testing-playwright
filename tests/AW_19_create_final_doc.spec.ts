@@ -13,6 +13,7 @@ import {
 // Legacy file name retained. Workbook AW_19 covers Transform.
 test.describe('AW_19: Transform', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
+  test.setTimeout(2_100_000);
 
   let setupContext: BrowserContext;
   let setupPage: Page;

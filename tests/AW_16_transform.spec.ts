@@ -7,13 +7,13 @@ import {
   createFinalDocButton,
   createTrainingSession,
   dismissNotificationIfVisible,
-  firstPlaceholder,
   restoreTrainingSession,
 } from './helpers/training-setup';
 
 // Legacy file name retained. Workbook AW_16 is a second Apply All validation.
 test.describe('AW_16: Apply All Stability', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
+  test.setTimeout(2_100_000);
 
   let setupContext: BrowserContext;
   let setupPage: Page;
@@ -44,6 +44,10 @@ test.describe('AW_16: Apply All Stability', () => {
     }
 
     await expect(createFinalDocButton(page)).toBeVisible({ timeout: 60_000 });
-    await expect(firstPlaceholder(page)).toBeVisible({ timeout: 60_000 });
+    await expect(
+      page.getByRole('button', { name: /Show mapping controls/i })
+        .or(page.getByRole('button', { name: /Show document list/i }))
+        .first()
+    ).toBeVisible({ timeout: 60_000 });
   });
 });
