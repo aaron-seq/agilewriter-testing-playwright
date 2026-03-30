@@ -6,8 +6,8 @@ dotenv.config();
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
 setup('authenticate via Microsoft SSO', async ({ page }) => {
-
-  await page.goto(`${process.env.BASE_URL}/signin`);
+  const baseUrl = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+  await page.goto(`${baseUrl}/signin`);
 
   // SSO opens as a popup
   const popupPromise = page.waitForEvent('popup');
@@ -27,7 +27,7 @@ setup('authenticate via Microsoft SSO', async ({ page }) => {
   await popup.getByRole('button', { name: 'Yes' }).click();
 
   // Wait for popup to close and land on dashboard
-  await page.waitForURL(`${process.env.BASE_URL}/**`, { timeout: 60000 });
+  await page.waitForURL(`${baseUrl}/**`, { timeout: 60000 });
   await page.waitForLoadState('domcontentloaded');
 
   // Save session

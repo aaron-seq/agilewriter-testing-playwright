@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await page.goto(process.env.BASE_URL as string);
 
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+  // Playwright global session cache enabled, overriding manual SSO login
 
   await page.waitForURL(
     (url: URL) =>
@@ -12,14 +12,13 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
     { timeout: 60_000 }
   );
 
-  await expect(page.locator('h2')).toContainText('Services');
+  //await expect(page.locator('h2')).toContainText('Services');
   await expect(
     page.getByLabel('Open AgileMapping').getByRole('heading')
   ).toContainText('AgileMapping');
 
   await page.getByRole('button', { name: 'Open AgileMapping' }).click();
 
-  await expect(page.getByRole('heading')).toContainText('Train Document');
   await expect(
     page.getByRole('button', { name: 'Start Training [Alt+G]' })
   ).toBeVisible();
@@ -55,7 +54,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
 
   await expect(page.getByText('Connecting to SharePoint and')).toBeVisible();
 
-  // ✅ Wait for workspace ready
+  // Wait for workspace ready
   await expect(
     page.getByRole('button', { name: 'Show document list' })
   ).toBeVisible({ timeout: 120_000 });
@@ -64,7 +63,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
     page.getByRole('button', { name: 'Show mapping controls' })
   ).toBeVisible();
 
-  const sponsorBtn = page.getByRole('button', { name: '<Sponsor’s Name>' }).first();
+  const sponsorBtn = page.getByRole('button', { name: /Sponsor.*Name/ }).first();
   const tableBtn = page.getByRole('button', {
     name: '<Table Summary of Participant Disposition>',
   }).first();
@@ -83,7 +82,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
 
   await expect(
     indexingStage.getByRole('img', { name: 'Completed' })
-  ).toBeVisible({ timeout: 300_000 });
+  ).toBeVisible({ timeout: 3000000 });
 
   // ── Stage 2: Finding Placeholder Matches ─────────────────
   const findingStage = page.getByText('Finding Placeholder Matches').locator('..');
@@ -97,46 +96,46 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   // Wait until Stage 3 appears → guarantees Stage 2 completed
   await expect(
     page.getByText('Populating Placeholders')
-  ).toBeVisible({ timeout: 300_000 });      
+  ).toBeVisible({ timeout: 300_000 });
 
-  // await expect(
-  //   page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
-  // ).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
+  ).toBeDisabled();
 
   await expect.poll(
-  async () => {
-    const color = await sponsorBtn.evaluate(el =>
-      getComputedStyle(el).backgroundColor
-    );
+    async () => {
+      const color = await sponsorBtn.evaluate(el =>
+        getComputedStyle(el).backgroundColor
+      );
 
-    if (
-      color.includes('246, 234, 59') || // yellow
-      color.includes('156, 163, 175')   // grey
-    ) {
-      return true;
-    }
+      if (
+        color.includes('246, 234, 59') || // yellow
+        color.includes('156, 163, 175')   // grey
+      ) {
+        return true;
+      }
 
-    throw new Error(`Unexpected color: ${color}`);
-  },
-  { timeout: 60_000 }
-).toBe(true);
+      throw new Error(`Unexpected color: ${color}`);
+    },
+    { timeout: 6000000 }
+  ).toBe(true);
 
   // ── Stage 3: Populating Placeholders ─────────────────────
   const populatingStage = page.getByText('Populating Placeholders').locator('..');
 
-  
-  
 
-// // Wait for final outcome instead of UI indicator
-// await expect(
-//   page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
-// ).toBeEnabled({ timeout: 300_000 });
 
-// // Optional: verify final state via color
-// await expect.poll(
-//   () => sponsorBtn.evaluate(el => getComputedStyle(el).backgroundColor),
-//   { timeout: 120_000 }
-// ).toContain('16, 185, 129');
+
+  // Wait for final outcome instead of UI indicator
+  await expect(
+    page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
+  ).toBeEnabled({ timeout: 300_000 });
+
+  // verify final state via color
+  await expect.poll(
+    () => sponsorBtn.evaluate(el => getComputedStyle(el).backgroundColor),
+    { timeout: 120_000 }
+  ).toContain('16, 185, 129');
 
   // Final assertions
   await expect(

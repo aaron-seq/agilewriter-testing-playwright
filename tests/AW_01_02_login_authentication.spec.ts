@@ -15,7 +15,7 @@ test('AW_01-AW_02: Login & Authentication', async ({ page }) => {
   const signInButton = page.getByRole('button', { name: 'Microsoft Logo Sign In with' });
   await expect(signInButton).toBeVisible();
 
-  // Stage 2: Action - Click "Sign in with Microsoft"
+  // Stage 2: Action - Click "Sign in await page.getByRole('checkbox', { name: 'Select CSR_Template_20FEB2026' }).check();with Microsoft"
   const popupPromise = page.waitForEvent('popup');
   await signInButton.click();
   const popup = await popupPromise;
@@ -38,7 +38,7 @@ test('AW_01-AW_02: Login & Authentication', async ({ page }) => {
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
     { timeout: 60000 }
   );
-  
+
   await page.waitForLoadState('networkidle');
 
   // Explicit assertion to check we are no longer on the signin page.

@@ -25,7 +25,7 @@ test('AW_11: Training Initialization', async ({ page }) => {
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
   await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-  
+
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
@@ -67,12 +67,12 @@ test('AW_11: Training Initialization', async ({ page }) => {
   // The URL should transition to /train with an ID
   await expect(page).toHaveURL(/.*\/train\?id=.*/, { timeout: 60000 });
   console.log('Navigation to /train successful. URL:', page.url());
-  
+
   // Verify -> The page is loading or has loaded the workspace
   // Initially, it shows "Loading Training Workspace"
   await expect(page.getByRole('heading', { name: /Loading\s*Training\s*Workspace/i })).toBeVisible({ timeout: 30000 });
   console.log('Headings found, waiting for document preview generation...');
-  
+
   // Wait for the loading to progress (optional, but good for stability)
   await expect(page.getByText(/Generating\s*interactive\s*document\s*preview/i)).toBeVisible({ timeout: 60000 });
   console.log('Generating interactive document preview visible...');
@@ -87,7 +87,7 @@ test('AW_11: Training Initialization', async ({ page }) => {
   // but contain "Sources" and "Mapping" text respectively.
   await expect(page.getByRole('button', { name: /Show\s*document\s*list/i })).toBeVisible({ timeout: 60000 });
   await expect(page.getByRole('button', { name: /Show\s*mapping\s*controls/i })).toBeVisible({ timeout: 10000 });
-  
+
   // Optional: Double check by text if needed
   await expect(page.getByText(/Sources/i).first()).toBeVisible();
   await expect(page.getByText(/Mapping/i).first()).toBeVisible();

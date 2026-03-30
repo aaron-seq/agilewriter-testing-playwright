@@ -27,17 +27,17 @@ test('AW_03: Client Selection & Integration', async ({ page, context }) => {
   // Click "ORG" (Organization Selection)
   await page.getByRole('button', { name: 'ORG' }).click();
 
-  
+
   // Click the client mapping link. This triggers a SharePoint popup.
   const sharepointPagePromise = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'Organization Default Use' }).getByRole('link').click();
-  
+
   // VALIDATE -> Validate SharePoint integration for selected client
   const sharepointPage = await sharepointPagePromise;
-  
+
   // Wait for the SharePoint page to load
   await sharepointPage.waitForLoadState('domcontentloaded');
-  
+
   // We check the title indicator in SharePoint to validate it opened the expected site
   await expect(sharepointPage.locator('#DeltaPlaceHolderPageTitleInTitleArea')).toContainText('My Organization');
 

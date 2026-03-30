@@ -12,7 +12,7 @@ test('AW_04: Agile Mapping Access', async ({ page }) => {
   // the app asks us to "Sign In" again. Since your Microsoft cookies ARE saved, clicking this button 
   // instantly completes the login without asking for an email/password.
   await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-  
+
   // Wait for the SSO redirect to complete and land on the dashboard
   await page.waitForURL(
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
@@ -31,7 +31,7 @@ test('AW_04: Agile Mapping Access', async ({ page }) => {
   // Verify -> Train Document page is displayed
   // Checking for a heading that says "Train Document". Alternatively, we could check the URL.
   await expect(page.getByRole('heading', { name: /Train\s*Document/i })).toBeVisible();
-  
+
   // Optional: Also assert that the URL contains the expected path (update '/train-document' if it's different)
   // await expect(page).toHaveURL(/.*train-document/);
 });

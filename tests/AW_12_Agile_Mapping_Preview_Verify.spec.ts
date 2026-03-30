@@ -7,7 +7,7 @@ test('AW_12_Source Document Handling', async ({ page }) => {
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
   await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-  
+
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
@@ -77,7 +77,7 @@ test('AW_12_Source Document Handling', async ({ page }) => {
   // Training may take time
   await page.waitForSelector('text=Connecting to SharePoint and', {
     state: 'visible',
- 
+
   });
   await expect(page.getByText('Connecting to SharePoint and')).toBeVisible();
 
@@ -88,7 +88,7 @@ test('AW_12_Source Document Handling', async ({ page }) => {
   await expect(page.getByText('Generating interactive')).toBeVisible();
 
   // Wait for document list to be available
-  
+
   await expect(page.getByRole('button', { name: 'Show document list' })).toBeVisible();
   await expect(page.getByLabel('Show document list')).toContainText('Sources');
   await page.getByRole('button', { name: 'Show document list' }).click();
@@ -102,12 +102,12 @@ test('AW_12_Source Document Handling', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Show Mock_CSR_Protocol.docx' }).click();
 
-  
+
   await expect(page.getByRole('button', { name: 'word icon Mock_CSR_Protocol.' })).toBeVisible();
   await page.waitForSelector('text=Source Preview', {
-  state: 'visible',
-  timeout: 60_000
-});
+    state: 'visible',
+    timeout: 60_000
+  });
 
   await expect(page.getByText('Source Preview')).toBeVisible();
   await page.locator('.docx-preview__canvas').click();
@@ -115,9 +115,9 @@ test('AW_12_Source Document Handling', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'word icon Mock_CSR Key' })).toBeVisible();
   await page.getByText('Source Preview').click();
   await page.waitForSelector('text=Source Preview', {
-  state: 'visible',
-  timeout: 60_000
-});
+    state: 'visible',
+    timeout: 60_000
+  });
 
   await expect(page.getByText('Source Preview')).toBeVisible();
   await expect(page.locator('.docx-preview__canvas')).toBeVisible();
@@ -127,11 +127,11 @@ test('AW_12_Source Document Handling', async ({ page }) => {
   await page.getByRole('button', { name: 'word icon CSR_Template_20FEB2026.docx' }).click();
 
   await page.waitForSelector('text=Template Preview', {
-  state: 'visible',
-  timeout: 60_000
-});
+    state: 'visible',
+    timeout: 60_000
+  });
   await expect(page.getByText('Template Preview')).toBeVisible();
   await expect(page.getByText('<Sponsor\'s Name> Clinical Study Report Clinical Study Report Page 16 of <')).toBeVisible();
-  
+
   await page.getByRole('button', { name: 'Close Documents drawer' }).click();
 });
