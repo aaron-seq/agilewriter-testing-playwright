@@ -2,18 +2,16 @@ import { test, expect, BrowserContext, Page } from '@playwright/test';
 import { newAuthenticatedContext } from './helpers/app-navigation';
 import {
   TrainingSession,
-  acceptPendingChangesButton,
-  applyButton,
   createTrainingSession,
-  ensureSourcesSectionOpen,
+  ensureWritingInstructionsOpen,
+  instructionEditor,
   openFirstPlaceholder,
-  removeSourceButton,
   restoreTrainingSession,
-  savedChangesToast,
 } from './helpers/training-setup';
 
-// Legacy file name retained. Workbook AW_17 covers Delete Source.
-test.describe('AW_17: Delete Source', () => {
+const UPDATED_INSTRUCTION = 'Use the sponsor legal name exactly as written in the source.';
+
+test.describe('AW_17: Update Instruction', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
   test.setTimeout(2_100_000);
 
@@ -35,31 +33,24 @@ test.describe('AW_17: Delete Source', () => {
     await restoreTrainingSession(page, session);
   });
 
-  test('AW_17: Remove source is available from Mapping Controls', async ({ page }) => {
+  test('AW_17: Writing Instructions editor accepts rewritten instruction text', async ({ page }) => {
     await openFirstPlaceholder(page);
-    await ensureSourcesSectionOpen(page);
+    const editor = await ensureWritingInstructionsOpen(page);
 
-    await expect(removeSourceButton(page)).toBeVisible({ timeout: 30_000 });
+    await editor.fill(UPDATED_INSTRUCTION);
+    await expect(editor).toHaveValue(UPDATED_INSTRUCTION, { timeout: 30_000 });
   });
 
-  test('AW_17: Removing a source exposes a save or apply path for the pending change', async ({ page }) => {
+  test('AW_17: Preview opens after the instruction is updated', async ({ page }) => {
     await openFirstPlaceholder(page);
-    await ensureSourcesSectionOpen(page);
+    const editor = await ensureWritingInstructionsOpen(page);
 
-    await removeSourceButton(page).click();
+    await editor.fill(UPDATED_INSTRUCTION);
+    await expect(instructionEditor(page)).toHaveValue(UPDATED_INSTRUCTION, { timeout: 30_000 });
 
-    await expect(
-      acceptPendingChangesButton(page)
-        .or(page.getByText(/No matches found|pending/i).first())
-        .or(applyButton(page))
-        .first()
-    ).toBeVisible({ timeout: 30_000 });
+    await page.getByRole('button', { name: /^Preview$/i }).first().click();
 
-    if (await acceptPendingChangesButton(page).isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await acceptPendingChangesButton(page).click();
-      await expect(
-        savedChangesToast(page).or(applyButton(page)).first()
-      ).toBeVisible({ timeout: 30_000 });
-    }
+    await expect(page.getByRole('heading', { name: /Preview/i })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/CONTENT/i)).toBeVisible({ timeout: 30_000 });
   });
 });

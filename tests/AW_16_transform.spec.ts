@@ -2,16 +2,15 @@ import { test, expect, BrowserContext, Page } from '@playwright/test';
 import { newAuthenticatedContext } from './helpers/app-navigation';
 import {
   TrainingSession,
-  applyAllButton,
-  appliedMappingsToast,
-  createFinalDocButton,
   createTrainingSession,
-  dismissNotificationIfVisible,
+  ensureSourcesSectionOpen,
+  openFirstPlaceholder,
   restoreTrainingSession,
+  transformButton,
+  transformEditor,
 } from './helpers/training-setup';
 
-// Legacy file name retained. Workbook AW_16 is a second Apply All validation.
-test.describe('AW_16: Apply All Stability', () => {
+test.describe('AW_16: Transform', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
   test.setTimeout(2_100_000);
 
@@ -31,22 +30,30 @@ test.describe('AW_16: Apply All Stability', () => {
 
   test.beforeEach(async ({ page }) => {
     await restoreTrainingSession(page, session);
-    await dismissNotificationIfVisible(page);
   });
 
-  test('AW_16: Apply All can be triggered without destabilizing the generated workspace', async ({ page }) => {
-    await expect(applyAllButton(page)).toBeVisible({ timeout: 120_000 });
+  test('AW_16: Transform opens an editor for the selected source content', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
 
-    if (await applyAllButton(page).isEnabled().catch(() => false)) {
-      await applyAllButton(page).click();
-      await expect(appliedMappingsToast(page)).toBeVisible({ timeout: 120_000 });
-      await dismissNotificationIfVisible(page);
-    }
+    await transformButton(page).click();
+    await expect(transformEditor(page)).toBeVisible({ timeout: 30_000 });
+  });
 
-    await expect(createFinalDocButton(page)).toBeVisible({ timeout: 60_000 });
+  test('AW_16: Submitting a transform shows transformed output signals', async ({ page }) => {
+    await openFirstPlaceholder(page);
+    await ensureSourcesSectionOpen(page);
+
+    await transformButton(page).click();
+    await expect(transformEditor(page)).toBeVisible({ timeout: 30_000 });
+
+    await transformEditor(page).fill('Add in cooperation');
+    await page.getByRole('button', { name: /^Transform$/i }).last().click();
+
     await expect(
-      page.getByRole('button', { name: /Show mapping controls/i })
-        .or(page.getByRole('button', { name: /Show document list/i }))
+      page.getByText(/Transformed Content/i)
+        .or(page.getByRole('button', { name: /New Transform/i }))
+        .or(page.getByText(/Add in cooperation/i))
         .first()
     ).toBeVisible({ timeout: 60_000 });
   });

@@ -2,17 +2,15 @@ import { test, expect, BrowserContext, Page } from '@playwright/test';
 import { newAuthenticatedContext } from './helpers/app-navigation';
 import {
   TrainingSession,
-  acceptPendingChangesButton,
-  addSourceButton,
   createTrainingSession,
-  ensureSourcesSectionOpen,
+  ensureWritingInstructionsOpen,
   openFirstPlaceholder,
   restoreTrainingSession,
-  savedChangesToast,
 } from './helpers/training-setup';
 
-// Legacy file name retained. Workbook AW_18 covers Add Source.
-test.describe('AW_18: Add Source', () => {
+const UPDATED_INSTRUCTION = 'Use the sponsor legal name exactly as written in the source.';
+
+test.describe('AW_18: Reset', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: 2_100_000 });
   test.setTimeout(2_100_000);
 
@@ -34,35 +32,16 @@ test.describe('AW_18: Add Source', () => {
     await restoreTrainingSession(page, session);
   });
 
-  test('AW_18: Add source opens the source selector dialog', async ({ page }) => {
+  test('AW_18: Reset restores the original instruction after a temporary edit', async ({ page }) => {
     await openFirstPlaceholder(page);
-    await ensureSourcesSectionOpen(page);
+    const editor = await ensureWritingInstructionsOpen(page);
 
-    await addSourceButton(page).click();
+    await editor.fill(UPDATED_INSTRUCTION);
+    await expect(editor).toHaveValue(UPDATED_INSTRUCTION, { timeout: 30_000 });
 
-    await expect(
-      page.getByRole('dialog').first()
-        .or(page.getByRole('heading', { name: /Select Source/i }))
-        .first()
-    ).toBeVisible({ timeout: 30_000 });
-  });
+    await page.getByRole('button', { name: /^Reset$/i }).first().click();
 
-  test('AW_18: A newly selected source can be saved as a pending change', async ({ page }) => {
-    await openFirstPlaceholder(page);
-    await ensureSourcesSectionOpen(page);
-
-    await addSourceButton(page).click();
-    await expect(
-      page.getByRole('dialog').first()
-        .or(page.getByRole('heading', { name: /Select Source/i }))
-        .first()
-    ).toBeVisible({ timeout: 30_000 });
-
-    await expect(
-      page.getByRole('button', { name: /Cancel/i })
-        .or(page.getByRole('button', { name: /^Save$/i }))
-        .first()
-    ).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole('button', { name: /^Save$/i })).toBeDisabled({ timeout: 30_000 });
+    await expect(editor).not.toHaveValue(UPDATED_INSTRUCTION, { timeout: 30_000 });
+    await expect(editor).toHaveValue(/Replace the .* sponsor(?:'s)? name/i, { timeout: 30_000 });
   });
 });

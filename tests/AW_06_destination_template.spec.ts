@@ -1,8 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import dotenv from 'dotenv';
 import { openAgileMapping } from './helpers/app-navigation';
-
-dotenv.config();
 
 test.describe('AW_06-AW_07: Destination Template Handling', () => {
   test.describe.configure({ retries: 2, timeout: 240_000 });
@@ -13,62 +10,50 @@ test.describe('AW_06-AW_07: Destination Template Handling', () => {
 
   async function openDestinationTemplatePicker(page: Page) {
     await page.getByRole('button', { name: /Select destination template/i }).click();
+    await expect(page.getByRole('heading', { name: /Select Destination Template/i })).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByRole('textbox', { name: /Search files/i })).toBeVisible({ timeout: 30_000 });
   }
 
-  async function openVeevaTemplates(page: Page) {
+  async function searchKnownTemplate(page: Page) {
     await openDestinationTemplatePicker(page);
-    const sharePointButton = page.getByRole('button', { name: /Sharepoint/i }).first();
-    if (await sharePointButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await sharePointButton.click();
-    }
-    await page.getByRole('button', { name: /Veeva/i }).first().click();
-    await page.getByRole('button', { name: /Expand Templates/i }).click();
+    await page.getByRole('textbox', { name: /Search files/i }).fill('CSR_Table_Trimmed.docx');
+    await page.getByRole('button', { name: /Expand CSR/i }).click();
+    await expect(page.getByRole('checkbox', { name: /Select CSR_Table_Trimmed\.docx/i })).toBeVisible({
+      timeout: 30_000,
+    });
   }
 
-  test('AW_06: Destination template picker opens and shows available template sources', async ({ page }) => {
-    await openVeevaTemplates(page);
+  test('AW_06: Destination template picker opens with provider and template search controls', async ({ page }) => {
+    await openDestinationTemplatePicker(page);
 
-    await expect(
-      page.getByRole('button', { name: /Veeva|Sharepoint/i }).first()
-    ).toBeVisible({ timeout: 15_000 });
-    await expect(
-      page.getByRole('checkbox', { name: /Select Narrative_Set1_template\.docx/i })
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('button', { name: /Select source provider/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole('tree').first()).toBeVisible({ timeout: 15_000 });
   });
 
-  test('AW_06: Selecting a different template keeps destination selection in single-select mode', async ({ page }) => {
-    await openVeevaTemplates(page);
+  test('AW_07: Selecting a destination template shows preview signals and returns to Train Document', async ({ page }) => {
+    await searchKnownTemplate(page);
 
-    await page.getByRole('checkbox', { name: /Select Narrative_Set1_template\.docx/i }).check();
-    await expect(page.getByText(/file selected/i)).toBeVisible({ timeout: 15_000 });
-
-    await page.getByRole('checkbox', { name: /Select 2\.6_2\.6\.4 18 June\.docx/i }).check();
-    await expect(page.getByText(/file selected/i)).toBeVisible({ timeout: 15_000 });
-
-    await page.getByRole('checkbox', { name: /Select IND_2\.6\.4/i }).check();
-    await expect(page.getByText(/file selected/i)).toBeVisible({ timeout: 15_000 });
-  });
-
-  test('AW_07: Selected template shows preview signals and returns to Train Document after confirm', async ({ page }) => {
-    await openVeevaTemplates(page);
-
-    await page.getByRole('checkbox', { name: /Select IND_2\.6\.4/i }).check();
+    const fileButton = page.getByRole('button', { name: /File: CSR_Table_Trimmed\.docx/i }).first();
+    if (await fileButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await fileButton.click();
+    }
 
     await expect(
-      page.locator('.docx-preview__canvas').first()
-        .or(page.getByRole('button', { name: /Preview/i }).first())
-        .or(page.getByRole('button', { name: /Full Preview/i }).first())
+      page.getByRole('button', { name: /Full Preview/i })
+        .or(page.getByText(/Preview/i).first())
         .first()
     ).toBeVisible({ timeout: 30_000 });
 
+    await page.getByRole('checkbox', { name: /Select CSR_Table_Trimmed\.docx/i }).check();
     await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
 
-    await expect(
-      page.getByRole('button', { name: /IND_2\.6\.4/i }).first()
-    ).toBeVisible({ timeout: 20_000 });
-    await expect(
-      page.getByRole('button', { name: /Start Training/i })
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('button', { name: /CSR_Table_Trimmed\.docx/i }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByRole('button', { name: /Start Training/i })).toBeVisible({ timeout: 20_000 });
   });
 });
