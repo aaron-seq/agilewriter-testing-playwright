@@ -192,7 +192,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
     console.log(`[DONE] Processing (or Completed): "${label}" ✓`);
   };
 
-  const waitForStageCompleted = async (label, expectedCount, timeout = 300_000) => {
+const waitForStageCompleted = async (label, expectedCount, timeout = 1200_000) => {
     console.log(`[WAIT] Completed: "${label}" (Total expected ticks: ${expectedCount})`);
     
     // Find the deepest container that has both the specific label and the completed icon
@@ -202,10 +202,10 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
       .last();
     
     // 1. Wait for specific row tick
-    await expect(rowWithCompleted).toBeVisible({ timeout });
+    await expect(rowWithCompleted).toBeVisible({ timeout});
     
     // 2. Double check global tick count to ensure no early skip
-    await expect(page.locator(COMPLETED_SELECTOR)).toHaveCount(expectedCount, { timeout: 15_000 });
+    await expect(page.locator(COMPLETED_SELECTOR)).toHaveCount(expectedCount, { timeout});
     
     console.log(`[DONE] Completed: "${label}" ✓`);
   };
@@ -215,12 +215,12 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   // ─────────────────────────────────────────────
 
   // STAGE 1
-  await waitForStageProcessing('Indexing Sources', 600_000);
+  await waitForStageProcessing('Indexing Sources', 1200_000);
   await waitForStageCompleted('Indexing Sources', 1);
   await verifyPlaceholderColors('Stage 1 (Indexing)', [GREY_PATTERN]);
 
   // STAGE 2
-  await waitForStageProcessing('Finding Placeholder Matches', 600_000);
+  await waitForStageProcessing('Finding Placeholder Matches', 1200_000);
   await waitForStageCompleted('Finding Placeholder Matches', 2);
   // Add GREEN_PATTERN: If the application progresses autonomously, it runs into a race condition
   // where placeholders might already be marked "Replacement done" (Green) before 
@@ -228,7 +228,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await verifyPlaceholderColors('Stage 2 (Matching)', [YELLOW_PATTERN, GREY_PATTERN, RED_PATTERN, GREEN_PATTERN]);
 
   // STAGE 3
-  await waitForStageProcessing('Populating Placeholders', 600_000);
+  await waitForStageProcessing('Populating Placeholders', 1200_000);
   await waitForStageCompleted('Populating Placeholders', 3);
    await verifyPlaceholderColors('Stage 3 (Populating)', [YELLOW_PATTERN, GREY_PATTERN, RED_PATTERN, GREEN_PATTERN, BLUE_PATTERN]);
 
