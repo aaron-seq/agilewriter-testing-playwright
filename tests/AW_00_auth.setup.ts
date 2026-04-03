@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
+const MICROSOFT_EMAIL_INPUT = /someone@synterex\.com|email, phone, or skype/i;
+const MICROSOFT_PASSWORD_INPUT = /enter the password|password/i;
 
 setup('authenticate via Microsoft SSO', async ({ page }) => {
   const baseUrl = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
@@ -11,15 +14,15 @@ setup('authenticate via Microsoft SSO', async ({ page }) => {
 
   // SSO opens as a popup
   const popupPromise = page.waitForEvent('popup');
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+  await page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON }).click();
   const popup = await popupPromise;
 
   // Fill email in popup
-  await popup.getByRole('textbox', { name: 'someone@synterex.com' }).fill(process.env.MS_EMAIL!);
+  await popup.getByRole('textbox', { name: MICROSOFT_EMAIL_INPUT }).fill(process.env.MS_EMAIL!);
   await popup.getByRole('button', { name: 'Next' }).click();
 
   // Fill password in popup
-  await popup.getByRole('textbox', { name: 'Enter the password for s.' }).fill(process.env.MS_PASSWORD!);
+  await popup.getByRole('textbox', { name: MICROSOFT_PASSWORD_INPUT }).fill(process.env.MS_PASSWORD!);
   await popup.getByRole('button', { name: 'Sign in' }).click();
 
   // "Stay signed in?" — uncheck + Yes

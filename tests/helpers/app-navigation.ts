@@ -6,6 +6,7 @@ dotenv.config();
 
 export const BASE_URL = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
 export const AUTH_FILE = path.join(process.cwd(), 'playwright', '.auth', 'user.json');
+const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 
 const DASHBOARD_TIMEOUT = 120_000;
 const TRAIN_DOCUMENT_TIMEOUT = 120_000;
@@ -27,7 +28,7 @@ async function waitForDashboard(page: Page): Promise<void> {
 }
 
 async function recoverDashboardSession(page: Page): Promise<void> {
-  const signInButton = page.getByRole('button', { name: /Microsoft Logo Sign In with/i });
+  const signInButton = page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON });
   const shouldSignIn = page.url().includes('/signin') || await isVisible(signInButton, 5_000);
 
   if (!shouldSignIn) {

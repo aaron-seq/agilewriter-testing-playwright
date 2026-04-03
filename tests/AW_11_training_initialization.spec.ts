@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
+
 /**
  * AW_11: Training Initialization
  * 
@@ -24,7 +26,10 @@ test('AW_11: Training Initialization', async ({ page }) => {
 
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+  const signInButton = page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON });
+  if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+    await signInButton.click();
+  }
   
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(

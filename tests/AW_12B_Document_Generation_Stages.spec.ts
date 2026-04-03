@@ -1,6 +1,8 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 
+const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
+
 test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   // Increase test timeout to 10 minutes (600,000ms) for long-running document generation processes
   test.setTimeout(600_000);
@@ -10,7 +12,10 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   // ─────────────────────────────────────────────
 
   await page.goto(process.env.BASE_URL as string);
-  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+  const signInButton = page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON });
+  if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+    await signInButton.click();
+  }
   await page.waitForURL(
     (url: URL) =>
       url.href.startsWith(process.env.BASE_URL as string) &&
