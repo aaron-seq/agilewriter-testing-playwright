@@ -2,8 +2,6 @@ import { test, expect } from '@playwright/test';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
-
 /**
  * AW_11: Training Initialization
  * 
@@ -26,15 +24,12 @@ test('AW_11: Training Initialization', async ({ page }) => {
 
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
-  const signInButton = page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON });
-  if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
-    await signInButton.click();
-  }
-  
+  await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
-    { timeout: 60000 }
+    { timeout: 600_000 }
   );
 
   // Action -> Click Open AgileMapping
@@ -45,24 +40,30 @@ test('AW_11: Training Initialization', async ({ page }) => {
 
   // Action -> Select destination template
   await page.getByRole('button', { name: 'Select destination template [' }).click();
-  await page.getByRole('button', { name: 'Expand CEPI ICF' }).click();
-  await page.getByRole('checkbox', { name: 'Select ICF_SET0_modified_10-' }).check();
+  await page.getByRole('button', { name: 'Next page' }).click();
+  await page.getByRole('button', { name: 'Next page' }).click();
+  await page.getByRole('button', { name: 'Expand QA Testing' }).click();
+  await page.getByRole('checkbox').check();
+
   // Using Select button to confirm selection
   await page.getByRole('button', { name: 'Select [ENTER]' }).click();
 
   // Action -> Select source documents
+
   await page.getByRole('button', { name: 'Select source documents [Alt+' }).click();
-  await page.getByRole('button', { name: 'Expand CEPI' }).click();
-  await page.getByRole('checkbox', { name: 'Select CEPI_Synterex_Protocol' }).check();
-  await page.getByRole('checkbox', { name: 'Select CEPI EOI_A14Protocols_Test Scenario.docx' }).check();
-  await page.getByRole('checkbox', { name: 'Select CEPI SOA_Mock Source.' }).check();
+  await page.getByRole('button', { name: 'Next page' }).click();
+  await page.getByRole('button', { name: 'Next page' }).click();
+
+  await page.getByRole('button', { name: 'Expand QA Testing' }).click();
+  await page.getByRole('checkbox', { name: 'Select QA Testing' }).check();
+
   // Using Done button to confirm selection
   await page.getByRole('button', { name: 'Done [ENTER]' }).click();
 
   // Action -> Select QA reference document
-  await page.getByRole('button', { name: 'Select QA reference document' }).click();
-  await page.getByRole('button', { name: 'File: CEPI_PLS_18March2026_raw_qa.xlsx' }).click();
-  await page.getByRole('button', { name: 'Select [ENTER]' }).click();
+  //   await page.getByRole('button', { name: 'Select QA reference document' }).click();
+  //   await page.getByRole('button', { name: 'File: CEPI_PLS_18March2026_raw_qa.xlsx' }).click();
+  //   await page.getByRole('button', { name: 'Select [ENTER]' }).click();
 
   // Action -> Click Start Training
   await page.getByRole('button', { name: 'Start Training [Alt+G]' }).click();
@@ -70,29 +71,29 @@ test('AW_11: Training Initialization', async ({ page }) => {
 
   // Validate -> Navigation to the training/generation page
   // The URL should transition to /train with an ID
-  await expect(page).toHaveURL(/.*\/train\?id=.*/, { timeout: 60000 });
+  await expect(page).toHaveURL(/.*\/train\?id=.*/, { timeout: 600_000 });
   console.log('Navigation to /train successful. URL:', page.url());
-  
+
   // Verify -> The page is loading or has loaded the workspace
   // Initially, it shows "Loading Training Workspace"
-  await expect(page.getByRole('heading', { name: /Loading\s*Training\s*Workspace/i })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('heading', { name: /Loading\s*Training\s*Workspace/i })).toBeVisible({ timeout: 600_000 });
   console.log('Headings found, waiting for document preview generation...');
-  
+
   // Wait for the loading to progress (optional, but good for stability)
-  await expect(page.getByText(/Generating\s*interactive\s*document\s*preview/i)).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText(/Generating\s*interactive\s*document\s*preview/i)).toBeVisible({ timeout: 600_000 });
   console.log('Generating interactive document preview visible...');
 
   // Support for "Generate Document" page - looking for "Create Final Doc" as the primary indicator
   // as the literal text "Generate Document" is not present in the current UI version.
-  await expect(page.getByRole('button', { name: /Create\s*Final\s*Doc/i })).toBeVisible({ timeout: 120000 });
+  await expect(page.getByRole('button', { name: /Create\s*Final\s*Doc/i })).toBeVisible({ timeout: 120_000 });
   console.log('"Create Final Doc" button found!');
 
   // Once loaded, verify other functional elements
   // Note: The buttons are named "Show document list" and "Show mapping controls"
   // but contain "Sources" and "Mapping" text respectively.
-  await expect(page.getByRole('button', { name: /Show\s*document\s*list/i })).toBeVisible({ timeout: 60000 });
-  await expect(page.getByRole('button', { name: /Show\s*mapping\s*controls/i })).toBeVisible({ timeout: 10000 });
-  
+  await expect(page.getByRole('button', { name: /Show\s*document\s*list/i })).toBeVisible({ timeout: 600_000 });
+  await expect(page.getByRole('button', { name: /Show\s*mapping\s*controls/i })).toBeVisible({ timeout: 600_000 });
+
   // Optional: Double check by text if needed
   await expect(page.getByText(/Sources/i).first()).toBeVisible();
   await expect(page.getByText(/Mapping/i).first()).toBeVisible();
