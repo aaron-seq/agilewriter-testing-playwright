@@ -8,8 +8,20 @@ const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 const MICROSOFT_EMAIL_INPUT = /someone@synterex\.com|email, phone, or skype/i;
 const MICROSOFT_PASSWORD_INPUT = /enter the password|password/i;
 
+function requiredEnv(name: 'MS_EMAIL' | 'MS_PASSWORD'): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${name}. Create a local .env file with ${name}=... before running Microsoft SSO tests.`
+    );
+  }
+  return value;
+}
+
 setup('authenticate via Microsoft SSO', async ({ page }) => {
   const baseUrl = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+  const msEmail = requiredEnv('MS_EMAIL');
+  const msPassword = requiredEnv('MS_PASSWORD');
   await page.goto(`${baseUrl}/signin`);
 
   // SSO opens as a popup
@@ -18,11 +30,11 @@ setup('authenticate via Microsoft SSO', async ({ page }) => {
   const popup = await popupPromise;
 
   // Fill email in popup
-  await popup.getByRole('textbox', { name: MICROSOFT_EMAIL_INPUT }).fill(process.env.MS_EMAIL!);
+  await popup.getByRole('textbox', { name: MICROSOFT_EMAIL_INPUT }).fill(msEmail);
   await popup.getByRole('button', { name: 'Next' }).click();
 
   // Fill password in popup
-  await popup.getByRole('textbox', { name: MICROSOFT_PASSWORD_INPUT }).fill(process.env.MS_PASSWORD!);
+  await popup.getByRole('textbox', { name: MICROSOFT_PASSWORD_INPUT }).fill(msPassword);
   await popup.getByRole('button', { name: 'Sign in' }).click();
 
   // "Stay signed in?" — uncheck + Yes
