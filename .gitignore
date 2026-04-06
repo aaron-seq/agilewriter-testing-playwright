@@ -1,4 +1,5 @@
 # Playwright
+.github/
 node_modules/
 /blob-report/
 /playwright/.cache/
