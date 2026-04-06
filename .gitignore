@@ -7,22 +7,22 @@ tests/explore.app.spec.ts
 .env
 .claude/
 .aider*
-
+ 
 # Test Results & Artifacts
 test-results/
 playwright-report/
 **/*.zip
 **/*.webm
 **/*.mp4
-
+ 
 # Trace files
 **/trace.zip
 **/video.webm
-
+ 
 # Screenshots
 test-results/**/*.png
 playwright-report/**/*.png
-
+ 
 # IDE & System
 .vscode/
 .idea/
@@ -30,7 +30,7 @@ playwright-report/**/*.png
 Thumbs.db
 *.log
 npm-debug.log*
-
+ 
 # Debug & Temporary files
 aw06_debug.txt
 diff.txt

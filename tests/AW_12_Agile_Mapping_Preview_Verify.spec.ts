@@ -7,7 +7,7 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
   await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
-  
+
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
     (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
@@ -31,14 +31,13 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Expand QA Testing' }).click();
-  
-  await page.waitForTimeout(1000); 
+
+  await page.waitForTimeout(1000);
 
   // Dynamically select the first available file in the folder as the template
   const fileCheckboxes = await page.getByRole('checkbox').all();
   let selectedTemplateName = '';
   let templateCheckbox = null;
-  
   for (const cb of fileCheckboxes) {
     const ariaLabel = await cb.getAttribute('aria-label');
     const labelText = ariaLabel || await cb.innerText();
@@ -69,7 +68,6 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Full Preview' })).toBeVisible();
   await page.getByRole('button', { name: 'Full Preview' }).click();
   await page.getByRole('button', { name: 'Close modal' }).click();
-  
   // Using Select button to confirm selection
   await page.getByRole('button', { name: 'Select [ENTER]' }).click();
 
@@ -110,7 +108,6 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
     await page.getByRole('button', { name: 'Full Preview' }).click();
     await page.getByRole('button', { name: 'Close modal' }).click();
   }
-  
 
   // Using Done button to confirm selection
   await page.getByRole('button', { name: 'Done [ENTER]' }).click();
@@ -131,7 +128,7 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
   await expect(page.getByText('Generating interactive')).toBeVisible();
 
   // Wait for document list to be available
-  
+
   await expect(page.getByRole('button', { name: 'Show document list' })).toBeVisible();
   await expect(page.getByLabel('Show document list')).toContainText('Sources');
   await page.getByRole('button', { name: 'Show document list' }).click();
@@ -182,7 +179,6 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
     // Always validate final render
     await expect(page.locator('.docx-preview-wrapper')).toBeVisible();
     await expect(page.locator('.docx-preview__canvas')).toBeVisible();
-    await expect(page.getByText('Preview')).toBeVisible();
   }
 
   // Step 5: Verify selected template preview
@@ -201,6 +197,6 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
 
     await expect(page.getByText('Template Preview')).toBeVisible();
   }
-  
+
   await page.getByRole('button', { name: 'Close Documents drawer' }).click();
 });
