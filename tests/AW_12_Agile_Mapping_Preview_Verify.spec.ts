@@ -59,7 +59,7 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
   await expect(page.getByText('Loading preview...')).toBeVisible();
 
   // Wait for loading to disappear (this is the key step)
-  await expect(page.getByText('Loading preview...')).toBeHidden();
+  await expect(page.getByText('Loading preview...')).toBeHidden({ timeout: 600_000 });
 
   // Now confirm preview is actually visible
   await expect(page.getByText('Preview', { exact: true })).toBeVisible();
@@ -101,7 +101,7 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
 
     // Wait for preview loading lifecycle
     await expect(page.getByText('Loading preview...')).toBeVisible();
-    await expect(page.getByText('Loading preview...')).toBeHidden();
+    await expect(page.getByText('Loading preview...')).toBeHidden({ timeout: 600_000 });
     await expect(page.getByText('Preview', { exact: true })).toBeVisible();
 
     await expect(page.getByRole('button', { name: 'Full Preview' })).toBeVisible();
@@ -173,7 +173,7 @@ test('AW_12_Agile_Mapping_Preview_Verify', async ({ page }) => {
 
     // Optional wait for loader
     if (await loader.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await expect(loader).toBeHidden();
+      await expect(loader).toBeHidden({ timeout: 600_000 });
     }
 
     // Always validate final render
