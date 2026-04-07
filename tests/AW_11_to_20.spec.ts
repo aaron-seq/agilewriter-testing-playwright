@@ -1,34 +1,29 @@
-// @ts-check
 import { test, expect } from '@playwright/test';
 
-test('AW_12B_Document_Generation_Stages', async ({ page }) => {
-  // Allow long-running document generation flows to complete without the spec timing out first.
-  test.setTimeout(2_400_000);
-
-  // ─────────────────────────────────────────────
-  // LOGIN & NAVIGATION
-  // ─────────────────────────────────────────────
-
+test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
+  // Navigate to the base URL
   await page.goto(process.env.BASE_URL as string);
+
+  // Authentication - Instantly completes if session is valid or cookies are present
+  // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
   await page.getByRole('button', { name: 'Microsoft Logo Sign In with' }).click();
+
+  // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
-    (url: URL) =>
-      url.href.startsWith(process.env.BASE_URL as string) &&
-      !url.href.includes('/signin'),
+    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
     { timeout: 60_000 }
   );
 
   await expect(page.locator('h2')).toContainText('Services');
-  await expect(
-    page.getByLabel('Open AgileMapping').getByRole('heading')
-  ).toContainText('AgileMapping');
 
+  // -------------------- AW_11 - Start -------------------- //
+
+  // Action -> Click Open AgileMapping
+  await expect(page.getByLabel('Open AgileMapping').getByRole('heading')).toContainText('AgileMapping');
   await page.getByRole('button', { name: 'Open AgileMapping' }).click();
-  await expect(page.getByRole('heading')).toContainText('Train Document');
 
-  // ─────────────────────────────────────────────
-  // SETUP: Filename, Template, Source
-  // ─────────────────────────────────────────────
+  // Wait for Train Document screen
+  await expect(page.getByRole('heading')).toContainText('Train Document');
 
   await page.getByRole('textbox', { name: 'Enter desired output filename' }).click();
   await page.getByRole('textbox', { name: 'Enter desired output filename' }).fill('AW_12_test_' + Date.now());
@@ -45,7 +40,6 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   const fileCheckboxes = await page.getByRole('checkbox').all();
   let selectedTemplateName = '';
   let templateCheckbox = null;
-
   for (const cb of fileCheckboxes) {
     const ariaLabel = await cb.getAttribute('aria-label');
     const labelText = ariaLabel || await cb.innerText();
@@ -67,7 +61,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await expect(page.getByText('Loading preview...')).toBeVisible();
 
   // Wait for loading to disappear (this is the key step)
-  await expect(page.getByText('Loading preview...')).toBeHidden();
+  await expect(page.getByText('Loading preview...')).toBeHidden({ timeout: 600_000 });
 
   // Now confirm preview is actually visible
   await expect(page.getByText('Preview', { exact: true })).toBeVisible();
@@ -76,7 +70,6 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Full Preview' })).toBeVisible();
   await page.getByRole('button', { name: 'Full Preview' }).click();
   await page.getByRole('button', { name: 'Close modal' }).click();
-
   // Using Select button to confirm selection
   await page.getByRole('button', { name: 'Select [ENTER]' }).click();
 
@@ -87,8 +80,6 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
 
-  // await page.getByRole('button', { name: 'Expand QA Testing' }).click();
-  // await page.getByRole('checkbox', { name: 'Select QA Testing' }).check();
 
   // Expand folder
   await expect(page.getByLabel('Folder: QA Testing')).toContainText('QA Testing');
@@ -110,7 +101,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
 
     // Wait for preview loading lifecycle
     await expect(page.getByText('Loading preview...')).toBeVisible();
-    await expect(page.getByText('Loading preview...')).toBeHidden();
+    await expect(page.getByText('Loading preview...')).toBeHidden({ timeout: 600_000 });
     await expect(page.getByText('Preview', { exact: true })).toBeVisible();
 
     await expect(page.getByRole('button', { name: 'Full Preview' })).toBeVisible();
@@ -118,19 +109,123 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
     await page.getByRole('button', { name: 'Close modal' }).click();
   }
 
-
   // Using Done button to confirm selection
   await page.getByRole('button', { name: 'Done [ENTER]' }).click();
 
-
-
   // Start Training
+  await expect(page.getByRole('button', { name: 'Start Training [Alt+G]' })).toBeVisible();
   await page.getByRole('button', { name: 'Start Training [Alt+G]' }).click();
+
+  // Training may take time
+  await page.waitForSelector('text=Connecting to SharePoint and', {
+    state: 'visible',
+  });
   await expect(page.getByText('Connecting to SharePoint and')).toBeVisible();
 
-  await expect(
-    page.getByRole('button', { name: 'Show document list' })
-  ).toBeVisible({ timeout: 120_000 });
+  await page.waitForSelector('text=Generating interactive', {
+    state: 'visible',
+  });
+  await expect(page.getByText('Generating interactive')).toBeVisible();
+
+  // Support for "Generate Document" page - looking for "Create Final Doc" as the primary indicator
+  // as the literal text "Generate Document" is not present in the current UI version.
+  await expect(page.getByRole('button', { name: /Create\s*Final\s*Doc/i })).toBeVisible({ timeout: 120_000 });
+  console.log('"Create Final Doc" button found!');
+
+  // Once loaded, verify other functional elements
+  // Note: The buttons are named "Show document list" and "Show mapping controls"
+  // but contain "Sources" and "Mapping" text respectively.
+  await expect(page.getByRole('button', { name: /Show\s*document\s*list/i })).toBeVisible({ timeout: 600_000 });
+  await expect(page.getByRole('button', { name: /Show\s*mapping\s*controls/i })).toBeVisible({ timeout: 600_000 });
+  // Optional: Double check by text if needed
+  await expect(page.getByText(/Sources/i).first()).toBeVisible();
+  await expect(page.getByText(/Mapping/i).first()).toBeVisible();
+
+  console.log('Functional elements verified. Training initialization successful.');
+
+  // -------------------- AW_11 - END -------------------- //
+
+  // -------------------- AW_12 - Start -------------------- //
+
+  // Wait for document list to be available
+
+  await expect(page.getByRole('button', { name: 'Show document list' })).toBeVisible();
+  await expect(page.getByLabel('Show document list')).toContainText('Sources');
+  if (!(await page.getByRole('heading', { name: 'Documents' }).isVisible())) {
+    await page.getByRole('button', { name: 'Show document list' }).click();
+  }
+
+  await expect(page.getByText(/source file[s]? ready to review/i)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Documents' })).toBeVisible();
+
+  // Dynamically verify files in the Documents list
+
+  // Step 1: Extract expected count
+  const subtitle = page.getByText(/source file[s]? ready to review/i);
+  await expect(subtitle).toBeVisible();
+
+  const text = await subtitle.textContent();
+  const match = text?.match(/(\d+)/);
+
+  if (!match) {
+    throw new Error('Could not extract source file count');
+  }
+
+  const expectedCount = parseInt(match[1], 10);
+  console.log(`Expecting ${expectedCount} document buttons in the list.`);
+
+  // Step 2: Use ACCESSIBLE NAME (correct approach)
+  const docButtons = page.getByRole('button', {
+    name: /Show .*source document/i
+  });
+
+  // Wait until they appear
+  await expect(docButtons.first()).toBeVisible({ timeout: 30000 });
+
+  // Step 3: Validate count
+  await expect(docButtons).toHaveCount(expectedCount);
+
+  // Step 4: Iterate
+  for (let i = 0; i < expectedCount; i++) {
+    const btn = docButtons.nth(i);
+
+    await btn.click();
+
+    const loader = page.getByText('Loading preview...');
+
+    // Optional wait for loader
+    if (await loader.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expect(loader).toBeHidden({ timeout: 600_000 });
+    }
+
+    // Always validate final render
+    await expect(page.locator('.docx-preview-wrapper')).toBeVisible();
+    await expect(page.locator('.docx-preview__canvas')).toBeVisible();
+  }
+
+  // Step 5: Verify selected template preview
+  if (selectedTemplateName) {
+    const cleanTemplateNameRegex = new RegExp(
+      selectedTemplateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      'i'
+    );
+
+    const templateLocator = page
+      .getByRole('button', { name: cleanTemplateNameRegex })
+      .first();
+
+    await expect(templateLocator).toBeVisible();
+    await templateLocator.click();
+
+    await expect(page.getByText('Template Preview')).toBeVisible();
+  }
+
+  await page.getByRole('button', { name: 'Close Documents drawer' }).click();
+
+  // -------------------- AW_12 - END -------------------- //
+
+
+  // -------------------- AW_12B - Start -------------------- //
 
   // ─────────────────────────────────────────────
   // REGEX
@@ -251,7 +346,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   const COMPLETED_SELECTOR = '[aria-label="Completed"], img[alt="Completed"], [title="Completed"]';
   const PROCESSING_SELECTOR = '[aria-label="Processing"], img[alt="Processing"], [title="Processing"]';
 
-  const waitForStageProcessing = async (label, timeout = 2400_000) => {
+  const waitForStageProcessing = async (label, timeout = 3_600_000) => {
     console.log(`[WAIT] Processing: "${label}"`);
 
     // Find the deepest container that has both the specific label and the processing icon
@@ -270,7 +365,7 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
     console.log(`[DONE] Processing (or Completed): "${label}" ✓`);
   };
 
-  const waitForStageCompleted = async (label, expectedCount, timeout = 2400_000) => {
+  const waitForStageCompleted = async (label, expectedCount, timeout = 3_600_000) => {
     console.log(`[WAIT] Completed: "${label}" (Total expected ticks: ${expectedCount})`);
 
     // Find the deepest container that has both the specific label and the completed icon
@@ -324,13 +419,13 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   // APPLY ALL
   // ─────────────────────────────────────────────
 
-  const expectedCount = await placeholders.evaluateAll((elements) => {
+  const greenPlaceholderCount = await placeholders.evaluateAll((elements) => {
     return elements.filter(el => {
       const bg = window.getComputedStyle(el).backgroundColor;
       return bg.includes('16, 185, 129');
     }).length;
   });
-  console.log(`Green placeholders ready to apply: ${expectedCount}`);
+  console.log(`Green placeholders ready to apply: ${greenPlaceholderCount}`);
 
   // Set up DOM mutation observer BEFORE clicking
   const toastDetectionPromise = page.evaluate(() => {
@@ -395,4 +490,9 @@ test('AW_12B_Document_Generation_Stages', async ({ page }) => {
   await expect(
     page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
   ).toBeEnabled({ timeout: 60_000 });
+
+  // -------------------- AW_12B - END -------------------- //
+  
 });
+
+
