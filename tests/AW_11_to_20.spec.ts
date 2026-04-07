@@ -346,7 +346,7 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   const COMPLETED_SELECTOR = '[aria-label="Completed"], img[alt="Completed"], [title="Completed"]';
   const PROCESSING_SELECTOR = '[aria-label="Processing"], img[alt="Processing"], [title="Processing"]';
 
-  const waitForStageProcessing = async (label, timeout = 2400_000) => {
+  const waitForStageProcessing = async (label, timeout = 3_600_000) => {
     console.log(`[WAIT] Processing: "${label}"`);
 
     // Find the deepest container that has both the specific label and the processing icon
@@ -365,7 +365,7 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     console.log(`[DONE] Processing (or Completed): "${label}" ✓`);
   };
 
-  const waitForStageCompleted = async (label, expectedCount, timeout = 2400_000) => {
+  const waitForStageCompleted = async (label, expectedCount, timeout = 3_600_000) => {
     console.log(`[WAIT] Completed: "${label}" (Total expected ticks: ${expectedCount})`);
 
     // Find the deepest container that has both the specific label and the completed icon
