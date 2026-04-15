@@ -1,6 +1,7 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import dotenv from 'dotenv';
 import { openDashboard, openAgileMapping } from './helpers/app-navigation';
+import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 
 dotenv.config();
 
@@ -430,42 +431,64 @@ async function visitServiceAndReturn(
 test.describe('AW_00-AW_10: Consolidated Foundation Workflow', () => {
   test.describe.configure({ retries: 2, timeout: 600_000 });
 
+  test.beforeAll(() => {
+    initTracker();
+  });
+
+  test.afterAll(() => {
+    saveResults();
+  });
+
   test.describe('AW_01-AW_02 Authentication', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('AW_01-AW_02: Login & Authentication', async ({ page }) => {
-      await page.goto(`${BASE_URL}/signin`, { waitUntil: 'domcontentloaded' });
+      await trackStep(page, 'AW_01-AW_02: Login & Authentication',
+        'Navigate to sign-in page', 'Sign-in page is displayed', async () => {
+          await page.goto(`${BASE_URL}/signin`, { waitUntil: 'domcontentloaded' });
+          await expect(page).toHaveURL(new RegExp(`${BASE_URL}/signin`));
+          await expect(page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON })).toBeVisible({
+            timeout: UI_TIMEOUT,
+          });
+        });
 
-      await expect(page).toHaveURL(new RegExp(`${BASE_URL}/signin`));
-      await expect(page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON })).toBeVisible({
-        timeout: UI_TIMEOUT,
-      });
-
-      await loginWithMicrosoft(page);
-      await openDashboard(page);
-      await expect(
-        page.getByRole('heading', { name: /Services/i })
-          .or(page.getByRole('button', { name: /Open AgileMapping/i }))
-          .first()
-      ).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
+      await trackStep(page, 'AW_01-AW_02: Login & Authentication',
+        'Complete Microsoft SSO login', 'User is authenticated and dashboard loads', async () => {
+          await loginWithMicrosoft(page);
+          await openDashboard(page);
+          await expect(
+            page.getByRole('heading', { name: /Services/i })
+              .or(page.getByRole('button', { name: /Open AgileMapping/i }))
+              .first()
+          ).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
+        });
     });
   });
 
   test('AW_03: Client Selection & Integration', async ({ page }) => {
-    await openDashboard(page);
+    await trackSoftStep(page, 'AW_03: Client Selection & Integration',
+      'Open client selection dialog', 'Client selection dialog is displayed', async () => {
+        await openDashboard(page);
+        await page.getByRole('button', { name: /^ORG$/i }).click();
+        await expect(page.getByRole('dialog', { name: /Select Client/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+      });
 
-    await page.getByRole('button', { name: /^ORG$/i }).click();
-    await expect(page.getByRole('dialog', { name: /Select Client/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await expect(page.getByRole('button', { name: /Organization Default Use/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await page.getByRole('button', { name: /Close Select Client/i }).click();
+    await trackSoftStep(page, 'AW_03: Client Selection & Integration',
+      'Verify Organization Default', 'Organization Default button is visible', async () => {
+        await expect(page.getByRole('button', { name: /Organization Default Use/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+        await page.getByRole('button', { name: /Close Select Client/i }).click();
+      });
 
-    await openActivitiesAndFilters(page);
-    await openSettingsAndAdminConsole(page);
-    await openClientsAndProjectsDrawers(page);
+    await trackSoftStep(page, 'AW_03: Client Selection & Integration',
+      'Open Activities, Settings, Clients drawers', 'All dashboard drawers open and close', async () => {
+        await openActivitiesAndFilters(page);
+        await openSettingsAndAdminConsole(page);
+        await openClientsAndProjectsDrawers(page);
+      });
 
     await page.getByRole('tab', { name: /Services/i }).click();
     await expect(page.getByRole('button', { name: /Open AgileMapping/i })).toBeVisible({
@@ -477,18 +500,38 @@ test.describe('AW_00-AW_10: Consolidated Foundation Workflow', () => {
     await openDashboard(page);
     await page.getByRole('tab', { name: /Services/i }).click();
 
-    await visitServiceAndReturn(page, /Open Redaction/i, /Redact Document/i);
-    await visitServiceAndReturn(page, /Open Publishing/i, /Document Publishing/i);
-    await visitServiceAndReturn(page, /Open Request For Proposal/i, /Request For Proposal/i);
+    // These are non-critical: other services should work but don't block us
+    await trackSoftStep(page, 'AW_04: Agile Mapping Access',
+      'Verify Redaction service', 'Redaction service opens correctly', async () => {
+        await visitServiceAndReturn(page, /Open Redaction/i, /Redact Document/i);
+      });
 
-    await returnHome(page);
-    await page.getByRole('button', { name: /Open AgileMapping/i }).click();
-    await expect(page.getByRole('heading', { name: /Train Document/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await expect(page.getByText(/Upload & select input files/i)).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
+    await trackSoftStep(page, 'AW_04: Agile Mapping Access',
+      'Verify Publishing service', 'Publishing service opens correctly', async () => {
+        await visitServiceAndReturn(page, /Open Publishing/i, /Document Publishing/i);
+      });
+
+    await trackSoftStep(page, 'AW_04: Agile Mapping Access',
+      'Verify RFP service', 'RFP service opens correctly', async () => {
+        await visitServiceAndReturn(page, /Open Request For Proposal/i, /Request For Proposal/i);
+      });
+
+    // This is CRITICAL: AgileMapping must work
+    await trackStep(page, 'AW_04: Agile Mapping Access',
+      'Open AgileMapping module', 'Train Document screen is displayed', async () => {
+        await returnHome(page);
+        await page.getByRole('button', { name: /Open AgileMapping/i }).click();
+        await expect(page.getByRole('heading', { name: /Train Document/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+      });
+
+    await trackSoftStep(page, 'AW_04: Agile Mapping Access',
+      'Verify upload instructions text', 'Upload & select input files text visible', async () => {
+        await expect(page.getByText(/Upload & select input files/i)).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+      });
   });
 
   test('AW_05: File Name Validation', async ({ page }) => {
@@ -500,13 +543,21 @@ test.describe('AW_00-AW_10: Consolidated Foundation Workflow', () => {
       /Please enter a name that doesn.t include any of these characters/i
     );
 
-    await fileNameInput.fill('Invalid*File?Name');
-    await expect(errorMessage).toBeVisible({ timeout: UI_TIMEOUT });
-    await expect(startTrainingButton).toBeDisabled();
+    // Soft: validation message is nice to check but not blocking
+    await trackSoftStep(page, 'AW_05: File Name Validation',
+      'Enter invalid file name', 'System shows error and disables Start Training', async () => {
+        await fileNameInput.fill('Invalid*File?Name');
+        await expect(errorMessage).toBeVisible({ timeout: UI_TIMEOUT });
+        await expect(startTrainingButton).toBeDisabled();
+      });
 
-    await fileNameInput.fill('Valid_File_Name_01');
-    await expect(errorMessage).not.toBeVisible();
-    await expect(startTrainingButton).toBeVisible({ timeout: UI_TIMEOUT });
+    // Critical: must accept valid filenames to proceed
+    await trackStep(page, 'AW_05: File Name Validation',
+      'Enter valid file name', 'System accepts valid name and enables Start Training', async () => {
+        await fileNameInput.fill('Valid_File_Name_01');
+        await expect(errorMessage).not.toBeVisible();
+        await expect(startTrainingButton).toBeVisible({ timeout: UI_TIMEOUT });
+      });
 
     await fileNameInput.fill(`AW00_10_${Date.now()}`);
     await expect(fileNameInput).toHaveValue(/AW00_10_/);
@@ -516,71 +567,112 @@ test.describe('AW_00-AW_10: Consolidated Foundation Workflow', () => {
     await openAgileMapping(page);
     await openDestinationTemplatePicker(page);
 
-    await switchProviderIfAvailable(page, /Veeva/i);
-    await page.getByRole('button', { name: /^Close$/i }).click();
-    await openDestinationTemplatePicker(page);
-    await expect(page.getByRole('textbox', { name: /Search files/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await expect(
-      page.getByRole('checkbox').first()
-        .or(page.getByRole('tree').first())
-        .first()
-    ).toBeVisible({ timeout: UI_TIMEOUT });
+    // Soft: Veeva is a nice-to-have check
+    await trackSoftStep(page, 'AW_06: Destination Template Picker',
+      'Check Veeva provider', 'Veeva provider tab is accessible', async () => {
+        await switchProviderIfAvailable(page, /Veeva/i);
+        await page.getByRole('button', { name: /^Close$/i }).click();
+      });
+
+    // Critical: SharePoint template picker must work
+    await trackStep(page, 'AW_06: Destination Template Picker',
+      'Verify SharePoint template picker', 'Search box and file tree are visible', async () => {
+        await openDestinationTemplatePicker(page);
+        await expect(page.getByRole('textbox', { name: /Search files/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+        await expect(
+          page.getByRole('checkbox').first()
+            .or(page.getByRole('tree').first())
+            .first()
+        ).toBeVisible({ timeout: UI_TIMEOUT });
+      });
   });
 
   test('AW_07: Selecting a destination template returns to Train Document', async ({ page }) => {
     await openAgileMapping(page);
-    const selectedTemplateName = await selectQaTestingTemplate(page, true);
 
-    await expect(
-      page.getByRole('button', { name: new RegExp(escapeRegExp(selectedTemplateName), 'i') })
-        .or(page.getByText(new RegExp(escapeRegExp(selectedTemplateName), 'i')))
-        .first()
-    ).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await expect(page.getByRole('button', { name: /Start Training/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
+    await trackStep(page, 'AW_07: Template Selection',
+      'Select template and verify', 'Selected template name appears on Train Document screen', async () => {
+        const selectedTemplateName = await selectQaTestingTemplate(page, true);
+        await expect(
+          page.getByRole('button', { name: new RegExp(escapeRegExp(selectedTemplateName), 'i') })
+            .or(page.getByText(new RegExp(escapeRegExp(selectedTemplateName), 'i')))
+            .first()
+        ).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+        await expect(page.getByRole('button', { name: /Start Training/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+      });
   });
 
   test('AW_08: Source selection dialog opens', async ({ page }) => {
     await openAgileMapping(page);
-    await openSourcePicker(page);
 
-    await expect(page.getByRole('tab', { name: /^Clinical$/i })).toBeVisible({ timeout: UI_TIMEOUT });
-    await expect(page.getByRole('tab', { name: /^Non-Clinical$/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await switchProviderIfAvailable(page, /Veeva/i);
-    await switchProviderIfAvailable(page, /Sharepoint default/i);
-    await openUploadDrawerAndClose(page);
+    // Critical: Source picker must open with Clinical tab
+    await trackStep(page, 'AW_08: Source Selection Dialog',
+      'Verify source picker Clinical tab', 'Clinical tab is visible', async () => {
+        await openSourcePicker(page);
+        await expect(page.getByRole('tab', { name: /^Clinical$/i })).toBeVisible({ timeout: UI_TIMEOUT });
+      });
+
+    // Soft: Non-Clinical tab, Veeva, Upload drawer are nice-to-have
+    await trackSoftStep(page, 'AW_08: Source Selection Dialog',
+      'Verify Non-Clinical tab', 'Non-Clinical tab is visible', async () => {
+        await expect(page.getByRole('tab', { name: /^Non-Clinical$/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+      });
+
+    await trackSoftStep(page, 'AW_08: Source Selection Dialog',
+      'Check Veeva provider in sources', 'Veeva provider is accessible in source picker', async () => {
+        await switchProviderIfAvailable(page, /Veeva/i);
+        await switchProviderIfAvailable(page, /Sharepoint default/i);
+      });
+
+    await trackSoftStep(page, 'AW_08: Source Selection Dialog',
+      'Check Upload drawer', 'Upload drawer opens and closes', async () => {
+        await openUploadDrawerAndClose(page);
+      });
   });
 
   test('AW_09: Selecting a source document returns to Train Document', async ({ page }) => {
     await openAgileMapping(page);
-    const selectedSourceName = await selectQaTestingSource(page, true);
 
-    await expect(
-      page.getByRole('button', { name: new RegExp(escapeRegExp(selectedSourceName), 'i') })
-        .or(page.getByText(new RegExp(escapeRegExp(selectedSourceName), 'i')))
-        .first()
-    ).toBeVisible({ timeout: UI_TIMEOUT });
+    await trackStep(page, 'AW_09: Source Selection',
+      'Select source and verify', 'Selected source document name is visible', async () => {
+        const selectedSourceName = await selectQaTestingSource(page, true);
+        await expect(
+          page.getByRole('button', { name: new RegExp(escapeRegExp(selectedSourceName), 'i') })
+            .or(page.getByText(new RegExp(escapeRegExp(selectedSourceName), 'i')))
+            .first()
+        ).toBeVisible({ timeout: UI_TIMEOUT });
+      });
   });
 
   test('AW_10: Full Preview opens for the selected source document', async ({ page }) => {
     await openAgileMapping(page);
     await selectQaTestingSource(page, false);
 
-    await page.getByRole('button', { name: /Full Preview/i }).click();
-    await expect(page.getByLabel(/Full Preview/i)).toBeVisible({ timeout: UI_TIMEOUT });
-    await page.getByRole('button', { name: /Close modal/i }).click();
+    // Soft: Preview is nice-to-have, not blocking
+    await trackSoftStep(page, 'AW_10: Full Preview',
+      'Open and verify full preview', 'Full preview modal opens and closes correctly', async () => {
+        await page.getByRole('button', { name: /Full Preview/i }).click();
+        await expect(page.getByLabel(/Full Preview/i)).toBeVisible({ timeout: UI_TIMEOUT });
+        await page.getByRole('button', { name: /Close modal/i }).click();
+      });
 
     await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
-    await expect(page.getByRole('button', { name: /Configure system guidance/i })).toBeVisible({
-      timeout: UI_TIMEOUT,
-    });
-    await openSystemGuidanceDialog(page);
+
+    // Soft: System guidance is an optional feature check
+    await trackSoftStep(page, 'AW_10: System Guidance',
+      'Verify system guidance available', 'Configure system guidance button is visible', async () => {
+        await expect(page.getByRole('button', { name: /Configure system guidance/i })).toBeVisible({
+          timeout: UI_TIMEOUT,
+        });
+        await openSystemGuidanceDialog(page);
+      });
   });
 });

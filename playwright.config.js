@@ -3,6 +3,7 @@ const { defineConfig } = require('@playwright/test');
 require('dotenv').config();
 
 module.exports = defineConfig({
+  globalSetup: require.resolve('./global-setup'),
   reporter: 'html',
   timeout: 600_000,
   expect: {
