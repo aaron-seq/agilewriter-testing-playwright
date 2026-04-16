@@ -39,6 +39,8 @@ import { Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
+export const EXPECT_POLL_INTERVALS = [2000, 3000, 5000];
+
 const REPORT_DIR = 'reports';
 const FILE_PATH = path.join(REPORT_DIR, 'step-results.json');
 
@@ -341,11 +343,21 @@ export async function countPlaceholderColors(page: Page): Promise<ColorCounts> {
     const result = { green: 0, grey: 0, blue: 0, red: 0, yellow: 0, other: 0 };
     elements.forEach((el) => {
       const bg = window.getComputedStyle(el).backgroundColor;
-      if (bg.includes('16, 185, 129')) result.green++;
-      else if (bg.includes('156, 163, 175')) result.grey++;
-      else if (bg.includes('59, 130, 246')) result.blue++;
-      else if (bg.includes('239, 68, 68')) result.red++;
-      else if (bg.includes('246, 234, 59')) result.yellow++;
+      const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+      if (!match) {
+        result.other++;
+        return;
+      }
+      const [, rMatch, gMatch, bMatch] = match;
+      const r = Number.parseInt(rMatch, 10);
+      const g = Number.parseInt(gMatch, 10);
+      const b = Number.parseInt(bMatch, 10);
+
+      if (r === 16 && g === 185 && b === 129) result.green++;
+      else if (r === 156 && g === 163 && b === 175) result.grey++;
+      else if (r === 59 && g === 130 && b === 246) result.blue++;
+      else if (r === 239 && g === 68 && b === 68) result.red++;
+      else if (r === 246 && g === 234 && b === 59) result.yellow++;
       else result.other++;
     });
     return result;

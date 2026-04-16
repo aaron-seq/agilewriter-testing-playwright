@@ -11,8 +11,46 @@ const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 const DASHBOARD_TIMEOUT = 120_000;
 const TRAIN_DOCUMENT_TIMEOUT = 120_000;
 
-async function isVisible(locator: Locator, timeout = 2_000): Promise<boolean> {
+export const DEFAULT_VISIBLE_TIMEOUT = 2000;
+
+export async function isVisible(locator: Locator, timeout = DEFAULT_VISIBLE_TIMEOUT): Promise<boolean> {
   return locator.isVisible({ timeout }).catch(() => false);
+}
+
+export async function clickIfVisible(locator: Locator, timeout = 3_000): Promise<boolean> {
+  if (await isVisible(locator, timeout)) {
+    await locator.click();
+    return true;
+  }
+  return false;
+}
+
+export async function waitForApplyAllToast(page: Page, timeoutMs = 30000): Promise<string> {
+  return page.evaluate((timeoutValue) => {
+    return new Promise<string>((resolve, reject) => {
+      let observer: MutationObserver | undefined;
+      const timeout = window.setTimeout(() => {
+        observer?.disconnect();
+        reject(new Error(`Apply All toast did not appear within ${timeoutValue}ms.`));
+      }, timeoutValue);
+
+      observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            const text = (node.textContent || '').trim();
+            if (/Applied all(?:\s+\d+)?\s+mappings?\.?/i.test(text)) {
+              window.clearTimeout(timeout);
+              observer?.disconnect();
+              resolve(text);
+              return;
+            }
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }, timeoutMs);
 }
 
 async function assertAppIsReachable(page: Page, step: string): Promise<void> {

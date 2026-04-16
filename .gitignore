@@ -37,3 +37,6 @@ diff.txt
 out.txt
 patch_auth.js
 patch_heading.js
+# Test Telemetry
+reports/
+

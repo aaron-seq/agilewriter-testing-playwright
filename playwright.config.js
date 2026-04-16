@@ -12,7 +12,7 @@ module.exports = defineConfig({
   workers: 1,
   use: {
     baseURL: process.env.BASE_URL,
-    headless: false,
+    headless: !!process.env.CI,
     actionTimeout: 30_000,
     navigationTimeout: 120_000,
   },

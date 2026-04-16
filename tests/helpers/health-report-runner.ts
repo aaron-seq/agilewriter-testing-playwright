@@ -46,7 +46,7 @@
 
 import { Page, Locator, expect } from '@playwright/test';
 import { trackStep, trackSoftStep, countPlaceholderColors, ColorCounts } from './step-tracker';
-import { openAgileMapping } from './app-navigation';
+import { openAgileMapping, waitForApplyAllToast, isVisible } from './app-navigation';
 
 const UI_TIMEOUT = 60_000;
 const TRAINING_TIMEOUT = 2_400_000;
@@ -82,9 +82,6 @@ export type HealthReportConfig = {
 // HELPER FUNCTIONS
 // ──────────────────────────────────────────────
 
-async function isVisible(locator: Locator, timeout = 3_000): Promise<boolean> {
-  return locator.isVisible({ timeout }).catch(() => false);
-}
 
 /**
  * Select a template document using the search-based approach.
@@ -119,14 +116,10 @@ async function selectTemplateBySearch(
   // fill() clears existing text and sets the value in one operation
   await searchBox.fill(templateName);
 
-  // Wait a moment for search results to load
-  await page.waitForTimeout(2_000);
-
   // Expand the folder that contains the file
   const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${folderName}`, 'i') });
   if (await isVisible(expandButton, 5_000)) {
     await expandButton.click();
-    await page.waitForTimeout(1_000);
   }
 
   // Find and check the file's checkbox
@@ -208,13 +201,11 @@ async function selectSourcesBySearch(
   // Or use the folder name if it's more specific
   const searchTerm = sourceNames[0] || sourceFolder;
   await searchBox.fill(searchTerm);
-  await page.waitForTimeout(2_000);
 
   // Expand the source folder
   const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${sourceFolder}`, 'i') });
   if (await isVisible(expandButton, 5_000)) {
     await expandButton.click();
-    await page.waitForTimeout(1_000);
   }
 
   // Select the folder checkbox (selects all files inside)
@@ -392,35 +383,11 @@ export async function runHealthReport(
   await trackStep(page, testName, 'Apply All mappings',
     'All placeholder mappings are applied', async () => {
       // Set up toast detection before clicking
-      const toastPromise = page.evaluate(() => {
-        return new Promise<{ text: string }>((resolve, reject) => {
-          let observer: MutationObserver | undefined;
-          const timeout = window.setTimeout(() => {
-            observer?.disconnect();
-            reject(new Error('Apply All toast did not appear within 30 seconds.'));
-          }, 30_000);
-
-          observer = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-              for (const node of mutation.addedNodes) {
-                if (!(node instanceof Element)) continue;
-                const text = (node.textContent || '').trim();
-                if (/Applied all \d+ mappings?/i.test(text)) {
-                  window.clearTimeout(timeout);
-                  observer?.disconnect();
-                  resolve({ text });
-                  return;
-                }
-              }
-            }
-          });
-          observer.observe(document.body, { childList: true, subtree: true });
-        });
-      });
+      const toastPromise = waitForApplyAllToast(page);
 
       await page.getByRole('button', { name: /Apply All/i }).click();
-      const toastInfo = await toastPromise;
-      console.log(`  ✅ ${toastInfo.text}`);
+      const toastText = await toastPromise;
+      console.log(`  ✅ ${toastText}`);
     });
 
   // ─── Step 11: Count placeholder colors (POST-APPLY) — SOFT: informational ───

@@ -1,6 +1,6 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import dotenv from 'dotenv';
-import { openDashboard, openAgileMapping } from './helpers/app-navigation';
+import { openDashboard, openAgileMapping, isVisible, clickIfVisible } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 
 dotenv.config();
@@ -52,17 +52,7 @@ function microsoftPasswordField(page: Page): Locator {
     .first();
 }
 
-async function isVisible(locator: Locator, timeout = 5_000): Promise<boolean> {
-  return locator.isVisible({ timeout }).catch(() => false);
-}
 
-async function clickIfVisible(locator: Locator, timeout = 3_000): Promise<boolean> {
-  if (await isVisible(locator, timeout)) {
-    await locator.click();
-    return true;
-  }
-  return false;
-}
 
 async function loginWithMicrosoft(page: Page): Promise<void> {
   const msEmail = requiredEnv('MS_EMAIL');
@@ -428,8 +418,8 @@ async function visitServiceAndReturn(
   });
 }
 
-test.describe('AW_00-AW_10: Consolidated Foundation Workflow', () => {
-  test.describe.configure({ retries: 2, timeout: 600_000 });
+test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
+  test.describe.configure({ mode: 'serial', retries: 2, timeout: DASHBOARD_TIMEOUT * 4 });
 
   test.beforeAll(() => {
     initTracker();
