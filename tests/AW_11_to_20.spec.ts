@@ -979,12 +979,17 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     page.getByRole('button', { name: 'Show mapping controls' })
   ).toBeVisible();
 
-  await trackStep(page, 'AW_11_to_20', 'AW12B Final Gate', 'Create Final Doc enabled', async () => {
   await expect(
     page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
   ).toBeDisabled({ timeout: 60_000 });
 
   placeholders = page.locator('.doc-placeholder');
+
+  const loggingDiagnostics = await page.evaluate(() => {
+    const els = document.querySelectorAll('[class*="placeholder"]');
+    return [...els].map(e => e.className).slice(0, 5);
+  });
+  console.log('Diagnostic: Elements with "placeholder" in class:', loggingDiagnostics);
 
   await expect.poll(
     async () => {
@@ -1238,7 +1243,5 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
         timeout: 120_000,
       });
     });
-
-});
 
 });
