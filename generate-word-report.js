@@ -6,11 +6,16 @@ const htmlToDocx = require('html-to-docx');
 const REPORT_DIR = path.join(__dirname, 'reports');
 const STEP_FILE = path.join(REPORT_DIR, 'step-results.json');
 const OUTPUT_FILE = path.join(REPORT_DIR, 'AgileWriter_Validation_Report.docx');
+const RUNTIME_CONFIG_FILE = path.join(__dirname, 'runtime-config.json');
 
-// Load environment variables dynamically
-const testerName = process.env.TESTER_NAME || "[Insert Tester Name(s)]";
-const envName = process.env.TEST_ENV || "QA";
-const appUrl = process.env.APP_URL || "https://app-v2-rc1-aw.smarter.codes/signin";
+// Load run metadata: prefer runtime-config.json (UI-triggered), fall back to .env (CLI-triggered)
+const runtimeMeta = fs.existsSync(RUNTIME_CONFIG_FILE)
+  ? JSON.parse(fs.readFileSync(RUNTIME_CONFIG_FILE, 'utf-8'))
+  : {};
+
+const testerName = runtimeMeta.testerName || process.env.TESTER_NAME || '[Insert Tester Name(s)]';
+const envName    = runtimeMeta.envName    || process.env.TEST_ENV    || 'QA';
+const appUrl     = runtimeMeta.appUrl     || process.env.APP_URL     || 'https://app-v2-rc1-aw.smarter.codes/signin';
 const osName = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux';
 
 async function generateWordReport() {

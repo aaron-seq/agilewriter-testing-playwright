@@ -1,5 +1,5 @@
 import { test, expect, Browser, BrowserContext, Locator, Page } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { openAgileMapping, newAuthenticatedContext, isVisible, clickIfVisible, waitForApplyAllToast } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 import {
@@ -24,7 +24,7 @@ import {
   writingInstructionsToggle,
 } from './helpers/training-setup';
 
-dotenv.config();
+const FOLDER_NAME = runtimeConfig.folder || 'QA Testing';
 
 const UI_TIMEOUT = 60_000;
 const TRAINING_TIMEOUT = 2_400_000;
@@ -82,7 +82,7 @@ async function selectDynamicTemplateFromQaTesting(page: Page): Promise<string> {
   await page.getByRole('button', { name: /Select destination template/i }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: /Expand QA Testing/i }).click();
+  await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
   await expect(page.getByRole('checkbox').first())
       .toBeVisible({ timeout: UI_TIMEOUT });
 
@@ -92,7 +92,7 @@ async function selectDynamicTemplateFromQaTesting(page: Page): Promise<string> {
     const ariaLabel = await checkbox.getAttribute('aria-label');
     const labelText = ariaLabel || (await checkbox.innerText()).trim();
 
-    if (labelText && !labelText.includes('QA Testing') && !labelText.includes('Select All')) {
+    if (labelText && !labelText.includes(FOLDER_NAME) && !labelText.includes('Select All')) {
       const selectedTemplateName = labelText.replace(/^Select\s+/i, '').trim();
       await checkbox.check();
 
@@ -113,16 +113,16 @@ async function selectDynamicTemplateFromQaTesting(page: Page): Promise<string> {
     }
   }
 
-  throw new Error('No files found inside QA Testing folder to use as template.');
+  throw new Error(`No files found inside ${FOLDER_NAME} folder to use as template.`);
 }
 
 async function selectQaTestingSourceFolder(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select source documents/i }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
-  await expect(page.getByLabel('Folder: QA Testing')).toContainText('QA Testing');
-  await page.getByRole('button', { name: /Expand QA Testing/i }).click();
-  await page.getByRole('checkbox', { name: /Select QA Testing/i }).check();
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toContainText(FOLDER_NAME);
+  await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
+  await page.getByRole('checkbox', { name: new RegExp(`Select ${FOLDER_NAME}`, 'i') }).check();
   await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
 }
 
@@ -723,7 +723,7 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
 
   await trackStep(page, 'AW_11_to_20', 'AW11 Training Init', 'Start training + workspace load', async () => {
   // Navigate to the base URL
-  await page.goto(process.env.BASE_URL as string);
+  await page.goto(runtimeConfig.baseUrl);
 
   // Authentication - Instantly completes if session is valid or cookies are present
   // Following the pattern from existing tests (AW_04_agile_mapping_access.spec.ts)
@@ -731,7 +731,7 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
 
   // Wait for the redirect to complete and land on the dashboard
   await page.waitForURL(
-    (url: URL) => url.href.startsWith(process.env.BASE_URL as string) && !url.href.includes('/signin'),
+    (url: URL) => url.href.startsWith(runtimeConfig.baseUrl) && !url.href.includes('/signin'),
     { timeout: 60_000 }
   );
 
@@ -753,9 +753,9 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   await page.getByRole('button', { name: 'Select destination template [' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
   await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: 'Expand QA Testing' }).click();
+  await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
 
-  await expect(page.locator('text=QA Testing')).toBeVisible();
+  await expect(page.locator(`text=${FOLDER_NAME}`)).toBeVisible();
 
   // Dynamically select the first available file in the folder as the template
   const fileCheckboxes = await page.getByRole('checkbox').all();
@@ -764,7 +764,7 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   for (const cb of fileCheckboxes) {
     const ariaLabel = await cb.getAttribute('aria-label');
     const labelText = ariaLabel || await cb.innerText();
-    if (labelText && !labelText.includes('QA Testing') && !labelText.includes('Select All')) {
+    if (labelText && !labelText.includes(FOLDER_NAME) && !labelText.includes('Select All')) {
       templateCheckbox = cb;
       selectedTemplateName = labelText.replace('Select ', '').trim();
       break;

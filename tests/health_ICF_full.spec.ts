@@ -18,11 +18,9 @@
  */
 
 import { test } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-
-dotenv.config();
 
 test.describe('Health Report: ICF Full', () => {
   // 15 min training × 2 buffer + overhead = ~35 min
@@ -39,13 +37,13 @@ test.describe('Health Report: ICF Full', () => {
   test('ICF Full — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'ICF Full',
-      templateName: process.env.HEALTH_TEMPLATE || 'ICF_SET0.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER || 'QA Testing',
-      sourceNames: (process.env.HEALTH_SOURCES || 'Protocol Example (28Sep2023).docx')
+      templateName: runtimeConfig.template || 'ICF_SET0.docx',
+      templateFolder: runtimeConfig.folder || 'QA Testing',
+      sourceNames: (runtimeConfig.source || 'Protocol Example (28Sep2023).docx')
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER || 'QA Testing',
-      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX || 'ICF_Full',
+      sourceFolder: runtimeConfig.folder || 'QA Testing',
+      outputPrefix: 'ICF_Full',
       expectedTrainingMinutes: 15,
     };
 

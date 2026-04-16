@@ -20,11 +20,9 @@
  */
 
 import { test } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-
-dotenv.config();
 
 test.describe('Health Report: M264', () => {
   // 25 min training × 2 buffer + overhead = ~55 min
@@ -41,16 +39,16 @@ test.describe('Health Report: M264', () => {
   test('M264 — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'M264 (Module 2.6.4)',
-      templateName: process.env.HEALTH_TEMPLATE || '2.6.4 Template_Test.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER || 'M264',
+      templateName: runtimeConfig.template || '2.6.4 Template_Test.docx',
+      templateFolder: runtimeConfig.folder || 'M264',
       sourceNames: (
-        process.env.HEALTH_SOURCES ||
+        runtimeConfig.source ||
         'Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER || 'M264',
-      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX || 'M264_Test',
+      sourceFolder: runtimeConfig.folder || 'M264',
+      outputPrefix: 'M264_Test',
       expectedTrainingMinutes: 25,
     };
 

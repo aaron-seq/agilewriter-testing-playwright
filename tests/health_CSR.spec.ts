@@ -23,11 +23,9 @@
  */
 
 import { test } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-
-dotenv.config();
 
 test.describe('Health Report: CSR', () => {
   // 20 min training × 2 buffer + overhead = ~45 min
@@ -44,16 +42,16 @@ test.describe('Health Report: CSR', () => {
   test('CSR — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'CSR',
-      templateName: process.env.HEALTH_TEMPLATE || 'CSR_Template_20FEB2026.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER || 'CSR',
+      templateName: runtimeConfig.template || 'CSR_Template_20FEB2026.docx',
+      templateFolder: runtimeConfig.folder || 'CSR',
       sourceNames: (
-        process.env.HEALTH_SOURCES ||
+        runtimeConfig.source ||
         'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER || 'CSR',
-      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX || 'CSR_Test',
+      sourceFolder: runtimeConfig.folder || 'CSR',
+      outputPrefix: 'CSR_Test',
       expectedTrainingMinutes: 20,
     };
 

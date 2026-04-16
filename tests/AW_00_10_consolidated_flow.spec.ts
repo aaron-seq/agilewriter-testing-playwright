@@ -1,20 +1,23 @@
 import { test, expect, Locator, Page } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { openDashboard, openAgileMapping, isVisible, clickIfVisible } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
-
-dotenv.config();
 
 const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 const MICROSOFT_EMAIL_INPUT = /someone@synterex\.com|email|phone|skype|sign in/i;
 const MICROSOFT_PASSWORD_INPUT = /enter the password|password/i;
 const UI_TIMEOUT = 60_000;
 const DASHBOARD_TIMEOUT = 120_000;
-const BASE_URL = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+const BASE_URL = runtimeConfig.baseUrl;
+const FOLDER_NAME = runtimeConfig.folder || 'QA Testing';
 const QA_TEMPLATE_NAME = 'ICF_SET0_TRIMMED.docx';
 const QA_SOURCE_NAME = 'Protocol Example (28Sep2023)_trimmed.docx';
-const TEMPLATE_FILE_CANDIDATES = [QA_TEMPLATE_NAME, 'CSR_Table_Trimmed.docx', 'output.docx'];
+const TEMPLATE_FILE_CANDIDATES = [
+  ...(runtimeConfig.template ? [runtimeConfig.template] : []),
+  QA_TEMPLATE_NAME, 'CSR_Table_Trimmed.docx', 'output.docx',
+];
 const SOURCE_FILE_CANDIDATES = [
+  ...(runtimeConfig.source ? [runtimeConfig.source] : []),
   QA_SOURCE_NAME,
   'Protocol Example (28Sep2023).docx',
   'Clinical Study Protocol_V4.docx',
@@ -25,15 +28,8 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function requiredEnv(name: 'MS_EMAIL' | 'MS_PASSWORD'): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable: ${name}. Create a local .env file with ${name}=... before running Microsoft SSO tests.`
-    );
-  }
-  return value;
-}
+// Credentials are supplied by runtimeConfig, which reads from runtime-config.json (UI)
+// or falls back to .env automatically — no manual env var extraction needed.
 
 function microsoftEmailField(page: Page): Locator {
   return page
@@ -55,8 +51,8 @@ function microsoftPasswordField(page: Page): Locator {
 
 
 async function loginWithMicrosoft(page: Page): Promise<void> {
-  const msEmail = requiredEnv('MS_EMAIL');
-  const msPassword = requiredEnv('MS_PASSWORD');
+  const msEmail = runtimeConfig.email;
+  const msPassword = runtimeConfig.password;
 
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('button', { name: MICROSOFT_SIGN_IN_BUTTON }).click();
@@ -123,9 +119,9 @@ async function goToQaTestingFolder(page: Page): Promise<void> {
   await clickIfVisible(nextPage, 3_000);
   await clickIfVisible(nextPage, 3_000);
 
-  const expandQaTesting = page.getByRole('button', { name: /Expand QA Testing/i });
-  await expect(expandQaTesting).toBeVisible({ timeout: UI_TIMEOUT });
-  await expandQaTesting.click();
+  const expandFolder = page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') });
+  await expect(expandFolder).toBeVisible({ timeout: UI_TIMEOUT });
+  await expandFolder.click();
 }
 
 async function searchFileInPicker(page: Page, fileName: string): Promise<void> {
@@ -223,7 +219,7 @@ async function selectQaTestingTemplate(page: Page, confirmSelection: boolean): P
     await previewSelectedFileIfAvailable(page, fileName);
     await resolved.checkbox.check();
   } catch {
-    await searchFileInPicker(page, 'QA');
+    await searchFileInPicker(page, FOLDER_NAME);
     await goToQaTestingFolder(page);
     const resolved = await resolvePickerFile(page, TEMPLATE_FILE_CANDIDATES);
     fileName = resolved.fileName;
@@ -278,7 +274,7 @@ async function selectQaTestingSource(page: Page, confirmSelection: boolean): Pro
     await previewSelectedFileIfAvailable(page, fileName);
     await resolved.checkbox.check();
   } catch {
-    await searchFileInPicker(page, 'QA');
+    await searchFileInPicker(page, FOLDER_NAME);
     await goToQaTestingFolder(page);
     const resolved = await resolvePickerFile(page, SOURCE_FILE_CANDIDATES);
     fileName = resolved.fileName;

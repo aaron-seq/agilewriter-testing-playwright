@@ -25,11 +25,9 @@
  */
 
 import { test } from '@playwright/test';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-
-dotenv.config();
 
 test.describe('Health Report: ICF Trimmed', () => {
   // Generous timeout: 5 min training × 2 buffer + overhead = ~15 min
@@ -46,13 +44,13 @@ test.describe('Health Report: ICF Trimmed', () => {
   test('ICF Trimmed — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'ICF Trimmed',
-      templateName: process.env.HEALTH_TEMPLATE || 'ICF_SET0_TRIMMED.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER || 'QA Testing',
-      sourceNames: (process.env.HEALTH_SOURCES || 'Protocol Example (28Sep2023).docx')
+      templateName: runtimeConfig.template || 'ICF_SET0_TRIMMED.docx',
+      templateFolder: runtimeConfig.folder || 'QA Testing',
+      sourceNames: (runtimeConfig.source || 'Protocol Example (28Sep2023).docx')
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER || 'QA Testing',
-      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX || 'ICF_Trimmed',
+      sourceFolder: runtimeConfig.folder || 'QA Testing',
+      outputPrefix: 'ICF_Trimmed',
       expectedTrainingMinutes: 5,
     };
 

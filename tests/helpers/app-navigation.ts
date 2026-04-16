@@ -1,10 +1,8 @@
 import { Browser, BrowserContext, Locator, Page, expect } from '@playwright/test';
 import path from 'path';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../../runtime-config';
 
-dotenv.config();
-
-export const BASE_URL = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+export const BASE_URL = runtimeConfig.baseUrl;
 export const AUTH_FILE = path.join(process.cwd(), 'playwright', '.auth', 'user.json');
 const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 
