@@ -10,15 +10,14 @@
  *   npx playwright test tests/health_ICF_full.spec.ts --headed
  *
  * HOW TO CONFIGURE (edit .env):
- *   HEALTH_TEMPLATE=ICF_SET0.docx
- *   HEALTH_TEMPLATE_FOLDER=QA Testing
- *   HEALTH_SOURCES=Protocol Example (28Sep2023).docx
- *   HEALTH_SOURCE_FOLDER=QA Testing
- *   HEALTH_OUTPUT_PREFIX=ICF_Full
+ *   HEALTH_TEMPLATE_ICF_FULL=ICF_SET0.docx
+ *   HEALTH_TEMPLATE_FOLDER_ICF_FULL=QA Testing
+ *   HEALTH_SOURCES_ICF_FULL=Protocol Example (28Sep2023).docx
+ *   HEALTH_SOURCE_FOLDER_ICF_FULL=QA Testing
+ *   HEALTH_OUTPUT_PREFIX_ICF_FULL=ICF_Full
  */
 
 import { test } from '@playwright/test';
-import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
 
@@ -37,13 +36,15 @@ test.describe('Health Report: ICF Full', () => {
   test('ICF Full — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'ICF Full',
-      templateName: runtimeConfig.template || 'ICF_SET0.docx',
-      templateFolder: runtimeConfig.folder || 'QA Testing',
-      sourceNames: (runtimeConfig.source || 'Protocol Example (28Sep2023).docx')
+      templateName: process.env.HEALTH_TEMPLATE_ICF_FULL || 'ICF_SET0.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_FULL || 'QA Testing',
+      sourceNames: (
+        process.env.HEALTH_SOURCES_ICF_FULL || 'Protocol Example (28Sep2023).docx'
+      )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: runtimeConfig.folder || 'QA Testing',
-      outputPrefix: 'ICF_Full',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_FULL || 'QA Testing',
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_FULL || 'ICF_Full',
       expectedTrainingMinutes: 15,
     };
 

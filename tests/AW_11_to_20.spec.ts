@@ -264,7 +264,7 @@ async function waitForStageCompleted(
 
   await expect(rowWithCompleted).toBeVisible({ timeout });
   await expect
-    .poll(async () => page.locator(completedSelector).count(), { timeout: UI_TIMEOUT })
+    .poll(async () => page.locator(completedSelector).count(), { timeout })
     .toBeGreaterThanOrEqual(expectedCount);
 }
 
@@ -627,6 +627,9 @@ async function createPendingSourceAddition(page: Page): Promise<void> {
   await expect(page.getByText(/Source changes detected/i)).toBeVisible({
     timeout: UI_TIMEOUT,
   });
+  await expect(page.getByText(/Sources:\s*\d+\s+adds?/i)).toBeVisible({
+    timeout: UI_TIMEOUT,
+  });
 }
 
 async function savePendingChanges(page: Page): Promise<void> {
@@ -842,15 +845,9 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   await page.getByRole('button', { name: 'Start Training [Alt+G]' }).click();
 
   // Training may take time
-  await page.waitForSelector('text=Connecting to SharePoint and', {
-    state: 'visible',
-  });
-  await expect(page.getByText('Connecting to SharePoint and')).toBeVisible();
+  await expect(page.getByText('Connecting to SharePoint and')).toBeVisible({ timeout: UI_TIMEOUT });
 
-  await page.waitForSelector('text=Generating interactive', {
-    state: 'visible',
-  });
-  await expect(page.getByText('Generating interactive')).toBeVisible();
+  await expect(page.getByText('Generating interactive')).toBeVisible({ timeout: UI_TIMEOUT });
 
   // Support for "Generate Document" page - looking for "Create Final Doc" as the primary indicator
   // as the literal text "Generate Document" is not present in the current UI version.
@@ -983,13 +980,22 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
   ).toBeDisabled({ timeout: 60_000 });
 
+  // Wait for stage pipeline to begin — placeholders appear during processing
+  await expect(page.getByText(/Indexing Sources/i).first())
+    .toBeVisible({ timeout: UI_TIMEOUT });
+
   placeholders = page.locator('.doc-placeholder');
 
-  const loggingDiagnostics = await page.evaluate(() => {
-    const els = document.querySelectorAll('[class*="placeholder"]');
-    return [...els].map(e => e.className).slice(0, 5);
+  // DIAGNOSTIC — remove after confirming class name
+  const classProbe = await page.evaluate(() => {
+    const candidates = document.querySelectorAll('[class*="placeholder"]');
+    return [...candidates].slice(0, 5).map(el => ({
+      tag: el.tagName,
+      classes: el.className,
+      visible: el.getBoundingClientRect().height > 0
+    }));
   });
-  console.log('Diagnostic: Elements with "placeholder" in class:', loggingDiagnostics);
+  console.log('DIAGNOSTIC placeholder-like elements:', JSON.stringify(classProbe));
 
   await expect.poll(
     async () => {
@@ -1172,16 +1178,8 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     });
 
   await trackSoftStep(page, 'AW_15: Add Source',
-    'Verify Add Source flow', 'Add Source dialog opens and allows selecting a heading', async () => {
-      await openPrimaryPlaceholder(page);
-      await ensureSourcesSectionOpen(page);
-      await addSourceButton(page).click();
-      
-      await expect(page.getByRole('heading', { name: /Select Source/i })).toBeVisible({ timeout: UI_TIMEOUT });
-      await prepareSourceHeadingSelection(page);
-      await expect(sourceHeadingOption(page)).toBeVisible({ timeout: UI_TIMEOUT });
-      
-      await clickIfVisible(page.getByRole('button', { name: /^Cancel$/i }), 3_000); // Close dialog
+    'Verify Add Source pending and save flow', 'Selected headings create pending adds and can be saved', async () => {
+      await createSavedSourceAddition(page);
     });
 
   await trackSoftStep(page, 'AW_16: Transform',

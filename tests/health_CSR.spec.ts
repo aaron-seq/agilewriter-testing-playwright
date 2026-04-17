@@ -10,11 +10,11 @@
  *   npx playwright test tests/health_CSR.spec.ts --headed
  *
  * HOW TO CONFIGURE (edit .env):
- *   HEALTH_TEMPLATE=CSR_Template_20FEB2026.docx
- *   HEALTH_TEMPLATE_FOLDER=CSR
- *   HEALTH_SOURCES=Mock_CSR_list.docx,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx
- *   HEALTH_SOURCE_FOLDER=CSR
- *   HEALTH_OUTPUT_PREFIX=CSR_Test
+ *   HEALTH_TEMPLATE_CSR=CSR_Template_20FEB2026.docx
+ *   HEALTH_TEMPLATE_FOLDER_CSR=CSR
+ *   HEALTH_SOURCES_CSR=Mock_CSR_list.docx,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx
+ *   HEALTH_SOURCE_FOLDER_CSR=CSR
+ *   HEALTH_OUTPUT_PREFIX_CSR=CSR_Test
  *
  * SOURCE DOCUMENTS (from user's health report spec):
  *   - Mock_CSR_Tables_30Oct25.rtf
@@ -23,7 +23,6 @@
  */
 
 import { test } from '@playwright/test';
-import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
 
@@ -42,16 +41,16 @@ test.describe('Health Report: CSR', () => {
   test('CSR — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'CSR',
-      templateName: runtimeConfig.template || 'CSR_Template_20FEB2026.docx',
-      templateFolder: runtimeConfig.folder || 'CSR',
+      templateName: process.env.HEALTH_TEMPLATE_CSR || 'CSR_Template_20FEB2026.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_CSR || 'CSR',
       sourceNames: (
-        runtimeConfig.source ||
+        process.env.HEALTH_SOURCES_CSR ||
         'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: runtimeConfig.folder || 'CSR',
-      outputPrefix: 'CSR_Test',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_CSR || 'CSR',
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_CSR || 'CSR_Test',
       expectedTrainingMinutes: 20,
     };
 

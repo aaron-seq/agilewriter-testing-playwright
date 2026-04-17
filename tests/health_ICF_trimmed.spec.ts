@@ -11,11 +11,11 @@
  *
  * HOW TO CONFIGURE:
  *   Edit .env file with the document names:
- *     HEALTH_TEMPLATE=ICF_SET0_TRIMMED.docx
- *     HEALTH_TEMPLATE_FOLDER=QA Testing
- *     HEALTH_SOURCES=Protocol Example (28Sep2023).docx
- *     HEALTH_SOURCE_FOLDER=QA Testing
- *     HEALTH_OUTPUT_PREFIX=ICF_Trimmed
+ *     HEALTH_TEMPLATE_ICF_TRIMMED=ICF_SET0_TRIMMED.docx
+ *     HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED=QA Testing
+ *     HEALTH_SOURCES_ICF_TRIMMED=Protocol Example (28Sep2023).docx
+ *     HEALTH_SOURCE_FOLDER_ICF_TRIMMED=QA Testing
+ *     HEALTH_OUTPUT_PREFIX_ICF_TRIMMED=ICF_Trimmed
  *
  * WHAT THE REPORT SHOWS:
  *   - Step-by-step test results with timestamps
@@ -25,7 +25,6 @@
  */
 
 import { test } from '@playwright/test';
-import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
 
@@ -44,13 +43,15 @@ test.describe('Health Report: ICF Trimmed', () => {
   test('ICF Trimmed — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'ICF Trimmed',
-      templateName: runtimeConfig.template || 'ICF_SET0_TRIMMED.docx',
-      templateFolder: runtimeConfig.folder || 'QA Testing',
-      sourceNames: (runtimeConfig.source || 'Protocol Example (28Sep2023).docx')
+      templateName: process.env.HEALTH_TEMPLATE_ICF_TRIMMED || 'ICF_SET0_TRIMMED.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'QA Testing',
+      sourceNames: (
+        process.env.HEALTH_SOURCES_ICF_TRIMMED || 'Protocol Example (28Sep2023).docx'
+      )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: runtimeConfig.folder || 'QA Testing',
-      outputPrefix: 'ICF_Trimmed',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_TRIMMED || 'QA Testing',
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_TRIMMED || 'ICF_Trimmed',
       expectedTrainingMinutes: 5,
     };
 

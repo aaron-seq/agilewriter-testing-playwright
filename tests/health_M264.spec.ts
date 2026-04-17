@@ -10,17 +10,16 @@
  *   npx playwright test tests/health_M264.spec.ts --headed
  *
  * HOW TO CONFIGURE (edit .env):
- *   HEALTH_TEMPLATE=2.6.4 Template_Test.docx
- *   HEALTH_TEMPLATE_FOLDER=M264
- *   HEALTH_SOURCES=Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx
- *   HEALTH_SOURCE_FOLDER=M264
- *   HEALTH_OUTPUT_PREFIX=M264_Test
+ *   HEALTH_TEMPLATE_M264=2.6.4 Template_Test.docx
+ *   HEALTH_TEMPLATE_FOLDER_M264=M264
+ *   HEALTH_SOURCES_M264=Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx
+ *   HEALTH_SOURCE_FOLDER_M264=M264
+ *   HEALTH_OUTPUT_PREFIX_M264=M264_Test
  *
  * NOTE: M264 has the most source documents (7 files).
  */
 
 import { test } from '@playwright/test';
-import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
 
@@ -39,16 +38,16 @@ test.describe('Health Report: M264', () => {
   test('M264 — Full Health Check', async ({ page }) => {
     const config: HealthReportConfig = {
       reportName: 'M264 (Module 2.6.4)',
-      templateName: runtimeConfig.template || '2.6.4 Template_Test.docx',
-      templateFolder: runtimeConfig.folder || 'M264',
+      templateName: process.env.HEALTH_TEMPLATE_M264 || '2.6.4 Template_Test.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_M264 || 'M264',
       sourceNames: (
-        runtimeConfig.source ||
+        process.env.HEALTH_SOURCES_M264 ||
         'Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: runtimeConfig.folder || 'M264',
-      outputPrefix: 'M264_Test',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'M264',
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_M264 || 'M264_Test',
       expectedTrainingMinutes: 25,
     };
 
