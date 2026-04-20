@@ -12,9 +12,9 @@
  * HOW TO CONFIGURE:
  *   Edit .env file with the document names:
  *     HEALTH_TEMPLATE_ICF_TRIMMED=ICF_SET0_TRIMMED.docx
- *     HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED=QA Testing
+ *     HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED=Informed Consent Form
  *     HEALTH_SOURCES_ICF_TRIMMED=Protocol Example (28Sep2023).docx
- *     HEALTH_SOURCE_FOLDER_ICF_TRIMMED=QA Testing
+ *     HEALTH_SOURCE_FOLDER_ICF_TRIMMED=Protocol
  *     HEALTH_OUTPUT_PREFIX_ICF_TRIMMED=ICF_Trimmed
  *
  * WHAT THE REPORT SHOWS:
@@ -44,13 +44,13 @@ test.describe('Health Report: ICF Trimmed', () => {
     const config: HealthReportConfig = {
       reportName: 'ICF Trimmed',
       templateName: process.env.HEALTH_TEMPLATE_ICF_TRIMMED || 'ICF_SET0_TRIMMED.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'QA Testing',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'Informed Consent Form',
       sourceNames: (
         process.env.HEALTH_SOURCES_ICF_TRIMMED || 'Protocol Example (28Sep2023).docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_TRIMMED || 'QA Testing',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_TRIMMED || 'Protocol',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_TRIMMED || 'ICF_Trimmed',
       expectedTrainingMinutes: 5,
     };

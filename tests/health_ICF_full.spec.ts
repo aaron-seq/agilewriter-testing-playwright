@@ -11,9 +11,9 @@
  *
  * HOW TO CONFIGURE (edit .env):
  *   HEALTH_TEMPLATE_ICF_FULL=ICF_SET0.docx
- *   HEALTH_TEMPLATE_FOLDER_ICF_FULL=QA Testing
+ *   HEALTH_TEMPLATE_FOLDER_ICF_FULL=Informed Consent Form
  *   HEALTH_SOURCES_ICF_FULL=Protocol Example (28Sep2023).docx
- *   HEALTH_SOURCE_FOLDER_ICF_FULL=QA Testing
+ *   HEALTH_SOURCE_FOLDER_ICF_FULL=Protocol
  *   HEALTH_OUTPUT_PREFIX_ICF_FULL=ICF_Full
  */
 
@@ -37,13 +37,13 @@ test.describe('Health Report: ICF Full', () => {
     const config: HealthReportConfig = {
       reportName: 'ICF Full',
       templateName: process.env.HEALTH_TEMPLATE_ICF_FULL || 'ICF_SET0.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_FULL || 'QA Testing',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_FULL || 'Informed Consent Form',
       sourceNames: (
         process.env.HEALTH_SOURCES_ICF_FULL || 'Protocol Example (28Sep2023).docx'
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_FULL || 'QA Testing',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_FULL || 'Protocol',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_FULL || 'ICF_Full',
       expectedTrainingMinutes: 15,
     };

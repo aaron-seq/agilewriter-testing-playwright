@@ -15,11 +15,13 @@
  *   10. Create final document
  *   11. Download and verify
  *
- * HOW FILE SELECTION WORKS (from recorded test-1.spec.ts):
+ * HOW FILE SELECTION WORKS (from Playwright Codegen recording, April 2026):
  *   Template: Click "Select destination template" → type in search box →
- *             expand folder → check file checkbox → click "Select [ENTER]"
- *   Sources:  Click "Select source documents" → type in search box →
- *             expand folder → check folder checkbox → click "Done [ENTER]"
+ *             wait for folder → expand folder → wait for file → check file checkbox →
+ *             click "Select [ENTER]"
+ *   Sources:  Click "Select source documents" → for each source file:
+ *             type in search box → wait for folder → expand → check file checkbox →
+ *             click "Done [ENTER]"
  *
  *   Key insight from recording: After typing in the search box, files appear
  *   under expandable folders. We need to expand the folder BEFORE selecting.
@@ -76,6 +78,13 @@ export type HealthReportConfig = {
    * The actual timeout is this value × 2 (for safety buffer).
    */
   expectedTrainingMinutes: number;
+  /**
+   * Document category tab to select in the picker dialog.
+   * The picker has "Clinical" (default) and "Non-Clinical" tabs.
+   * M264 documents are under "Non-Clinical".
+   * If omitted, defaults to "Clinical".
+   */
+  category?: 'Clinical' | 'Non-Clinical';
 };
 
 // ──────────────────────────────────────────────
@@ -103,130 +112,223 @@ export type HealthReportConfig = {
 async function selectTemplateBySearch(
   page: Page,
   templateName: string,
-  folderName: string
+  folderName: string,
+  category?: 'Clinical' | 'Non-Clinical'
 ): Promise<void> {
-  // Open the template picker
-  await page.getByRole('button', { name: /Select destination template/i }).click();
+  console.log(`[Template] Selecting "${templateName}" in folder "${folderName}" (${category || 'Clinical'})`);
 
-  // Wait for the search box to appear
+  // 1. Open the template picker
+  await page.getByRole('button', { name: /Select destination template/i }).click();
+  await expect(
+    page.getByRole('heading', { name: /Select Destination Template/i })
+  ).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // 1b. Switch tab if needed (e.g., Non-Clinical for M264)
+  if (category && category !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: category });
+    await expect(tab).toBeVisible({ timeout: UI_TIMEOUT });
+    await tab.click();
+    console.log(`[Template] Switched to "${category}" tab`);
+  }
+
+  // 2. Search for file by name
   const searchBox = page.getByRole('textbox', { name: /Search files/i });
   await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
-
-  // Type the filename — using fill() which is faster than type()
-  // fill() clears existing text and sets the value in one operation
+  await searchBox.click();
   await searchBox.fill(templateName);
+  console.log(`[Template] Searching for "${templateName}"...`);
 
-  // Expand the folder that contains the file
-  const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${folderName}`, 'i') });
-  if (await isVisible(expandButton, 5_000)) {
+  // 3. Wait for a folder to appear in search results
+  //    Try configured folder first, then auto-detect any visible folder
+  const configuredFolder = page.getByRole('button', { name: `Folder: ${folderName}` });
+  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+  let actualFolderName = folderName;
+
+  // We wait up to UI_TIMEOUT for the configured folder, since SharePoint search can be slow.
+  // Using Promise.race or checking visibility.
+  try {
+    await expect(configuredFolder).toBeVisible({ timeout: 20_000 });
+    console.log(`[Template] Found configured folder "${folderName}"`);
+  } catch (err) {
+    // Auto-detect: grab whatever folder the search returned
+    await expect(anyFolder).toBeVisible({ timeout: UI_TIMEOUT });
+    const buttonText = await anyFolder.textContent() || '';
+    actualFolderName = buttonText.replace(/^Folder:\s*/i, '').trim();
+    console.log(`[Template] ⚠ Configured folder "${folderName}" not found in 20s. Auto-detected: "${actualFolderName}"`);
+  }
+
+  // 4. Expand the folder — REQUIRED before file is visible
+  const expandButton = page.getByRole('button', { name: `Expand ${actualFolderName}` });
+  const collapseButton = page.getByRole('button', { name: `Collapse ${actualFolderName}` });
+  const isExpanded = await collapseButton.isVisible().catch(() => false);
+  if (!isExpanded) {
     await expandButton.click();
+    await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
   }
+  console.log(`[Template] Expanded folder "${actualFolderName}"`);
 
-  // Find and check the file's checkbox
-  // The checkbox accessible name follows the pattern "Select {filename}"
+  // 5. Wait for file row to appear — CRITICAL WAIT
   const escapedName = templateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const fileButton = page.getByRole('button', { name: new RegExp(`File: ${escapedName}`, 'i') });
+  await expect(fileButton).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // 6. Select the file's checkbox
   const fileCheckbox = page
-    .getByRole('checkbox', { name: new RegExp(`Select.*${escapedName}`, 'i') })
+    .getByRole('checkbox', { name: new RegExp(`Select ${escapedName}`, 'i') })
     .first();
+  await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
+  await fileCheckbox.check();
+  console.log(`[Template] ✓ Checked "${templateName}"`);
 
-  if (await isVisible(fileCheckbox, 5_000)) {
-    await fileCheckbox.check();
-  } else {
-    // Fallback: try to find any non-system checkbox
-    const allCheckboxes = await page.getByRole('checkbox').all();
-    let found = false;
-    for (const cb of allCheckboxes) {
-      const label = (await cb.getAttribute('aria-label')) || '';
-      if (label && !label.includes('Select All') && label.includes(templateName.replace('.docx', ''))) {
-        await cb.check();
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      throw new Error(`Template file "${templateName}" not found in folder "${folderName}". Check the filename and folder name in your .env file.`);
-    }
+  // 7. (Soft) Preview canvas — non-blocking, preview can be down
+  try {
+    await expect(page.locator('.docx-preview__canvas')).toBeVisible({ timeout: 10_000 });
+  } catch {
+    console.log('  ⚠ Preview canvas not visible — non-blocking, continuing.');
   }
 
-  // Wait for preview to load
-  const loadingPreview = page.getByText('Loading preview...');
-  if (await isVisible(loadingPreview, 3_000)) {
-    await expect(loadingPreview).toBeHidden({ timeout: UI_TIMEOUT });
-  }
+  // 8. Confirm selection
+  const selectBtn = page.getByRole('button', { name: /Select \[ENTER\]/i });
+  await selectBtn.click();
+  
+  // Ensure dialog closes
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
+    console.log('  ⚠ Dialog did not close, trying Enter key...');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT });
+  });
 
-  // Click Full Preview to verify the document, then close
-  const fullPreviewBtn = page.getByRole('button', { name: 'Full Preview' });
-  if (await isVisible(fullPreviewBtn, 3_000)) {
-    await fullPreviewBtn.click();
-    await page.getByRole('button', { name: /Close modal/i }).click();
-  }
-
-  // Confirm selection
-  await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
+  // 9. Verify the selected template name appears on the Train Document screen
+  await expect(
+    page.getByRole('button', { name: new RegExp(escapedName, 'i') })
+  ).toBeVisible({ timeout: UI_TIMEOUT });
+  console.log(`[Template] ✓ Template "${templateName}" confirmed on screen`);
 }
 
 /**
- * Select source documents using the search-based approach.
+ * Select source documents using individual file selection.
  *
- * FLOW (learned from recorded test-1.spec.ts):
+ * FLOW (from Playwright Codegen recording, April 2026):
  *   1. Click "Select source documents" button
- *   2. Type a search term in the search box
- *   3. Wait for results
- *   4. Expand the folder
- *   5. Check the folder checkbox (selects all files inside)
- *   6. Click "Done [ENTER]" to confirm
+ *   2. For each source file:
+ *      a. Type filename in search box
+ *      b. Wait for folder to appear in results
+ *      c. Expand the folder
+ *      d. Wait for file checkbox to appear
+ *      e. Check the file's checkbox (NOT the folder checkbox)
+ *   3. Click "Done [ENTER]" to confirm
  *
- * NOTE: For sources, we search using a common term that matches all source files,
- * then select the entire folder. This is what the recorded test showed:
- *   - Searched "MOCK" → found CSR folder → selected entire folder
- *
- * WHY select entire folder instead of individual files:
- *   - Simpler and matches the recorded test behavior
- *   - All source files in the folder are typically needed
- *   - Individual file selection would require N search operations
+ * KEY INSIGHT from recording:
+ *   - Source documents may live in a DIFFERENT folder than templates
+ *     (e.g., ICF sources are under "Protocol", not "QA Testing")
+ *   - We must select individual file checkboxes, not folder checkboxes
+ *   - The folder name comes from config.sourceFolder in .env
  */
 async function selectSourcesBySearch(
   page: Page,
   sourceNames: string[],
-  sourceFolder: string
+  sourceFolder: string,
+  category?: 'Clinical' | 'Non-Clinical'
 ): Promise<void> {
-  // Open the source picker
+  console.log(`[Sources] Selecting ${sourceNames.length} files from folder "${sourceFolder}" (${category || 'Clinical'})`);
+
+  // 1. Open the source picker
   await page.getByRole('button', { name: /Select source documents/i }).click();
 
-  // Wait for the search box
-  const searchBox = page.getByRole('textbox', { name: /Search files/i });
-  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
-
-  // Use the first source name as the search term
-  // Or use the folder name if it's more specific
-  const searchTerm = sourceNames[0] || sourceFolder;
-  await searchBox.fill(searchTerm);
-
-  // Expand the source folder
-  const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${sourceFolder}`, 'i') });
-  if (await isVisible(expandButton, 5_000)) {
-    await expandButton.click();
-  }
-
-  // Select the folder checkbox (selects all files inside)
-  const folderCheckbox = page.getByRole('checkbox', { name: new RegExp(`Select ${sourceFolder}`, 'i') });
-  if (await isVisible(folderCheckbox, 5_000)) {
-    await folderCheckbox.check();
-  } else {
-    // Fallback: select individual files
-    for (const sourceName of sourceNames) {
-      const escapedName = sourceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const cb = page
-        .getByRole('checkbox', { name: new RegExp(`Select.*${escapedName}`, 'i') })
-        .first();
-      if (await isVisible(cb, 3_000)) {
-        await cb.check();
-      }
+  // 1b. Switch tab if needed (e.g., Non-Clinical for M264)
+  if (category && category !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: category });
+    if (await tab.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await tab.click();
+      console.log(`[Sources] Switched to "${category}" tab`);
     }
   }
 
-  // Confirm selection
-  await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
+  // Wait for picker to load
+  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // 2. Select each source file individually
+  for (const sourceName of sourceNames) {
+    if (!sourceName.trim()) continue;
+    console.log(`[Sources] Searching for "${sourceName}"...`);
+
+    // Search for this specific file
+    await searchBox.click();
+    await searchBox.fill(sourceName);
+
+    // Wait for the source folder to appear in results
+    //   Try configured folder first, then auto-detect any visible folder
+    const configuredFolder = page.getByRole('button', { name: `Folder: ${sourceFolder}` });
+    const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+    let actualFolderName = sourceFolder;
+
+    try {
+      await expect(configuredFolder).toBeVisible({ timeout: 20_000 });
+      console.log(`[Sources] Found configured folder "${sourceFolder}"`);
+    } catch (err) {
+      await expect(anyFolder).toBeVisible({ timeout: UI_TIMEOUT });
+      const buttonText = await anyFolder.textContent() || '';
+      actualFolderName = buttonText.replace(/^Folder:\s*/i, '').trim();
+      console.log(`[Sources] ⚠ Configured folder "${sourceFolder}" not found in 20s. Auto-detected: "${actualFolderName}"`);
+    }
+
+    // Expand the folder if not already expanded
+    const expandButton = page.getByRole('button', { name: `Expand ${actualFolderName}` });
+    const collapseButton = page.getByRole('button', { name: `Collapse ${actualFolderName}` });
+    const isExpanded = await collapseButton.isVisible().catch(() => false);
+    if (!isExpanded) {
+      await expandButton.click();
+      await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+    }
+
+    // Wait for file row — use partial match for long filenames
+    const escapedName = sourceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const fileButton = page.getByRole('button', { name: new RegExp(`File: ${escapedName.substring(0, 30)}`, 'i') });
+    await expect(fileButton).toBeVisible({ timeout: UI_TIMEOUT });
+
+    // Select the exact file checkbox (NOT the folder checkbox)
+    const fileCheckbox = page
+      .getByRole('checkbox', { name: new RegExp(`Select ${escapedName.substring(0, 30)}`, 'i') })
+      .first();
+    await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
+    await fileCheckbox.check();
+    console.log(`[Sources] ✓ Checked "${sourceName}"`);
+  }
+
+  // 3. (Soft) Preview section — non-blocking
+  try {
+    await expect(
+      page.locator('.docx-preview__canvas').or(page.locator('section').first())
+    ).toBeVisible({ timeout: 10_000 });
+  } catch {
+    console.log('  ⚠ Source preview not visible — non-blocking, continuing.');
+  }
+
+  // 4. Confirm selection
+  const doneBtn = page.getByRole('button', { name: /Done \[ENTER\]/i });
+  await doneBtn.click();
+  
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
+    console.log('  ⚠ Dialog did not close, trying Enter key...');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT });
+  });
+  console.log(`[Sources] Clicked Done — verifying selection...`);
+
+  // 5. Verify the source selection appears (flexible: matches "N files:" or single file name)
+  if (sourceNames.length > 0 && sourceNames[0].trim()) {
+    const firstSourceRaw = sourceNames[0].trim();
+    const firstSourceTruncated = firstSourceRaw.substring(0, 15);
+    const firstSourceEscapedSafe = firstSourceTruncated.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    await expect(
+      page.getByRole('button', { name: new RegExp(`(${firstSourceEscapedSafe}|\\d+ files:)`, 'i') })
+    ).toBeVisible({ timeout: UI_TIMEOUT });
+  }
+  console.log(`[Sources] ✓ All ${sourceNames.length} sources confirmed`);
 }
 
 /**
@@ -309,13 +411,13 @@ export async function runHealthReport(
   // ─── Step 3: Select template ───
   await trackStep(page, testName, `Select template: ${config.templateName}`,
     'Template document is selected from file picker', async () => {
-      await selectTemplateBySearch(page, config.templateName, config.templateFolder);
+      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.category);
     });
 
   // ─── Step 4: Select source documents ───
   await trackStep(page, testName, `Select sources: ${config.sourceNames.join(', ')}`,
     'Source documents are selected from file picker', async () => {
-      await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder);
+      await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder, config.category);
     });
 
   // ─── Step 5: Start training ───

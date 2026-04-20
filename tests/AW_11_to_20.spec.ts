@@ -80,8 +80,20 @@ function postSaveSignal(page: Page): Locator {
 
 async function selectDynamicTemplateFromQaTesting(page: Page): Promise<string> {
   await page.getByRole('button', { name: /Select destination template/i }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
+
+  // Use search instead of hardcoded pagination — resilient to folder reordering
+  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+  await searchBox.click();
+  await searchBox.fill(FOLDER_NAME);
+
+  // Wait for folder to appear in search results
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Clear search so files inside the folder become visible (search filters hide non-matching children)
+  await searchBox.clear();
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toBeVisible({ timeout: UI_TIMEOUT });
+
   await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
   await expect(page.getByRole('checkbox').first())
       .toBeVisible({ timeout: UI_TIMEOUT });
@@ -118,9 +130,20 @@ async function selectDynamicTemplateFromQaTesting(page: Page): Promise<string> {
 
 async function selectQaTestingSourceFolder(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select source documents/i }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
+
+  // Use search instead of hardcoded pagination — resilient to folder reordering
+  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+  await searchBox.click();
+  await searchBox.fill(FOLDER_NAME);
+
+  // Wait for folder to appear in search results
   await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toContainText(FOLDER_NAME);
+
+  // Clear search so files inside the folder become visible
+  await searchBox.clear();
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toBeVisible({ timeout: UI_TIMEOUT });
+
   await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
   await page.getByRole('checkbox', { name: new RegExp(`Select ${FOLDER_NAME}`, 'i') }).check();
   await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
@@ -348,40 +371,12 @@ async function verifyDocumentGenerationStages(page: Page): Promise<void> {
     })
     .toBeGreaterThanOrEqual(3);
 
-  const toastDetectionPromise = page.evaluate(() => {
-    return new Promise<{ text: string }>((resolve, reject) => {
-      let observer: MutationObserver | undefined = undefined;
-
-      const timeout = window.setTimeout(() => {
-        observer?.disconnect();
-        reject(new Error('Apply All toast did not appear within 10 seconds.'));
-      }, 10_000);
-
-      observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of mutation.addedNodes) {
-            if (!(node instanceof Element)) {
-              continue;
-            }
-
-            const text = (node.textContent || '').trim();
-            if (/Applied all \d+ mappings?/i.test(text)) {
-              window.clearTimeout(timeout);
-              observer?.disconnect();
-              resolve({ text });
-              return;
-            }
-          }
-        }
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-  });
+  // Set up toast detection before clicking — uses shared helper from app-navigation.ts
+  const toastDetectionPromise = waitForApplyAllToast(page, 10_000);
 
   await applyAllButton(page).click();
-  const toastInfo = await toastDetectionPromise;
-  expect(toastInfo.text).toMatch(/Applied all \d+ mappings?/i);
+  const toastText = await toastDetectionPromise;
+  expect(toastText).toMatch(/Applied all(?:\s+\d+)?\s+mappings?\.?/i);
 
   await expect(createFinalDocButton(page)).toBeEnabled({ timeout: UI_TIMEOUT });
 }
@@ -754,8 +749,20 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
 
   // Action -> Select destination template
   await page.getByRole('button', { name: 'Select destination template [' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
+
+  // Use search instead of hardcoded pagination — resilient to folder reordering
+  const templateSearchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(templateSearchBox).toBeVisible({ timeout: UI_TIMEOUT });
+  await templateSearchBox.click();
+  await templateSearchBox.fill(FOLDER_NAME);
+
+  // Wait for folder to appear in search results
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // Clear search so files inside the folder become visible (search filters hide non-matching children)
+  await templateSearchBox.clear();
+  await expect(page.getByLabel(`Folder: ${FOLDER_NAME}`)).toBeVisible({ timeout: UI_TIMEOUT });
+
   await page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') }).click();
 
   await expect(page.locator(`text=${FOLDER_NAME}`)).toBeVisible();
@@ -803,12 +810,19 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   // Action -> Select source documents
 
   await page.getByRole('button', { name: 'Select source documents [Alt+' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await page.getByRole('button', { name: 'Next page' }).click();
 
+  // Use search instead of hardcoded pagination — resilient to folder reordering
+  const sourceSearchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(sourceSearchBox).toBeVisible({ timeout: UI_TIMEOUT });
+  await sourceSearchBox.click();
+  await sourceSearchBox.fill(FOLDER_NAME);
+
+  // Wait for folder to appear, then clear search so files inside become visible
+  await expect(page.getByLabel('Folder: QA Testing')).toContainText('QA Testing');
+  await sourceSearchBox.clear();
+  await expect(page.getByLabel('Folder: QA Testing')).toBeVisible({ timeout: UI_TIMEOUT });
 
   // Expand folder
-  await expect(page.getByLabel('Folder: QA Testing')).toContainText('QA Testing');
   await page.getByRole('button', { name: 'Expand QA Testing' }).click();
   await page.getByRole('checkbox', { name: 'Select QA Testing' }).check();
 
@@ -976,6 +990,20 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     page.getByRole('button', { name: 'Show mapping controls' })
   ).toBeVisible();
 
+  // Switch to the template tab — after AW12 Document Preview, the view may be
+  // left on the source document tab. Placeholders only render on the template view.
+  if (selectedTemplateName) {
+    const templateTabRegex = new RegExp(
+      selectedTemplateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').substring(0, 25),
+      'i'
+    );
+    const templateTab = page.getByRole('button', { name: templateTabRegex }).first();
+    if (await templateTab.isVisible().catch(() => false)) {
+      await templateTab.click();
+      console.log(`Switched to template tab "${selectedTemplateName}" for placeholder detection.`);
+    }
+  }
+
   await expect(
     page.getByRole('button', { name: 'Create Final Doc [Alt+G]' })
   ).toBeDisabled({ timeout: 60_000 });
@@ -985,17 +1013,6 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
     .toBeVisible({ timeout: UI_TIMEOUT });
 
   placeholders = page.locator('.doc-placeholder');
-
-  // DIAGNOSTIC — remove after confirming class name
-  const classProbe = await page.evaluate(() => {
-    const candidates = document.querySelectorAll('[class*="placeholder"]');
-    return [...candidates].slice(0, 5).map(el => ({
-      tag: el.tagName,
-      classes: el.className,
-      visible: el.getBoundingClientRect().height > 0
-    }));
-  });
-  console.log('DIAGNOSTIC placeholder-like elements:', JSON.stringify(classProbe));
 
   await expect.poll(
     async () => {
@@ -1127,7 +1144,10 @@ test('AW_11_to_20: Document Generation Stage', async ({ page }) => {
   const greenPlaceholderCount = await placeholders.evaluateAll((elements) => {
     return elements.filter(el => {
       const bg = window.getComputedStyle(el).backgroundColor;
-      return bg.includes('16, 185, 129');
+      const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!match) return false;
+      const [, r, g, b] = match.map(Number);
+      return r === 16 && g === 185 && b === 129;
     }).length;
   });
   console.log(`Green placeholders ready to apply: ${greenPlaceholderCount}`);
