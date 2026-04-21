@@ -16,13 +16,37 @@ const DOCUMENT_SECTIONS = [
 ];
 
 const runtimeMeta = fs.existsSync(RUNTIME_CONFIG_FILE)
-  ? JSON.parse(fs.readFileSync(RUNTIME_CONFIG_FILE, 'utf-8'))
+  ? JSON.parse(fs.readFileSync(RUNTIME_CONFIG_FILE, 'utf8'))
   : {};
 
-const testerName = runtimeMeta.testerName || process.env.TESTER_NAME || 'Not configured';
-const envName = runtimeMeta.envName || process.env.TEST_ENV || 'QA';
-const appUrl = runtimeMeta.appUrl || process.env.APP_URL || process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes/signin';
-const osName = process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux';
+const testerName =
+  runtimeMeta.testerName ||
+  process.env.TESTER_NAME ||
+  'Not Configured';
+
+const envName =
+  runtimeMeta.envName ||
+  process.env.TEST_ENV ||
+  'QA';
+
+const appUrl =
+  runtimeMeta.appUrl ||
+  process.env.APP_URL ||
+  process.env.BASE_URL ||
+  'https://app-v2-rc1-aw.smarter.codes/signin';
+
+const osName =
+  process.platform === 'win32'
+    ? 'Windows'
+    : process.platform === 'darwin'
+      ? 'macOS'
+      : 'Linux';
+
+function ensureDir() {
+  if (!fs.existsSync(REPORT_DIR)) {
+    fs.mkdirSync(REPORT_DIR, { recursive: true });
+  }
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -33,475 +57,520 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function formatDuration(durationMs) {
-  const safeDuration = Math.max(0, Number(durationMs || 0));
-  const totalSeconds = Math.floor(safeDuration / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-  return `${seconds}s`;
+function clickableLink(url) {
+  const safe = escapeHtml(url);
+  return `<a href="${safe}" style="color:#0563C1;text-decoration:underline;">${safe}</a>`;
 }
 
-function formatTimestamp(timestamp) {
-  if (!timestamp) {
-    return 'Not recorded';
+function formatDateTime(value) {
+  if (!value) return 'Not Recorded';
+
+  const d = new Date(value);
+
+  if (Number.isNaN(d.getTime())) {
+    return escapeHtml(value);
   }
 
-  const value = new Date(timestamp);
-  if (Number.isNaN(value.getTime())) {
-    return escapeHtml(timestamp);
-  }
+  return d.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+}
 
-  return escapeHtml(value.toLocaleString());
+function formatDuration(ms) {
+  const total = Math.max(0, Number(ms || 0));
+  const sec = Math.floor(total / 1000);
+
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 function normalizeLabel(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 function readSteps() {
-  if (!fs.existsSync(STEP_FILE)) {
-    return [];
-  }
+  if (!fs.existsSync(STEP_FILE)) return [];
 
   try {
-    const content = fs.readFileSync(STEP_FILE, 'utf-8').trim();
-    return content ? JSON.parse(content) : [];
-  } catch (error) {
-    console.warn('Unable to parse step-results.json. Generating report with empty step data.', error);
+    const raw = fs.readFileSync(STEP_FILE, 'utf8').trim();
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.warn('Invalid step-results.json:', err.message);
     return [];
   }
+}
+
+function summarizeSteps(steps) {
+  const totalDuration = steps.reduce(
+    (sum, s) => sum + Number(s.duration || 0),
+    0
+  );
+
+  const failed = steps.filter((s) => s.status === 'FAIL');
+  const passed = steps.filter((s) => s.status === 'PASS');
+
+  const criticalFailures = failed.filter((s) => s.critical);
+  const softFailures = failed.filter((s) => !s.critical);
+
+  return {
+    totalSteps: steps.length,
+    passedSteps: passed.length,
+    failedSteps: failed.length,
+    criticalFailures,
+    softFailures,
+    totalDuration,
+    overallStatus: failed.length ? 'FAIL' : 'PASS',
+  };
 }
 
 function groupByTestName(steps) {
   return steps.reduce((acc, step) => {
-    if (!acc[step.testName]) {
-      acc[step.testName] = [];
-    }
-    acc[step.testName].push(step);
+    const key = step.testName || 'Unknown Test';
+
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(step);
+
     return acc;
   }, {});
 }
 
-function summarizeSteps(steps) {
-  const totalDuration = steps.reduce((sum, step) => sum + Number(step.duration || 0), 0);
-  const failedSteps = steps.filter((step) => step.status === 'FAIL');
-  const criticalFailures = failedSteps.filter((step) => step.critical);
-  const softFailures = failedSteps.filter((step) => !step.critical);
-  const passedSteps = steps.filter((step) => step.status === 'PASS');
+function statusBadge(status) {
+  const good = status === 'PASS';
 
-  return {
-    totalSteps: steps.length,
-    passedSteps: passedSteps.length,
-    failedSteps: failedSteps.length,
-    criticalFailures,
-    softFailures,
-    totalDuration,
-    overallStatus: failedSteps.length > 0 ? 'FAIL' : 'PASS',
-  };
+  return `
+    <span style="
+      color:${good ? '#107C10' : '#C00000'};
+      font-weight:bold;
+    ">
+      ${escapeHtml(status)}
+    </span>
+  `;
 }
 
 function readHealthConfig(suffix) {
-  const templateName = process.env[`HEALTH_TEMPLATE_${suffix}`] || 'Not configured';
-  const templateFolder = process.env[`HEALTH_TEMPLATE_FOLDER_${suffix}`] || 'Not configured';
-  const sourceNames = (process.env[`HEALTH_SOURCES_${suffix}`] || '')
+  const sourceNames = (
+    process.env[`HEALTH_SOURCES_${suffix}`] || ''
+  )
     .split(',')
-    .map((value) => value.trim())
+    .map((x) => x.trim())
     .filter(Boolean);
-  const sourceFolder = process.env[`HEALTH_SOURCE_FOLDER_${suffix}`] || 'Not configured';
-  const outputPrefix = process.env[`HEALTH_OUTPUT_PREFIX_${suffix}`] || 'Not configured';
 
   return {
-    templateName,
-    templateFolder,
+    templateName:
+      process.env[`HEALTH_TEMPLATE_${suffix}`] ||
+      'Not Configured',
+
+    templateFolder:
+      process.env[`HEALTH_TEMPLATE_FOLDER_${suffix}`] ||
+      'Not Configured',
+
+    sourceFolder:
+      process.env[`HEALTH_SOURCE_FOLDER_${suffix}`] ||
+      'Not Configured',
+
+    outputPrefix:
+      process.env[`HEALTH_OUTPUT_PREFIX_${suffix}`] ||
+      'Not Configured',
+
     sourceNames,
-    sourceFolder,
-    outputPrefix,
   };
 }
 
-function buildOutputPatterns(outputPrefix) {
-  const prefix = outputPrefix && outputPrefix !== 'Not configured' ? outputPrefix : 'OUTPUT_PREFIX';
+function buildOutputPatterns(prefix) {
+  const p =
+    prefix && prefix !== 'Not Configured'
+      ? prefix
+      : 'OUTPUT_PREFIX';
+
   return [
-    `${prefix}_*_SB_raw_qa.xlsx`,
-    `${prefix}_*_SB_raw.docx`,
-    `${prefix}_*_SB_clean.docx`,
-    `${prefix}_*_SB.docx`,
+    `${p}_*_SB_raw_qa.xlsx`,
+    `${p}_*_SB_raw.docx`,
+    `${p}_*_SB_clean.docx`,
+    `${p}_*_SB.docx`,
   ];
 }
 
-function renderStatusBadge(status) {
-  const className = status === 'PASS' ? 'pass' : 'fail';
-  return `<span class="status ${className}">${escapeHtml(status)}</span>`;
-}
-
-function renderSourceList(sourceNames) {
-  if (!sourceNames.length) {
-    return '<p><em>No source documents configured.</em></p>';
-  }
-
+function renderTable(headers, rows) {
   return `
-    <ul>
-      ${sourceNames.map((source) => `<li><code>${escapeHtml(source)}</code></li>`).join('')}
-    </ul>
-  `;
-}
+    <table style="
+      width:100%;
+      border-collapse:collapse;
+      margin-top:8px;
+      margin-bottom:14px;
+      font-size:10pt;
+    ">
+      <tr>
+        ${headers
+      .map(
+        (h) => `
+          <th style="
+            background:#D9E2F3;
+            border:1px solid #808080;
+            padding:6px;
+            text-align:left;
+          ">
+            ${h}
+          </th>
+        `
+      )
+      .join('')}
+      </tr>
 
-function renderFailureList(steps, criticalOnly) {
-  const failures = steps.filter((step) => step.status === 'FAIL' && step.critical === criticalOnly);
-  if (!failures.length) {
-    return '<p><em>None recorded.</em></p>';
-  }
-
-  return `
-    <ul>
-      ${failures
-        .map((step) => `
-          <li>
-            <strong>${escapeHtml(step.stepName)}</strong>
-            <div>${escapeHtml(step.error || 'Step failed without an error message.')}</div>
-          </li>
-        `)
-        .join('')}
-    </ul>
-  `;
-}
-
-function renderColorSnapshots(steps) {
-  const colorSteps = steps.filter((step) => step.colorCounts);
-  if (!colorSteps.length) {
-    return '<p><em>No placeholder color snapshots were recorded for this document.</em></p>';
-  }
-
-  return `
-    <table>
-      <thead>
-        <tr>
-          <th>Step</th>
-          <th>Green</th>
-          <th>Grey</th>
-          <th>Blue</th>
-          <th>Red</th>
-          <th>Yellow</th>
-          <th>Other</th>
+      ${rows
+      .map(
+        (row, idx) => `
+        <tr style="
+          background:${idx % 2 === 0 ? '#FFFFFF' : '#F7F7F7'
+          };
+        ">
+          ${row
+            .map(
+              (cell) => `
+            <td style="
+              border:1px solid #BFBFBF;
+              padding:5px;
+              vertical-align:top;
+            ">
+              ${cell}
+            </td>
+          `
+            )
+            .join('')}
         </tr>
-      </thead>
-      <tbody>
-        ${colorSteps
-          .map((step) => `
-            <tr>
-              <td>${escapeHtml(step.stepName)}</td>
-              <td>${step.colorCounts.green || 0}</td>
-              <td>${step.colorCounts.grey || 0}</td>
-              <td>${step.colorCounts.blue || 0}</td>
-              <td>${step.colorCounts.red || 0}</td>
-              <td>${step.colorCounts.yellow || 0}</td>
-              <td>${step.colorCounts.other || 0}</td>
-            </tr>
-          `)
-          .join('')}
-      </tbody>
+      `
+      )
+      .join('')}
     </table>
   `;
 }
 
-function renderStepTable(steps) {
-  if (!steps.length) {
-    return '<p><em>No tracked steps found for this section in reports/step-results.json.</em></p>';
+function renderFailures(steps, criticalOnly) {
+  const rows = steps.filter(
+    (s) =>
+      s.status === 'FAIL' &&
+      !!s.critical === criticalOnly
+  );
+
+  if (!rows.length) {
+    return `<p>None Recorded</p>`;
   }
 
   return `
-    <table>
-      <thead>
-        <tr>
-          <th>Step</th>
-          <th>Validation</th>
-          <th>Type</th>
-          <th>Status</th>
-          <th>Duration</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${steps
-          .map((step) => `
-            <tr>
-              <td>${escapeHtml(step.stepName)}</td>
-              <td>${escapeHtml(step.validation)}</td>
-              <td>${step.critical ? 'Critical' : 'Soft'}</td>
-              <td>${renderStatusBadge(step.status)}</td>
-              <td>${escapeHtml(formatDuration(step.duration))}</td>
-              <td>${formatTimestamp(step.timestamp)}</td>
-            </tr>
-          `)
-          .join('')}
-      </tbody>
-    </table>
+    <ul>
+      ${rows
+      .map(
+        (r) => `
+        <li>
+          <strong>${escapeHtml(
+          r.stepName
+        )}</strong><br/>
+          ${escapeHtml(
+          r.error || 'No error message'
+        )}
+        </li>
+      `
+      )
+      .join('')}
+    </ul>
   `;
 }
 
-function findHealthSteps(steps, label) {
+function findHealthSteps(allSteps, label) {
   const target = normalizeLabel(label);
-  return steps.filter((step) => {
-    if (!step.testName || !step.testName.startsWith('Health:')) {
+
+  return allSteps.filter((step) => {
+    if (
+      !step.testName ||
+      !step.testName.startsWith('Health:')
+    ) {
       return false;
     }
 
-    const reportName = step.testName.split(':').slice(1).join(':').trim();
-    return normalizeLabel(reportName) === target;
+    const report = step.testName
+      .split(':')
+      .slice(1)
+      .join(':')
+      .trim();
+
+    return normalizeLabel(report) === target;
   });
 }
 
-function renderDocumentSection(allSteps, documentSection) {
-  const steps = findHealthSteps(allSteps, documentSection.label);
+function renderDocumentSection(allSteps, section) {
+  const steps = findHealthSteps(
+    allSteps,
+    section.label
+  );
+
   const summary = summarizeSteps(steps);
-  const config = readHealthConfig(documentSection.suffix);
-  const outputPatterns = buildOutputPatterns(config.outputPrefix);
+  const cfg = readHealthConfig(section.suffix);
+
+  const timelineRows = steps.map((s) => [
+    escapeHtml(s.stepName),
+    escapeHtml(s.validation || ''),
+    s.critical ? 'Critical' : 'Soft',
+    statusBadge(s.status),
+    formatDuration(s.duration),
+    formatDateTime(s.timestamp),
+  ]);
 
   return `
-    <section>
-      <h3>${escapeHtml(documentSection.label)}</h3>
-      <div class="summary-card">
-        <p><strong>Status:</strong> ${renderStatusBadge(summary.overallStatus)}</p>
-        <p><strong>Total tracked steps:</strong> ${summary.totalSteps}</p>
-        <p><strong>Execution time:</strong> ${escapeHtml(formatDuration(summary.totalDuration))}</p>
-        <p><strong>Critical failures:</strong> ${summary.criticalFailures.length}</p>
-        <p><strong>Soft failures:</strong> ${summary.softFailures.length}</p>
-      </div>
+    <h2>${escapeHtml(section.label)}</h2>
 
-      <h4>Configured Documents</h4>
-      <p><strong>Destination template:</strong> <code>${escapeHtml(config.templateName)}</code></p>
-      <p><strong>Template folder:</strong> <code>${escapeHtml(config.templateFolder)}</code></p>
-      <p><strong>Source folder:</strong> <code>${escapeHtml(config.sourceFolder)}</code></p>
-      <p><strong>Source document(s):</strong></p>
-      ${renderSourceList(config.sourceNames)}
+    <p><strong>Status:</strong> ${statusBadge(
+    summary.overallStatus
+  )}</p>
+    <p><strong>Total Steps:</strong> ${summary.totalSteps
+    }</p>
+    <p><strong>Duration:</strong> ${formatDuration(
+      summary.totalDuration
+    )}</p>
 
-      <h4>Generated Output Pattern</h4>
-      <p><strong>Output prefix:</strong> <code>${escapeHtml(config.outputPrefix)}</code></p>
-      <p><em>Server IDs are generated at runtime, so the report shows filename patterns instead of exact links.</em></p>
-      <ul>
-        ${outputPatterns.map((pattern) => `<li><code>${escapeHtml(pattern)}</code></li>`).join('')}
-      </ul>
+    <h3>Configured Documents</h3>
 
-      <h4>Critical Failures</h4>
-      ${renderFailureList(steps, true)}
+    <p><strong>Template:</strong> ${escapeHtml(
+      cfg.templateName
+    )}</p>
 
-      <h4>Soft Failures</h4>
-      ${renderFailureList(steps, false)}
+    <p><strong>Template Folder:</strong> ${escapeHtml(
+      cfg.templateFolder
+    )}</p>
 
-      <h4>Placeholder Color Snapshots</h4>
-      ${renderColorSnapshots(steps)}
+    <p><strong>Source Folder:</strong> ${escapeHtml(
+      cfg.sourceFolder
+    )}</p>
 
-      <h4>Step Timeline</h4>
-      ${renderStepTable(steps)}
-    </section>
+    <h3>Generated Output Files</h3>
+
+    <ul>
+      ${buildOutputPatterns(cfg.outputPrefix)
+      .map(
+        (x) =>
+          `<li>${escapeHtml(x)}</li>`
+      )
+      .join('')}
+    </ul>
+
+    <h3>Critical Failures</h3>
+    ${renderFailures(steps, true)}
+
+    <h3>Soft Failures</h3>
+    ${renderFailures(steps, false)}
+
+    <h3>Timeline</h3>
+    ${timelineRows.length
+      ? renderTable(
+        [
+          'Step',
+          'Validation',
+          'Type',
+          'Status',
+          'Duration',
+          'Date & Time',
+        ],
+        timelineRows
+      )
+      : '<p>No Steps Found</p>'
+    }
   `;
 }
 
-function renderAdditionalCoverage(steps) {
+function renderCoverage(steps) {
   const grouped = groupByTestName(
-    steps.filter((step) => !String(step.testName || '').startsWith('Health:'))
+    steps.filter(
+      (x) =>
+        !String(
+          x.testName || ''
+        ).startsWith('Health:')
+    )
   );
-  const testNames = Object.keys(grouped);
 
-  if (!testNames.length) {
-    return '';
-  }
+  const names = Object.keys(grouped);
+
+  if (!names.length) return '';
+
+  const rows = names.map((name) => {
+    const s = summarizeSteps(grouped[name]);
+
+    return [
+      escapeHtml(name),
+      statusBadge(s.overallStatus),
+      s.totalSteps,
+      formatDuration(s.totalDuration),
+      s.criticalFailures.length,
+      s.softFailures.length,
+    ];
+  });
 
   return `
-    <section>
-      <h2>Additional Automated Coverage</h2>
-      <p>The following non-health tracked tests were also present in <code>reports/step-results.json</code> when this report was generated.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Test</th>
-            <th>Status</th>
-            <th>Steps</th>
-            <th>Duration</th>
-            <th>Critical Failures</th>
-            <th>Soft Failures</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${testNames
-            .map((testName) => {
-              const summary = summarizeSteps(grouped[testName]);
-              return `
-                <tr>
-                  <td>${escapeHtml(testName)}</td>
-                  <td>${renderStatusBadge(summary.overallStatus)}</td>
-                  <td>${summary.totalSteps}</td>
-                  <td>${escapeHtml(formatDuration(summary.totalDuration))}</td>
-                  <td>${summary.criticalFailures.length}</td>
-                  <td>${summary.softFailures.length}</td>
-                </tr>
-              `;
-            })
-            .join('')}
-        </tbody>
-      </table>
-    </section>
+    <h2>Additional Automated Coverage</h2>
+    ${renderTable(
+    [
+      'Test Name',
+      'Status',
+      'Steps',
+      'Duration',
+      'Critical',
+      'Soft',
+    ],
+    rows
+  )}
   `;
+}
+
+function buildHtml(steps) {
+  const summary = summarizeSteps(steps);
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+
+<body style="
+  font-family:Calibri,Arial,sans-serif;
+  font-size:11pt;
+  color:#222;
+  line-height:1.45;
+">
+
+<h1 style="
+  text-align:center;
+  color:#1F4E78;
+  font-size:24pt;
+  margin-bottom:18px;
+">
+  Agile Writer Validation Report
+</h1>
+
+<p><strong>Performed By:</strong> ${escapeHtml(
+    testerName
+  )}</p>
+
+<p><strong>Generated:</strong> ${formatDateTime(
+    new Date()
+  )}</p>
+
+<p><strong>Application:</strong> Agile Writer</p>
+
+<p><strong>Application URL:</strong> ${clickableLink(
+    appUrl
+  )}</p>
+
+<p><strong>Environment:</strong> ${escapeHtml(
+    envName
+  )}</p>
+
+<p><strong>Operating System:</strong> ${escapeHtml(
+    osName
+  )}</p>
+
+<p><strong>Tracked File:</strong> ${escapeHtml(
+    STEP_FILE
+  )}</p>
+
+<hr/>
+
+<h2 style="color:#1F4E78;">Overall Summary</h2>
+
+<p><strong>Status:</strong> ${statusBadge(
+    summary.overallStatus
+  )}</p>
+
+<p><strong>Total Steps:</strong> ${summary.totalSteps
+    }</p>
+
+<p><strong>Passed:</strong> ${summary.passedSteps
+    }</p>
+
+<p><strong>Failed:</strong> ${summary.failedSteps
+    }</p>
+
+<p><strong>Critical Failures:</strong> ${summary.criticalFailures.length
+    }</p>
+
+<p><strong>Soft Failures:</strong> ${summary.softFailures.length
+    }</p>
+
+<p><strong>Total Duration:</strong> ${formatDuration(
+      summary.totalDuration
+    )}</p>
+
+<hr/>
+
+${DOCUMENT_SECTIONS.map((s) =>
+      renderDocumentSection(steps, s)
+    ).join('<hr/>')}
+
+<hr/>
+
+${renderCoverage(steps)}
+
+<hr/>
+
+<h2 style="color:#1F4E78;">Notes</h2>
+
+<ul>
+<li>Green = Passed</li>
+<li>Red = Failed</li>
+<li>Tables use alternating row colors for readability</li>
+<li>Links are clickable in Word</li>
+<li>Screenshots remain in reports/screenshots</li>
+</ul>
+
+</body>
+</html>
+`;
 }
 
 async function generateWordReport() {
+  ensureDir();
+
   const steps = readSteps();
-  const overallSummary = summarizeSteps(steps);
+  const html = buildHtml(steps);
 
-  const htmlString = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <style>
-          body {
-            font-family: Calibri, Arial, sans-serif;
-            color: #111827;
-            line-height: 1.5;
-            font-size: 11pt;
-          }
-          h1 {
-            font-size: 22pt;
-            text-align: center;
-            margin-bottom: 12px;
-            color: #111827;
-          }
-          h2 {
-            font-size: 15pt;
-            border-bottom: 1px solid #d1d5db;
-            padding-bottom: 4px;
-            margin-top: 24px;
-            color: #111827;
-          }
-          h3 {
-            font-size: 13pt;
-            margin-top: 18px;
-            color: #1f2937;
-          }
-          h4 {
-            font-size: 11pt;
-            margin-top: 14px;
-            margin-bottom: 6px;
-            color: #374151;
-          }
-          p, li {
-            font-size: 10.5pt;
-          }
-          .info-grid, .summary-card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 12px;
-            margin-bottom: 16px;
-          }
-          .status {
-            font-weight: bold;
-          }
-          .status.pass {
-            color: #0b8043;
-          }
-          .status.fail {
-            color: #c53929;
-          }
-          code {
-            background: #f3f4f6;
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-family: Consolas, "Courier New", monospace;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            margin-bottom: 14px;
-          }
-          th, td {
-            border: 1px solid #d1d5db;
-            padding: 6px;
-            vertical-align: top;
-            font-size: 10pt;
-          }
-          th {
-            background: #f3f4f6;
-            text-align: left;
-          }
-          .muted {
-            color: #6b7280;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Agile Writer Validation Report</h1>
+  const fileBuffer = await htmlToDocx(
+    html,
+    null,
+    {
+      font: 'Calibri',
+      margins: {
+        top: 720,
+        right: 720,
+        bottom: 720,
+        left: 720,
+      },
+    }
+  );
 
-        <div class="info-grid">
-          <p><strong>Performed by:</strong> ${escapeHtml(testerName)}</p>
-          <p><strong>Generated:</strong> ${escapeHtml(new Date().toLocaleString())}</p>
-          <p><strong>Application:</strong> Agile Writer</p>
-          <p><strong>Application URL:</strong> ${escapeHtml(appUrl)}</p>
-          <p><strong>Execution Type:</strong> Automated Validation</p>
-          <p><strong>Environment:</strong> ${escapeHtml(envName)}</p>
-          <p><strong>Operating System:</strong> ${escapeHtml(osName)}</p>
-          <p><strong>Tracked Step Source:</strong> <code>${escapeHtml(STEP_FILE)}</code></p>
-        </div>
+  fs.writeFileSync(
+    OUTPUT_FILE,
+    fileBuffer
+  );
 
-        <h2>Overall Summary</h2>
-        <div class="summary-card">
-          <p><strong>Overall status:</strong> ${renderStatusBadge(overallSummary.overallStatus)}</p>
-          <p><strong>Total tracked steps:</strong> ${overallSummary.totalSteps}</p>
-          <p><strong>Passed steps:</strong> ${overallSummary.passedSteps}</p>
-          <p><strong>Failed steps:</strong> ${overallSummary.failedSteps}</p>
-          <p><strong>Critical failures:</strong> ${overallSummary.criticalFailures.length}</p>
-          <p><strong>Soft failures:</strong> ${overallSummary.softFailures.length}</p>
-          <p><strong>Total tracked time:</strong> ${escapeHtml(formatDuration(overallSummary.totalDuration))}</p>
-        </div>
-
-        <h2>Document Generation Phase</h2>
-        <p class="muted">Each section below is built from the live contents of <code>step-results.json</code> plus the namespaced health-report configuration in your local <code>.env</code>.</p>
-
-        ${DOCUMENT_SECTIONS.map((section) => renderDocumentSection(steps, section)).join('')}
-
-        ${renderAdditionalCoverage(steps)}
-
-        <h2>How to Read This Report</h2>
-        <ul>
-          <li><strong>Critical</strong> checks represent blocking workflow steps such as navigation, training progression, Apply All, final document creation, and downloads.</li>
-          <li><strong>Soft</strong> checks capture non-blocking diagnostics such as preview rendering, optional integrations, and placeholder color snapshots.</li>
-          <li>Server-generated document IDs are not known ahead of time, so output files are shown as filename patterns rather than direct SharePoint links.</li>
-          <li>Screenshots remain on disk under <code>reports/screenshots</code> and are intentionally not embedded into the Word document.</li>
-        </ul>
-      </body>
-    </html>
-  `;
-
-  if (!fs.existsSync(REPORT_DIR)) {
-    fs.mkdirSync(REPORT_DIR, { recursive: true });
-  }
-
-  const fileBuffer = await htmlToDocx(htmlString, null, {
-    table: { row: { cantSplit: true } },
-    footer: true,
-    pageNumber: true,
-    font: 'Calibri',
-    margins: {
-      top: 720,
-      right: 720,
-      bottom: 720,
-      left: 720,
-    },
-  });
-
-  fs.writeFileSync(OUTPUT_FILE, fileBuffer);
-  console.log(`Word report generated successfully at: ${OUTPUT_FILE}`);
+  console.log(
+    `Word report generated successfully: ${OUTPUT_FILE}`
+  );
 }
 
-generateWordReport().catch((error) => {
-  console.error('Failed to generate Word report:', error);
+generateWordReport().catch((err) => {
+  console.error(
+    'Failed to generate report:',
+    err
+  );
   process.exitCode = 1;
 });
