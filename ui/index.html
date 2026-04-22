@@ -194,6 +194,27 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .log-terminal {
+      background: rgba(15, 23, 42, 0.9);
+      color: #10b981;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.75rem;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .log-terminal div {
+      margin-bottom: 6px;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -249,6 +270,13 @@
       <button class="btn-secondary" onclick="downloadReport()">Download Last Report</button>
     </div>
 
+    <!-- Live Execution Tracking -->
+    <div id="execution-stats" style="display: none; justify-content: space-between; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">
+      <span>Status: <span id="run-status" style="color: var(--primary);">Initializing...</span></span>
+      <span id="timer" style="font-family: monospace; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">00:00</span>
+    </div>
+    <div id="log-terminal" class="log-terminal" style="display: none;"></div>
+
     <p id="status"></p>
   </div>
 </div>
@@ -275,13 +303,73 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+let logEventSource = null;
+let timerInterval = null;
+let startTime = 0;
+
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 async function runTest() {
   const statusEl = document.getElementById('status');
   const runBtn = document.getElementById('runBtn');
+  const terminal = document.getElementById('log-terminal');
+  const statsDiv = document.getElementById('execution-stats');
+  const timerEl = document.getElementById('timer');
+  const runStatusEl = document.getElementById('run-status');
   
-  statusEl.innerHTML = '<span class="loader"></span> Tests are currently running...';
+  statusEl.innerHTML = ''; // Clear final status string
   runBtn.disabled = true;
   runBtn.style.opacity = '0.5';
+
+  terminal.style.display = 'block';
+  statsDiv.style.display = 'flex';
+  terminal.innerHTML = '';
+  runStatusEl.innerHTML = '<span class="loader"></span> Running...';
+  
+  startTime = Date.now();
+  timerEl.innerText = '00:00';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerEl.innerText = formatTime(Date.now() - startTime);
+  }, 1000);
+
+  if (logEventSource) {
+    logEventSource.close();
+  }
+  
+  // Connect to SSE stream
+  logEventSource = new EventSource('http://localhost:3000/stream');
+  logEventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      const row = document.createElement('div');
+      
+      let color = '#94a3b8'; // default muted text
+      if (data.type === 'error') color = '#fb7185'; // rose color
+      else if (data.type === 'info') color = '#38bdf8'; // sky blue
+      else if (data.type === 'done') color = '#34d399'; // emerald
+      else if (data.type === 'log') color = '#f8fafc'; // light text for normal logs
+
+      row.style.color = color;
+      row.innerText = data.message.trim();
+      
+      if(row.innerText) {
+        terminal.appendChild(row);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      if (data.type === 'info' || data.type === 'done') {
+        runStatusEl.innerText = data.message.trim();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const data = {
     testerName: document.getElementById('tester').value,
@@ -305,12 +393,17 @@ async function runTest() {
 
     if (response.ok) {
       statusEl.innerText = '✔ Test Cycle Completed Successfully';
+      runStatusEl.innerText = '✔ Completed';
     } else {
       statusEl.innerText = '✖️ Test Execution Failed';
+      runStatusEl.innerText = '✖️ Failed';
     }
   } catch (error) {
     statusEl.innerText = '✖️ Connection Error: Backend server unreachable';
+    runStatusEl.innerText = '✖️ Error';
   } finally {
+    clearInterval(timerInterval);
+    if (logEventSource) logEventSource.close();
     runBtn.disabled = false;
     runBtn.style.opacity = '1';
   }
