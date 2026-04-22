@@ -43,7 +43,7 @@ test.describe('Health Report: ICF Full', () => {
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_FULL || 'Protocol',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_FULL || 'QA Testing',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_FULL || 'ICF_Full',
       expectedTrainingMinutes: 15,
     };

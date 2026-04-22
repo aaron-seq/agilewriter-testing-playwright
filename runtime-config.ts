@@ -15,6 +15,13 @@ type Config = {
   template: string;
   source: string;
   folder: string;
+  /** Manual input fields — used by AW_11_to_20_manual_input.spec.ts */
+  manualTemplateName?: string;
+  manualTemplateFolder?: string;
+  manualTemplateTab?: 'Clinical' | 'Non-Clinical';
+  manualSourceFiles?: Array<{ name: string; folder: string }>;
+  useQaFolderForSources?: boolean;
+  generatedScriptName?: string;
 };
 
 function loadConfig(): Config {

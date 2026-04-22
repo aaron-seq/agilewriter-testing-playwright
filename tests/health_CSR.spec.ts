@@ -43,9 +43,11 @@ test.describe('Health Report: CSR', () => {
       reportName: 'CSR',
       templateName: process.env.HEALTH_TEMPLATE_CSR || 'CSR_Template_20FEB2026.docx',
       templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_CSR || 'CSR',
+      // TODO: CONFIRM exact source filenames and folder with team.
+      // "Mock_CSR_Tables_30Oct25.rtf" currently fails search (No files match).
       sourceNames: (
         process.env.HEALTH_SOURCES_CSR ||
-        'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
+        'Mock_CSR_Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
       )
         .split(',')
         .map((s) => s.trim()),

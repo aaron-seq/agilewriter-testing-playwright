@@ -1,103 +1,159 @@
-# Agile Writer Playwright Handbook
+# AgileWriter Automation Handbook
 
-## 1. What this handbook is for
+This handbook is designed for anyone who needs to run or understand the AgileWriter test suite, even if you have zero prior experience with Playwright or coding.
 
-This handbook explains the architecture of the Agile Writer Playwright test suite. It breaks down:
-- The new consolidated test file structures
-- How the granular `trackStep` telemetry and Word report generation work
-- How to run specific Health validation scripts
-- What `.env` properties manage dynamic files from SharePoint
-- Important Helper logic
+## ── SECTION 1: What Is This Suite? ───────────────────────
 
-This serves as a beginner-friendly reference for new QA team members running the suite.
+The AgileWriter automation suite is a collection of scripts that automatically control a web browser. 
 
----
+It does the following completely automatically:
+- Logs into AgileWriter using saved credentials.
+- Searches for and selects document templates from SharePoint.
+- Searches for and selects source documents from SharePoint.
+- Runs the AgileWriter training process (Indexing, Matching, Populating).
+- Verifies that the AI successfully populated the document placeholders by checking their colours.
+- Generates a final Word document report.
 
-## 2. Project Goal
+**No manual clicking is required once the script is running.** The suite is designed for both recurring weekly health checks (to ensure AgileWriter is working correctly) and for one-off testing of new document formats.
 
-Automate the core Agile Writer validation workflows (AW_00 to AW_20) cleanly, outputting visual telemetry and highly structured Microsoft Word Document Health Reports for management so that stable QA pipeline checks can execute without repetitive manual testing.
+## ── SECTION 2: Installation Guide ────────────────────────
 
----
+If you are setting this up on a brand new machine, follow these steps in order:
 
-## 3. Main File Architecture
+1. **Install Node.js** (v18 or higher) — download from [https://nodejs.org](https://nodejs.org)
+2. **Clone the repository:**
+   Open a terminal and run:
+   ```bash
+   git clone [repo URL]
+   cd "Agile Writer Test"
+   ```
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+4. **Install Playwright browsers:**
+   ```bash
+   npx playwright install --with-deps
+   ```
+5. **Set up credentials:**
+   - Copy the `.env.example` file and rename the copy to `.env`
+   - Open the `.env` file and fill in your details: `BASE_URL`, `EMAIL`, and `PASSWORD`.
+6. **Verify setup:**
+   Run the following command to check that everything is correctly installed:
+   ```bash
+   npx tsc --noEmit
+   ```
+   *This should show 0 errors. If it does, you're ready to go!*
 
-Important files and folders:
+## ── SECTION 3: How Playwright Works (Simple English) ─────
 
-- **`playwright.config.js`**
-  Controls the Playwright test runners, browser setups, timeout thresholds, and GitHub Actions CI fallbacks.
-- **`tests/AW_00_10_consolidated_flow.spec.ts`**
-  Unified validation suite executing Authentication, Dashboard checks, and Setup workflows in `serial` mode to prevent duplicate training operations.
-- **`tests/AW_11_to_20.spec.ts`**
-  The central heavy-lifting file covering Document Generation, Color mapping, Stage matching, Apply All, and final download capabilities. Uses granular internal wrappers.
-- **`tests/health_ICF_trimmed.spec.ts` (and variants)**
-  Templatized health reports that can run validation on a specific business document natively against `.env` without modifying code.
-- **`tests/helpers/step-tracker.ts`**
-  Captures real-time granular telemetrics, screenshots, duration timestamps, and color validation outputs and streams it to JSON structure.
-- **`generate-word-report.js`**
-  Consumes tracking dumps and compiles a fully branded QA validation `.docx` artifact.
-- **`.env`**
-  The heart of configuration. Manages URL bindings, MS Auth, placeholder Regex defaults, and SharePoint document names.
+Playwright is a tool that controls a real web browser automatically.
 
----
+- It can click buttons, type text into boxes, wait for screens to load, and check that the right content appears on the screen.
+- We use it to simulate a real human user going through AgileWriter step by step. It moves much faster than a human, but performs the exact same actions.
+- Tests are written in code files called TypeScript (they end in `.spec.ts`).
+- When a test finishes, the results are saved automatically as JSON logs and easy-to-read Word reports.
 
-## 4. `trackStep` and `trackSoftStep` Explained
+## ── SECTION 4: The 6 Test Scripts — What Each One Does ──
 
-To move away from Playwright's native reporting (which is too technical for clients), we built a wrapper called `trackStep()`.
+We have 6 main scripts in the suite. Here is what they do and when you should run them:
 
-### Example
-```typescript
-await trackStep(page, 'AW_11_to_20', 'AW12B Stage Monitoring', 'All 3 stages complete', async () => {
-    // Expect locators and UI assertions here
-    await expect(page.locator(COMPLETED_SELECTOR)).toHaveCount(3);
-});
-```
+| Script | What it does | When to run |
+|--------|-------------|-------------|
+| `AW_00_10_consolidated_flow.spec.ts` | Tests login, navigation, file picker, and pre-training UI | Before any major release |
+| `AW_11_to_20_QA_folder.spec.ts` | Full training run using the QA Testing folder — automatic file selection | Regular smoke testing |
+| `AW_11_to_20_manual_input.spec.ts` | Full training run where you specify your own files — generates a reusable script at the end | New document formats |
+| `health_ICF_trimmed.spec.ts` | Health check for ICF Trimmed format — fully automatic | Weekly health check |
+| `health_ICF_full.spec.ts` | Health check for ICF Full format — fully automatic | Weekly health check |
+| `health_CSR.spec.ts` | Health check for CSR format — fully automatic | Weekly health check |
+| `health_M264.spec.ts` | Health check for M264 format (Non-Clinical tab) — fully automatic | Weekly health check |
 
-### Why this exists:
-1. **Readable Reporting:** Outputs a clear block in the log showing the Task Name, Expectation, Duration, and a Screenshot exactly where it completed or failed.
-2. **Soft Verification (`trackSoftStep`):** Allows non-critical validations (like checking placeholder color distributions `GREEN_PATTERN`) to fail safely without terminating the entire test pipeline. This mimics human subjective evaluation gracefully.
+## ── SECTION 5: How to Run the Scripts ────────────────────
 
----
+To run the scripts, open your terminal (in the Agile Writer Test folder) and copy/paste these commands:
 
-## 5. The Health Report Configuration Structure (`.env`)
-
-File selection in Agile Writer utilizes dynamic SharePoint folders ("QA Testing" etc). Finding these requires search interaction. Instead of hardcoding document names inside tests, the setup is controlled natively through your `.env` configuration.
-
-```env
-# Health Report Configuration
-HEALTH_TEMPLATE=ICF_SET0_TRIMMED.docx
-HEALTH_TEMPLATE_FOLDER=QA Testing
-HEALTH_SOURCES=Protocol Example (28Sep2023).docx
-HEALTH_SOURCE_FOLDER=QA Testing
-HEALTH_OUTPUT_PREFIX=ICF_Trimmed
-```
-- If a document is updated by the client, you just change the `.env` value.
-- No TypeScript or test recompilation is needed to validate the latest data.
-
----
-
-## 6. How To Execute
-
-### Running Full Pipeline
+**Run a single health script:**
 ```bash
-npx playwright test tests/AW_00_10_consolidated_flow.spec.ts tests/AW_11_to_20.spec.ts
+npx playwright test tests/health_ICF_trimmed.spec.ts --headed
 ```
+*(The `--headed` flag makes the browser visible so you can watch the automation run).*
 
-### Running Specific Health Checking Scripts
-To run an isolated mapping test against specific files:
+**Run all health scripts together:**
 ```bash
-npx playwright test tests/health_ICF_trimmed.spec.ts
+npx playwright test tests/health_ICF_trimmed.spec.ts \
+  tests/health_ICF_full.spec.ts \
+  tests/health_CSR.spec.ts \
+  tests/health_M264.spec.ts --headed
 ```
 
-### Generating The Word Report
-After execution, results are stored in `reports/step-results.json`. To package them up:
+**Run the QA folder dynamic test:**
 ```bash
-npm run report
+npx playwright test tests/AW_11_to_20_QA_folder.spec.ts --headed
 ```
-This triggers `generate-word-report.js` to create the Final QA output.
 
----
+**Run the manual input test (edit runtime-config.json first):**
+```bash
+npx playwright test tests/AW_11_to_20_manual_input.spec.ts --headed
+```
 
-## 7. Key Best Practices for Maintenance
-- **Never Add Brittle Waits:** Replace `page.waitForTimeout(5000)` with `await expect(...).toBeVisible({ timeout: ... })` utilizing the `UI_TIMEOUT` vs `TRAINING_TIMEOUT` paradigms seamlessly.
-- **Verify Toast Life-cycles:** Use `waitForApplyAllToast()` hooks which properly handle transition and race condition scopes without failing prematurely on React DOM repaints.
-- **Use the Helpers:** Keep files clean. Delegate repetitive logic into `app-navigation.ts` and `health-report-runner.ts` so future updates only need to be fixed in one core location.
+**Run pre-training UI checks:**
+```bash
+npx playwright test tests/AW_00_10_consolidated_flow.spec.ts --headed
+```
+
+## ── SECTION 6: How Health Scripts Work ───────────────────
+
+When you run a health script, it follows this exact automated flow:
+
+1. **Login:** The script logs in using your saved credentials from the `.env` file.
+2. **Setup:** It opens AgileMapping and enters a timestamped output filename so the document is unique.
+3. **Template:** It searches for the specific template file by name, expands the right folder, and selects it.
+4. **Sources:** It searches for all the required source documents, expands the folder, and selects them.
+5. **Training:** It clicks "Start Training" and patiently waits for all 3 backend stages to complete:
+   *Indexing Sources → Finding Placeholder Matches → Populating Placeholders*.
+6. **Verification:** It counts the placeholder colours on the screen: green means a successful match, red means not matched.
+7. **Finalize:** It clicks "Create Final Doc" and waits for the final Word document to generate and download.
+8. **Reporting:** It saves a detailed Word report with all screenshots and results to your `reports/` folder.
+
+## ── SECTION 7: The 4 Hardcoded Health Scripts ────────────
+
+The 4 health check scripts always use the same specific files and folders to ensure consistent testing. Here are their exact configurations:
+
+| Script | Template File | Template Folder | Tab | Source Files | Source Folder |
+|--------|--------------|-----------------|-----|-------------|---------------|
+| `health_ICF_trimmed` | ICF_SET0_TRIMMED.docx | QA Testing | Clinical | Protocol Example (28Sep2023)_trimmed.docx | Protocol |
+| `health_ICF_full` | ICF_SET0.docx | Informed Consent Form | Clinical | Protocol Example (28Sep2023).docx | Protocol |
+| `health_CSR` | CSR_Template_20FEB2026.docx | CSR | Clinical | Mock_CSR files (confirm with team) | TBC |
+| `health_M264` | 2.6.4 Template_Test.docx | M264 | Non-Clinical | 7 source files | Module264 |
+
+## ── SECTION 8: New Document Formats — Step by Step ───────
+
+If you have a brand new document format that you want to test, you don't need to write any code. Just follow these steps:
+
+1. **Upload:** Upload your new template file and source files to SharePoint.
+2. **Configure:** Open the `runtime-config.json` file in your code editor. Update the filenames, folder paths, and tabs to match your newly uploaded files.
+3. **Run:** In your terminal, run: 
+   `npx playwright test tests/AW_11_to_20_manual_input.spec.ts --headed`
+4. **Automagic Script Generation:** Watch the test run. After it finishes successfully, a brand new health script is automatically generated for you inside the `tests/` folder (for example, `tests/health_MyFormat.spec.ts`).
+5. **Future Runs:** You never have to manually configure those files again. Next week, just run your generated script!
+
+## ── SECTION 9: Reports and Results ───────────────────────
+
+After every single test run, the automation creates permanent records so you can review what happened:
+
+- **`reports/step-results.json`** — A highly detailed log of every single action the script took, how long it took, and whether it passed or failed.
+- **`reports/[scriptname]-report.docx`** — A generated Word report containing visual screenshots of the test and human-readable results.
+- **`reports/last-run-config.json`** — A backup of the configuration from your last manual input run, so you never lose track of what you tested.
+- **Screenshots** — If a test ever fails or gets stuck, the script automatically takes a screenshot at the exact moment of failure so you can see what went wrong.
+
+## ── SECTION 10: Troubleshooting Common Issues ────────────
+
+If a test fails, don't panic! Check this list for the most common problems and their fixes:
+
+| Problem | Likely Cause | Fix |
+|---------|-------------|-----|
+| **"No files match [filename]"** | File not in SharePoint or wrong folder | Open SharePoint in your own browser and check the file exists in the exact folder. |
+| **"Timeout waiting for Expand [folder]"** | Folder name mismatch | The name in the config doesn't match the SharePoint picker. Confirm the exact folder name. |
+| **Stuck on "Populating Placeholders"** | Backend performance issue | This is not a script bug! The server is hanging. Report this to the dev/infrastructure team. |
+| **Login popup does not appear** | Credentials not set in `.env` | Open your `.env` file and make sure `EMAIL` and `PASSWORD` are filled out correctly. |
+| **TypeScript errors** | Dependency mismatch | Run `npm install` and then `npx tsc --noEmit` to fix missing packages. |

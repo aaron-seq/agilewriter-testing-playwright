@@ -23,6 +23,48 @@ export async function clickIfVisible(locator: Locator, timeout = 3_000): Promise
   return false;
 }
 
+export async function navigateToFolder(page: Page, folderName: string): Promise<void> {
+  const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${folderName}`, 'i') });
+  const collapseButton = page.getByRole('button', { name: new RegExp(`Collapse ${folderName}`, 'i') });
+  
+  // If already expanded, we're done
+  if (await isVisible(collapseButton, 2000)) {
+    return;
+  }
+  
+  let found = await clickIfVisible(expandButton);
+  
+  if (!found) {
+    const nextBtn = page.getByRole('button', { name: /Next page/i });
+    while (await nextBtn.isEnabled().catch(() => false) && !found) {
+      await nextBtn.click();
+      await page.waitForTimeout(500); // Give DOM time to update
+      found = await clickIfVisible(expandButton);
+    }
+  }
+  
+  if (!found) {
+    throw new Error(`Could not find folder "${folderName}" across all pages.`);
+  }
+  
+  await expect(collapseButton).toBeVisible({ timeout: 10000 });
+}
+
+export async function confirmPickerDialog(
+  page: Page,
+  buttonName: RegExp | string,
+  dialogLocator: Locator,
+  timeout = 60_000
+): Promise<void> {
+  await page.getByRole('button', { name: buttonName }).click();
+  const closed = await dialogLocator.isHidden({ timeout: 3000 }).catch(() => false);
+  if (!closed) {
+    console.log(`  ⚠ Dialog did not close on "${buttonName}", trying Enter key...`);
+    await page.keyboard.press('Enter');
+    await expect(dialogLocator).toBeHidden({ timeout });
+  }
+}
+
 export async function waitForApplyAllToast(page: Page, timeoutMs = 30000): Promise<string> {
   return page.evaluate((timeoutValue) => {
     return new Promise<string>((resolve, reject) => {
@@ -110,12 +152,8 @@ export async function openAgileMapping(page: Page): Promise<void> {
     await expect(openButton).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
     await openButton.click();
 
-    const trainDocumentSignal = page
-      .getByRole('heading', { name: /Train Document/i })
-      .or(page.getByRole('textbox', { name: /Enter desired output filename/i }));
-
     try {
-      await expect(trainDocumentSignal.first()).toBeVisible({ timeout: TRAIN_DOCUMENT_TIMEOUT });
+      await expect(page.getByRole('heading', { name: /Train Document/i })).toBeVisible({ timeout: TRAIN_DOCUMENT_TIMEOUT });
       return;
     } catch (error) {
       if (attempt === 2) {

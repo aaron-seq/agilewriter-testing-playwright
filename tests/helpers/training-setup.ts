@@ -1,6 +1,6 @@
 import { Locator, Page, expect } from '@playwright/test';
 import dotenv from 'dotenv';
-import { openAgileMapping, openDashboard, isVisible } from './app-navigation';
+import { openAgileMapping, openDashboard, isVisible, confirmPickerDialog } from './app-navigation';
 
 dotenv.config();
 
@@ -136,18 +136,22 @@ async function selectDestinationTemplate(page: Page): Promise<void> {
   const templateName = process.env.HEALTH_TEMPLATE_NAME || 'CSR_Table_Trimmed.docx';
   await page.getByRole('textbox', { name: /Search files/i }).fill(templateName);
   
+  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+  if (!(await isVisible(anyFolder, 20000))) {
+    throw new Error(`No folder found in search results for template: ${templateName}`);
+  }
+
   const expandBtn = page.getByRole('button', { name: /Expand/i }).first();
   if (await isVisible(expandBtn, 2000)) {
     await expandBtn.click();
   }
   
-  // Try to find the exact file first, fallback to any file
-  let checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
+  const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
   if (!(await isVisible(checkbox, 2000))) {
-     checkbox = page.getByRole('checkbox').nth(1); // Usually first is Select All
+     throw new Error(`Template file checkbox not found: ${templateName}`);
   }
   await checkbox.check();
-  await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
+  await confirmPickerDialog(page, /Select \[ENTER\]/i, page.getByRole('dialog'));
 }
 
 async function selectSourceDocuments(page: Page): Promise<void> {
@@ -159,17 +163,22 @@ async function selectSourceDocuments(page: Page): Promise<void> {
   
   await page.getByRole('textbox', { name: /Search files/i }).fill(sourceName);
   
+  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+  if (!(await isVisible(anyFolder, 20000))) {
+    throw new Error(`No folder found in search results for source: ${sourceName}`);
+  }
+
   const expandBtn = page.getByRole('button', { name: /Expand/i }).first();
   if (await isVisible(expandBtn, 2000)) {
     await expandBtn.click();
   }
   
-  let checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
+  const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
   if (!(await isVisible(checkbox, 2000))) {
-    checkbox = page.getByRole('checkbox').nth(1);
+    throw new Error(`Source file checkbox not found: ${sourceName}`);
   }
   await checkbox.check();
-  await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
+  await confirmPickerDialog(page, /Done \[ENTER\]/i, page.getByRole('dialog'));
 }
 
 export async function createTrainingSession(page: Page): Promise<TrainingSession> {

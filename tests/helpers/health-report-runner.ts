@@ -79,12 +79,12 @@ export type HealthReportConfig = {
    */
   expectedTrainingMinutes: number;
   /**
-   * Document category tab to select in the picker dialog.
+   * Tab to select in the picker dialog before searching.
    * The picker has "Clinical" (default) and "Non-Clinical" tabs.
    * M264 documents are under "Non-Clinical".
-   * If omitted, defaults to "Clinical".
+   * If omitted, defaults to "Clinical" (no tab click needed).
    */
-  category?: 'Clinical' | 'Non-Clinical';
+  templateTab?: 'Clinical' | 'Non-Clinical';
 };
 
 // ──────────────────────────────────────────────
@@ -113,9 +113,9 @@ async function selectTemplateBySearch(
   page: Page,
   templateName: string,
   folderName: string,
-  category?: 'Clinical' | 'Non-Clinical'
+  templateTab?: 'Clinical' | 'Non-Clinical'
 ): Promise<void> {
-  console.log(`[Template] Selecting "${templateName}" in folder "${folderName}" (${category || 'Clinical'})`);
+  console.log(`[Template] Selecting "${templateName}" in folder "${folderName}" (${templateTab || 'Clinical'})`);
 
   // 1. Open the template picker
   await page.getByRole('button', { name: /Select destination template/i }).click();
@@ -124,71 +124,43 @@ async function selectTemplateBySearch(
   ).toBeVisible({ timeout: UI_TIMEOUT });
 
   // 1b. Switch tab if needed (e.g., Non-Clinical for M264)
-  if (category && category !== 'Clinical') {
-    const tab = page.getByRole('tab', { name: category });
+  if (templateTab && templateTab !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: templateTab });
     await expect(tab).toBeVisible({ timeout: UI_TIMEOUT });
     await tab.click();
-    console.log(`[Template] Switched to "${category}" tab`);
+    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: UI_TIMEOUT });
+    console.log(`[Template] Switched to "${templateTab}" tab`);
   }
 
   // 2. Search for file by name
-  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  const searchBox = page.getByRole('textbox', { name: 'Search files' });
   await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
   await searchBox.click();
   await searchBox.fill(templateName);
   console.log(`[Template] Searching for "${templateName}"...`);
 
-  // 3. Wait for a folder to appear in search results
-  //    Try configured folder first, then auto-detect any visible folder
-  const configuredFolder = page.getByRole('button', { name: `Folder: ${folderName}` });
-  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
-  let actualFolderName = folderName;
+  // 3. Wait for the expand button and click the left side arrow (Expand)
+  const expandButton = page.getByRole('button', { name: `Expand ${folderName}` });
+  await expect(expandButton).toBeVisible({ timeout: 20_000 });
+  await expandButton.click();
+  console.log(`[Template] Clicked expand for folder "${folderName}"`);
 
-  // We wait up to UI_TIMEOUT for the configured folder, since SharePoint search can be slow.
-  // Using Promise.race or checking visibility.
-  try {
-    await expect(configuredFolder).toBeVisible({ timeout: 20_000 });
-    console.log(`[Template] Found configured folder "${folderName}"`);
-  } catch (err) {
-    // Auto-detect: grab whatever folder the search returned
-    await expect(anyFolder).toBeVisible({ timeout: UI_TIMEOUT });
-    const buttonText = await anyFolder.textContent() || '';
-    actualFolderName = buttonText.replace(/^Folder:\s*/i, '').trim();
-    console.log(`[Template] ⚠ Configured folder "${folderName}" not found in 20s. Auto-detected: "${actualFolderName}"`);
-  }
+  // 4. Wait for Collapse confirmation before proceeding
+  const collapseButton = page.getByRole('button', { name: `Collapse ${folderName}` });
+  await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+  console.log(`[Template] Expanded folder "${folderName}" confirmed`);
 
-  // 4. Expand the folder — REQUIRED before file is visible
-  const expandButton = page.getByRole('button', { name: `Expand ${actualFolderName}` });
-  const collapseButton = page.getByRole('button', { name: `Collapse ${actualFolderName}` });
-  const isExpanded = await collapseButton.isVisible().catch(() => false);
-  if (!isExpanded) {
-    await expandButton.click();
-    await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
-  }
-  console.log(`[Template] Expanded folder "${actualFolderName}"`);
-
-  // 5. Wait for file row to appear — CRITICAL WAIT
-  const escapedName = templateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const fileButton = page.getByRole('button', { name: new RegExp(`File: ${escapedName}`, 'i') });
-  await expect(fileButton).toBeVisible({ timeout: UI_TIMEOUT });
-
-  // 6. Select the file's checkbox
-  const fileCheckbox = page
-    .getByRole('checkbox', { name: new RegExp(`Select ${escapedName}`, 'i') })
-    .first();
+  // 5. Select the file's checkbox
+  const fileCheckbox = page.getByRole('checkbox', { name: `Select ${templateName}` }).first();
   await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
   await fileCheckbox.check();
   console.log(`[Template] ✓ Checked "${templateName}"`);
 
-  // 7. (Soft) Preview canvas — non-blocking, preview can be down
-  try {
-    await expect(page.locator('.docx-preview__canvas')).toBeVisible({ timeout: 10_000 });
-  } catch {
-    console.log('  ⚠ Preview canvas not visible — non-blocking, continuing.');
-  }
+  // 6. Assert "file selected" text visible
+  await expect(page.getByText(/file selected/i)).toBeVisible({ timeout: UI_TIMEOUT });
 
-  // 8. Confirm selection
-  const selectBtn = page.getByRole('button', { name: /Select \[ENTER\]/i });
+  // 7. Click "Select [ENTER]"
+  const selectBtn = page.getByRole('button', { name: 'Select [ENTER]' });
   await selectBtn.click();
   
   // Ensure dialog closes
@@ -199,7 +171,8 @@ async function selectTemplateBySearch(
     await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT });
   });
 
-  // 9. Verify the selected template name appears on the Train Document screen
+  // 8. Verify the selected template name appears on the Train Document screen
+  const escapedName = templateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(
     page.getByRole('button', { name: new RegExp(escapedName, 'i') })
   ).toBeVisible({ timeout: UI_TIMEOUT });
@@ -229,24 +202,25 @@ async function selectSourcesBySearch(
   page: Page,
   sourceNames: string[],
   sourceFolder: string,
-  category?: 'Clinical' | 'Non-Clinical'
+  templateTab?: 'Clinical' | 'Non-Clinical'
 ): Promise<void> {
-  console.log(`[Sources] Selecting ${sourceNames.length} files from folder "${sourceFolder}" (${category || 'Clinical'})`);
+  console.log(`[Sources] Selecting ${sourceNames.length} files from folder "${sourceFolder}" (${templateTab || 'Clinical'})`);
 
   // 1. Open the source picker
   await page.getByRole('button', { name: /Select source documents/i }).click();
 
   // 1b. Switch tab if needed (e.g., Non-Clinical for M264)
-  if (category && category !== 'Clinical') {
-    const tab = page.getByRole('tab', { name: category });
+  if (templateTab && templateTab !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: templateTab });
     if (await tab.isVisible({ timeout: 5_000 }).catch(() => false)) {
       await tab.click();
-      console.log(`[Sources] Switched to "${category}" tab`);
+      await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: UI_TIMEOUT });
+      console.log(`[Sources] Switched to "${templateTab}" tab`);
     }
   }
 
   // Wait for picker to load
-  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  const searchBox = page.getByRole('textbox', { name: 'Search files' });
   await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
 
   // 2. Select each source file individually
@@ -258,56 +232,30 @@ async function selectSourcesBySearch(
     await searchBox.click();
     await searchBox.fill(sourceName);
 
-    // Wait for the source folder to appear in results
-    //   Try configured folder first, then auto-detect any visible folder
-    const configuredFolder = page.getByRole('button', { name: `Folder: ${sourceFolder}` });
-    const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
-    let actualFolderName = sourceFolder;
+    // Expand the folder
+    const expandButton = page.getByRole('button', { name: `Expand ${sourceFolder}` });
+    await expect(expandButton).toBeVisible({ timeout: 20_000 });
+    await expandButton.click();
+    console.log(`[Sources] Clicked expand for folder "${sourceFolder}"`);
 
-    try {
-      await expect(configuredFolder).toBeVisible({ timeout: 20_000 });
-      console.log(`[Sources] Found configured folder "${sourceFolder}"`);
-    } catch (err) {
-      await expect(anyFolder).toBeVisible({ timeout: UI_TIMEOUT });
-      const buttonText = await anyFolder.textContent() || '';
-      actualFolderName = buttonText.replace(/^Folder:\s*/i, '').trim();
-      console.log(`[Sources] ⚠ Configured folder "${sourceFolder}" not found in 20s. Auto-detected: "${actualFolderName}"`);
-    }
-
-    // Expand the folder if not already expanded
-    const expandButton = page.getByRole('button', { name: `Expand ${actualFolderName}` });
-    const collapseButton = page.getByRole('button', { name: `Collapse ${actualFolderName}` });
-    const isExpanded = await collapseButton.isVisible().catch(() => false);
-    if (!isExpanded) {
-      await expandButton.click();
-      await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
-    }
-
-    // Wait for file row — use partial match for long filenames
-    const escapedName = sourceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const fileButton = page.getByRole('button', { name: new RegExp(`File: ${escapedName.substring(0, 30)}`, 'i') });
-    await expect(fileButton).toBeVisible({ timeout: UI_TIMEOUT });
+    // Wait for collapse to confirm expansion
+    const collapseButton = page.getByRole('button', { name: `Collapse ${sourceFolder}` });
+    await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
 
     // Select the exact file checkbox (NOT the folder checkbox)
-    const fileCheckbox = page
-      .getByRole('checkbox', { name: new RegExp(`Select ${escapedName.substring(0, 30)}`, 'i') })
-      .first();
+    const fileCheckbox = page.getByRole('checkbox', { name: `Select ${sourceName}` }).first();
     await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
     await fileCheckbox.check();
     console.log(`[Sources] ✓ Checked "${sourceName}"`);
   }
 
-  // 3. (Soft) Preview section — non-blocking
-  try {
-    await expect(
-      page.locator('.docx-preview__canvas').or(page.locator('section').first())
-    ).toBeVisible({ timeout: 10_000 });
-  } catch {
-    console.log('  ⚠ Source preview not visible — non-blocking, continuing.');
+  // 3. Confirm selection count
+  if (sourceNames.length > 0) {
+    await expect(page.getByText(new RegExp(`${sourceNames.length} files? selected`, 'i'))).toBeVisible({ timeout: UI_TIMEOUT });
   }
 
   // 4. Confirm selection
-  const doneBtn = page.getByRole('button', { name: /Done \[ENTER\]/i });
+  const doneBtn = page.getByRole('button', { name: 'Done [ENTER]' });
   await doneBtn.click();
   
   const dialog = page.getByRole('dialog');
@@ -411,13 +359,13 @@ export async function runHealthReport(
   // ─── Step 3: Select template ───
   await trackStep(page, testName, `Select template: ${config.templateName}`,
     'Template document is selected from file picker', async () => {
-      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.category);
+      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.templateTab);
     });
 
   // ─── Step 4: Select source documents ───
   await trackStep(page, testName, `Select sources: ${config.sourceNames.join(', ')}`,
     'Source documents are selected from file picker', async () => {
-      await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder, config.category);
+      await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder, config.templateTab);
     });
 
   // ─── Step 5: Start training ───
@@ -520,8 +468,8 @@ export async function runHealthReport(
 
       await expect(saveButton).toBeVisible({ timeout: 300_000 });
 
-      const downloadPromise = page.waitForEvent('download', { timeout: 30_000 }).catch(() => null);
-      await saveButton.click();
+      const downloadPromise = page.waitForEvent('download', { timeout: 120_000 }).catch(() => null);
+      await saveButton.click({ timeout: 120_000 });
 
       const download = await downloadPromise;
       if (download) {

@@ -44,9 +44,9 @@ test.describe('Health Report: ICF Trimmed', () => {
     const config: HealthReportConfig = {
       reportName: 'ICF Trimmed',
       templateName: process.env.HEALTH_TEMPLATE_ICF_TRIMMED || 'ICF_SET0_TRIMMED.docx',
-      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'Informed Consent Form',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'QA Testing',
       sourceNames: (
-        process.env.HEALTH_SOURCES_ICF_TRIMMED || 'Protocol Example (28Sep2023).docx'
+        process.env.HEALTH_SOURCES_ICF_TRIMMED || 'Protocol Example (28Sep2023)_trimmed.docx'
       )
         .split(',')
         .map((s) => s.trim()),

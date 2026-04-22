@@ -1,6 +1,6 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
-import { openDashboard, openAgileMapping, isVisible, clickIfVisible } from './helpers/app-navigation';
+import { openDashboard, openAgileMapping, isVisible, clickIfVisible, confirmPickerDialog } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 
 const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
@@ -239,7 +239,7 @@ async function selectQaTestingTemplate(page: Page, confirmSelection: boolean): P
   await page.getByRole('button', { name: /Close modal/i }).click();
 
   if (confirmSelection) {
-    await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
+    await confirmPickerDialog(page, /Select \[ENTER\]/i, page.getByRole('dialog'));
   }
 
   return fileName;
@@ -290,7 +290,7 @@ async function selectQaTestingSource(page: Page, confirmSelection: boolean): Pro
   ).toBeVisible({ timeout: UI_TIMEOUT });
 
   if (confirmSelection) {
-    await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
+    await confirmPickerDialog(page, /Done \[ENTER\]/i, page.getByRole('dialog'));
   }
 
   return fileName;
