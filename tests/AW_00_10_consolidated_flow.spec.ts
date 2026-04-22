@@ -447,6 +447,10 @@ test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
               .or(page.getByRole('button', { name: /Open AgileMapping/i }))
               .first()
           ).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
+
+          await page.context().storageState({
+            path: 'playwright/.auth/user.json'
+          });
         });
     });
   });

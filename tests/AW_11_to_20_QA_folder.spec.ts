@@ -1,6 +1,6 @@
 import { test, expect, Browser, BrowserContext, Locator, Page } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
-import { openAgileMapping, newAuthenticatedContext, isVisible, clickIfVisible, waitForApplyAllToast, confirmPickerDialog, navigateToFolder } from './helpers/app-navigation';
+import { openAgileMapping, newAuthenticatedContext, isVisible, clickIfVisible, waitForApplyAllToast, confirmPickerDialog, navigateToFolder, dismissModalOverlay } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 import {
   TrainingSession,
@@ -601,7 +601,10 @@ async function createPendingSourceAddition(page: Page): Promise<void> {
 
   await page.getByRole('button', { name: /^Save$/i }).click();
 
-  await expect(page.getByText(/PENDING ADD/i)).toBeVisible({ timeout: UI_TIMEOUT });
+  const mappingDialog = page.getByRole('dialog', { name: /Mapping Controls/i });
+  await expect.soft(
+    mappingDialog.getByText(/PENDING ADD/i).first()
+  ).toBeVisible({ timeout: UI_TIMEOUT });
   await expect(page.getByText(/Source changes detected/i)).toBeVisible({
     timeout: UI_TIMEOUT,
   });
@@ -653,6 +656,7 @@ async function addOrUpdateInstruction(page: Page, instructionText: string): Prom
 
 async function openFinalDocumentFlow(page: Page): Promise<void> {
   await expect(createFinalDocButton(page)).toBeEnabled({ timeout: 300_000 });
+  await dismissModalOverlay(page);
   await createFinalDocButton(page).click();
 
   await expect(page).toHaveURL(/.*\/review\?id=.*/, { timeout: 600_000 });
@@ -1107,6 +1111,7 @@ test('AW_11_to_20 QA Folder: Document Generation Stage', async ({ page }) => {
       await editor.fill(UPDATED_INSTRUCTION);
       await expect(editor).toHaveValue(UPDATED_INSTRUCTION, { timeout: UI_TIMEOUT });
       
+      await dismissModalOverlay(page);
       await page.getByRole('button', { name: /^Reset$/i }).first().click();
       const resetValue = await editor.inputValue();
       expect(resetValue).not.toBe(UPDATED_INSTRUCTION);

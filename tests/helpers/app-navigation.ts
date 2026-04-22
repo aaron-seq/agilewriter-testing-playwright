@@ -168,3 +168,22 @@ export async function openAgileMapping(page: Page): Promise<void> {
 export async function newAuthenticatedContext(browser: Browser): Promise<BrowserContext> {
   return browser.newContext({ storageState: AUTH_FILE });
 }
+
+/**
+ * Dismisses any modal overlay currently blocking pointer events.
+ * Safe to call even when no overlay is present.
+ */
+export async function dismissModalOverlay(page: Page): Promise<void> {
+  const overlay = page.locator(
+    '[role="presentation"] [aria-hidden="true"].absolute.inset-0'
+  );
+  if (await overlay.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    const closeModal = page.getByRole('button', { name: /Close modal/i });
+    if (await closeModal.isVisible({ timeout: 1_000 }).catch(() => false)) {
+      await closeModal.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
+    await expect(overlay).toBeHidden({ timeout: 10_000 });
+  }
+}
