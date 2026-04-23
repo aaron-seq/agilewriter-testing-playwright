@@ -46,7 +46,7 @@ test.describe('Health Report: M264', () => {
       )
         .split(',')
         .map((s) => s.trim()),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'Module264',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'M264',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_M264 || 'M264_Test',
       expectedTrainingMinutes: 25,
       templateTab: 'Non-Clinical',
