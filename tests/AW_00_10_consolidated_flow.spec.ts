@@ -10,6 +10,7 @@ const UI_TIMEOUT = 60_000;
 const DASHBOARD_TIMEOUT = 120_000;
 const BASE_URL = runtimeConfig.baseUrl;
 const FOLDER_NAME = runtimeConfig.folder || 'QA Testing';
+const SOURCE_PROVIDER_BUTTON = /Select source provider|Source:\s*Sharepoint/i;
 const QA_TEMPLATE_NAME = 'ICF_SET0_TRIMMED.docx';
 const QA_SOURCE_NAME = 'Protocol Example (28Sep2023)_trimmed.docx';
 const TEMPLATE_FILE_CANDIDATES = [
@@ -97,7 +98,7 @@ async function returnHome(page: Page): Promise<void> {
 }
 
 async function switchProviderIfAvailable(page: Page, optionName: RegExp): Promise<boolean> {
-  const providerButton = page.getByRole('button', { name: /Select source provider/i });
+  const providerButton = page.getByRole('button', { name: SOURCE_PROVIDER_BUTTON });
   if (!(await isVisible(providerButton, 5_000))) {
     return false;
   }
@@ -115,13 +116,21 @@ async function switchProviderIfAvailable(page: Page, optionName: RegExp): Promis
 }
 
 async function goToQaTestingFolder(page: Page): Promise<void> {
-  const nextPage = page.getByRole('button', { name: /Next page/i });
-  await clickIfVisible(nextPage, 3_000);
-  await clickIfVisible(nextPage, 3_000);
+  const searchBox = page.getByRole('textbox', { name: /Search files/i });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+  await searchBox.fill(FOLDER_NAME);
+
+  await expect(
+    page.getByRole('button', { name: new RegExp(`^Folder:\\s*${escapeRegExp(FOLDER_NAME)}`, 'i') })
+  ).toBeVisible({ timeout: UI_TIMEOUT });
 
   const expandFolder = page.getByRole('button', { name: new RegExp(`Expand ${FOLDER_NAME}`, 'i') });
-  await expect(expandFolder).toBeVisible({ timeout: UI_TIMEOUT });
-  await expandFolder.click();
+  const collapseFolder = page.getByRole('button', { name: new RegExp(`Collapse ${FOLDER_NAME}`, 'i') });
+  if (!(await isVisible(collapseFolder, 2_000))) {
+    await expect(expandFolder).toBeVisible({ timeout: UI_TIMEOUT });
+    await expandFolder.click();
+  }
+  await expect(collapseFolder).toBeVisible({ timeout: UI_TIMEOUT });
 }
 
 async function searchFileInPicker(page: Page, fileName: string): Promise<void> {
@@ -139,7 +148,18 @@ async function resolvePickerFile(
 
   for (const candidate of candidates) {
     await searchBox.fill(candidate);
-    const checkbox = page
+    const folderButton = page.getByRole('button', {
+      name: new RegExp(`^Folder:\\s*${escapeRegExp(FOLDER_NAME)}`, 'i'),
+    });
+    if (!(await isVisible(folderButton, 10_000))) {
+      continue;
+    }
+    await goToQaTestingFolder(page);
+
+    const folderItem = page
+      .getByRole('button', { name: new RegExp(`Collapse ${escapeRegExp(FOLDER_NAME)}`, 'i') })
+      .locator('xpath=ancestor::li');
+    const checkbox = folderItem
       .getByRole('checkbox', { name: new RegExp(`Select .*${escapeRegExp(candidate)}`, 'i') })
       .first();
 
@@ -153,8 +173,12 @@ async function resolvePickerFile(
   }
 
   await searchBox.fill('');
+  await goToQaTestingFolder(page);
 
-  const checkboxes = await page.getByRole('checkbox').all();
+  const folderItem = page
+    .getByRole('button', { name: new RegExp(`Collapse ${escapeRegExp(FOLDER_NAME)}`, 'i') })
+    .locator('xpath=ancestor::li');
+  const checkboxes = await folderItem.getByRole('checkbox').all();
   for (const checkbox of checkboxes) {
     const ariaLabel = (await checkbox.getAttribute('aria-label')) || '';
     if (!ariaLabel || /Select All|QA Testing/i.test(ariaLabel)) {
@@ -204,7 +228,7 @@ async function openDestinationTemplatePicker(page: Page): Promise<void> {
   ).toBeVisible({
     timeout: UI_TIMEOUT,
   });
-  await expect(page.getByRole('button', { name: /Select source provider/i })).toBeVisible({
+  await expect(page.getByRole('button', { name: SOURCE_PROVIDER_BUTTON })).toBeVisible({
     timeout: UI_TIMEOUT,
   });
 }
@@ -239,7 +263,12 @@ async function selectQaTestingTemplate(page: Page, confirmSelection: boolean): P
   await page.getByRole('button', { name: /Close modal/i }).click();
 
   if (confirmSelection) {
-    await confirmPickerDialog(page, /Select \[ENTER\]/i, page.getByRole('dialog'));
+    await confirmPickerDialog(
+      page,
+      /Select \[ENTER\]/i,
+      page.getByRole('dialog', { name: /Select Destination Template/i })
+        .or(page.getByRole('dialog', { name: /Select Source/i }))
+    );
   }
 
   return fileName;
@@ -254,7 +283,7 @@ async function openSourcePicker(page: Page): Promise<void> {
   ).toBeVisible({
     timeout: UI_TIMEOUT,
   });
-  await expect(page.getByRole('button', { name: /Select source provider/i })).toBeVisible({
+  await expect(page.getByRole('button', { name: SOURCE_PROVIDER_BUTTON })).toBeVisible({
     timeout: UI_TIMEOUT,
   });
 
@@ -290,7 +319,12 @@ async function selectQaTestingSource(page: Page, confirmSelection: boolean): Pro
   ).toBeVisible({ timeout: UI_TIMEOUT });
 
   if (confirmSelection) {
-    await confirmPickerDialog(page, /Done \[ENTER\]/i, page.getByRole('dialog'));
+    await confirmPickerDialog(
+      page,
+      /Done \[ENTER\]/i,
+      page.getByRole('dialog', { name: /Select Destination Template/i })
+        .or(page.getByRole('dialog', { name: /Select Source/i }))
+    );
   }
 
   return fileName;
