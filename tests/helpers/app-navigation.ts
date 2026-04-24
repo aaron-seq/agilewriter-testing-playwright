@@ -36,9 +36,14 @@ export async function navigateToFolder(page: Page, folderName: string): Promise<
   
   if (!found) {
     const nextBtn = page.getByRole('button', { name: /Next page/i });
+    const folderToggle = expandButton.or(collapseButton);
     while (await nextBtn.isEnabled().catch(() => false) && !found) {
       await nextBtn.click();
-      await page.waitForTimeout(500); // Give DOM time to update
+      await expect(folderToggle).toBeVisible({ timeout: 10_000 });
+      if (await isVisible(collapseButton, 500)) {
+        found = true;
+        break;
+      }
       found = await clickIfVisible(expandButton);
     }
   }
