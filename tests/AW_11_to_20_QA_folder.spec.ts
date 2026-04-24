@@ -125,6 +125,10 @@ async function selectQaTestingSourceFolder(page: Page): Promise<void> {
   const folderButton = page.getByRole('button', { name: `Folder: ${FOLDER_NAME}` });
   await expect(folderButton).toBeVisible({ timeout: UI_TIMEOUT });
 
+  console.warn(
+    '[AW_11_to_20_QA] Using folder-level checkbox for source ' +
+    'selection. For exact validation use AW_11_to_20_manual_input.'
+  );
   await page.getByRole('checkbox', { name: `Select ${FOLDER_NAME}` }).check();
 
   await expect(page.getByText(/\d+ files? selected/i)).toBeVisible({ timeout: UI_TIMEOUT });
@@ -590,7 +594,9 @@ async function createPendingSourceAddition(page: Page): Promise<void> {
   await addSourceButton(page).click();
 
   await expect(
-    page.getByRole('heading', { name: /Select Source/i }).or(page.getByRole('dialog').first()).first()
+    page.getByRole('heading', { name: /Select Source/i })
+      .or(page.getByRole('dialog', { name: /Select Source/i }))
+      .or(page.getByRole('dialog', { name: /Select Destination/i }))
   ).toBeVisible({ timeout: UI_TIMEOUT });
 
   await selectSourceHeadings(page);
