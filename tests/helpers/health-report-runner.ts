@@ -313,7 +313,7 @@ async function waitForTrainingStages(page: Page, timeout: number): Promise<void>
 
     // Verify the cumulative completed count
     await expect
-      .poll(async () => page.locator(completedSelector).count(), { timeout: UI_TIMEOUT })
+      .poll(async () => page.locator(completedSelector).count(), { timeout })
       .toBeGreaterThanOrEqual(i + 1);
 
     console.log(`  ✅ Stage "${label}" completed.`);
@@ -424,9 +424,10 @@ export async function runHealthReport(
 
   // ─── Step 9: Count placeholder colors (PRE-APPLY) — SOFT: informational, don't stop ───
   let preApplyColors: ColorCounts = { green: 0, grey: 0, blue: 0, red: 0, yellow: 0, other: 0 };
+  preApplyColors = await countPlaceholderColors(page);
   await trackSoftStep(page, testName, 'Count placeholder colors (pre-apply)',
     'Placeholder color distribution is recorded', async () => {
-      preApplyColors = await countPlaceholderColors(page);
+      // Color counts are captured before trackSoftStep so the report receives populated data.
     }, preApplyColors);
 
   // ─── Step 10: Apply All mappings ───
@@ -442,9 +443,10 @@ export async function runHealthReport(
 
   // ─── Step 11: Count placeholder colors (POST-APPLY) — SOFT: informational ───
   let postApplyColors: ColorCounts = { green: 0, grey: 0, blue: 0, red: 0, yellow: 0, other: 0 };
+  postApplyColors = await countPlaceholderColors(page);
   await trackSoftStep(page, testName, 'Count placeholder colors (post-apply)',
     'Final placeholder color distribution after applying', async () => {
-      postApplyColors = await countPlaceholderColors(page);
+      // Color counts are captured before trackSoftStep so the report receives populated data.
     }, postApplyColors);
 
   // ─── Step 12: Create Final Document ───
