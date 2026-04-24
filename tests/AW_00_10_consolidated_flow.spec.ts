@@ -157,8 +157,8 @@ async function resolvePickerFile(
     await goToQaTestingFolder(page);
 
     const folderItem = page
-      .getByRole('button', { name: new RegExp(`Collapse ${escapeRegExp(FOLDER_NAME)}`, 'i') })
-      .locator('xpath=ancestor::li');
+      .getByRole('treeitem', { name: new RegExp(`Folder:\\s*${escapeRegExp(FOLDER_NAME)}`, 'i') })
+      .first();
     const checkbox = folderItem
       .getByRole('checkbox', { name: new RegExp(`Select .*${escapeRegExp(candidate)}`, 'i') })
       .first();
@@ -176,8 +176,8 @@ async function resolvePickerFile(
   await goToQaTestingFolder(page);
 
   const folderItem = page
-    .getByRole('button', { name: new RegExp(`Collapse ${escapeRegExp(FOLDER_NAME)}`, 'i') })
-    .locator('xpath=ancestor::li');
+    .getByRole('treeitem', { name: new RegExp(`Folder:\\s*${escapeRegExp(FOLDER_NAME)}`, 'i') })
+    .first();
   const checkboxes = await folderItem.getByRole('checkbox').all();
   for (const checkbox of checkboxes) {
     const ariaLabel = (await checkbox.getAttribute('aria-label')) || '';
