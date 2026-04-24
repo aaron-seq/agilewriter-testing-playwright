@@ -450,6 +450,7 @@ async function visitServiceAndReturn(
 
 test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
   test.describe.configure({ mode: 'serial', retries: 2, timeout: DASHBOARD_TIMEOUT * 4 });
+  test.use({ storageState: 'playwright/.auth/user.json' });
 
   test.beforeAll(() => {
     initTracker();
