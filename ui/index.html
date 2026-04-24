@@ -215,6 +215,46 @@
       word-wrap: break-word;
       line-height: 1.4;
     }
+
+    /* ── Phase separator ────────────────────────────────────────── */
+    .log-phase-separator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 10px 0 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+    }
+    .log-phase-separator::before,
+    .log-phase-separator::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .log-phase-separator .phase-icon {
+      font-size: 0.85rem;
+    }
+    .log-phase-separator.phase-test  { color: #38bdf8; }
+    .log-phase-separator.phase-test::before,
+    .log-phase-separator.phase-test::after  { background: rgba(56,189,248,0.3); }
+    .log-phase-separator.phase-report { color: #a78bfa; }
+    .log-phase-separator.phase-report::before,
+    .log-phase-separator.phase-report::after { background: rgba(167,139,250,0.3); }
+
+    /* ── Timestamp badge ─────────────────────────────────────────── */
+    .log-ts {
+      display: inline-block;
+      color: #475569;
+      font-size: 0.68rem;
+      margin-right: 6px;
+      user-select: none;
+      min-width: 3.6rem;
+    }
   </style>
 </head>
 <body>
@@ -347,8 +387,23 @@ async function runTest() {
   logEventSource.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
+
+      // ── Phase separator ─────────────────────────────────────────
+      if (data.type === 'phase') {
+        const sep = document.createElement('div');
+        sep.classList.add('log-phase-separator');
+        const isReport = data.message.toLowerCase().includes('report');
+        sep.classList.add(isReport ? 'phase-report' : 'phase-test');
+        const icon = isReport ? '📄' : '▶';
+        sep.innerHTML = `<span class="phase-icon">${icon}</span><span>${data.message}</span>`;
+        terminal.appendChild(sep);
+        terminal.scrollTop = terminal.scrollHeight;
+        return; // phase lines have no timestamp badge
+      }
+
+      // ── Regular log line ─────────────────────────────────────────
       const row = document.createElement('div');
-      
+
       let color = '#94a3b8'; // default muted text
       if (data.type === 'error') color = '#fb7185'; // rose color
       else if (data.type === 'info') color = '#38bdf8'; // sky blue
@@ -356,9 +411,19 @@ async function runTest() {
       else if (data.type === 'log') color = '#f8fafc'; // light text for normal logs
 
       row.style.color = color;
-      row.innerText = data.message.trim();
-      
-      if(row.innerText) {
+
+      const text = data.message.trim();
+      if (text) {
+        // Build [MM:SS] timestamp from server-provided elapsed ms
+        const elapsedMs  = typeof data.elapsed === 'number' ? data.elapsed : 0;
+        const totalSecs  = Math.floor(elapsedMs / 1000);
+        const mm = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+        const ss = String(totalSecs % 60).padStart(2, '0');
+        const tsHtml = `<span class="log-ts">[${mm}:${ss}]</span>`;
+
+        row.innerHTML = tsHtml + document.createTextNode(text).textContent
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
         terminal.appendChild(row);
         terminal.scrollTop = terminal.scrollHeight;
       }

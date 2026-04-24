@@ -5,6 +5,8 @@ const { spawn } = require('child_process');
 
 let sseClients = [];
 
+let runStartTime = null;
+
 function broadcastLog(type, message) {
   // Sanitize message: Remove Windows/Unix paths, emails, URLs, and stack traces
   let sanitized = message.toString()
@@ -18,7 +20,8 @@ function broadcastLog(type, message) {
     sanitized = sanitized.split('\n').filter(line => !line.trim().startsWith('at ')).join('\n');
   }
 
-  const payload = `data: ${JSON.stringify({ type, message: sanitized })}\n\n`;
+  const elapsed = runStartTime ? Date.now() - runStartTime : 0;
+  const payload = `data: ${JSON.stringify({ type, message: sanitized, elapsed })}\n\n`;
   sseClients.forEach(client => client.write(payload));
 }
 
@@ -65,8 +68,14 @@ app.post('/run-test', (req, res) => {
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(req.body, null, 2));
 
+  // Reset elapsed timer for this run
+  runStartTime = Date.now();
+
   const testPath = `tests/${testFile}`;
   console.log(`✔ Running Playwright tests: ${testPath}...`);
+
+  // ── Phase 1: Running Tests ──────────────────────────────────────
+  broadcastLog('phase', 'Running Tests');
   broadcastLog('info', `Running Playwright tests: ${testFile}...`);
 
   const pwProcess = spawn(`npx playwright test "${testPath}"`, { shell: true });
@@ -83,8 +92,9 @@ app.post('/run-test', (req, res) => {
   pwProcess.on('close', (code) => {
     broadcastLog('info', `Playwright exited with code: ${code}`);
 
-    // Always generate the report regardless of test failure
+    // ── Phase 2: Generating Report ──────────────────────────────────
     console.log('📄 Generating test report...');
+    broadcastLog('phase', 'Generating Report');
     broadcastLog('info', 'Generating test report...');
 
     const reportProcess = spawn('node generate-word-report.js', { shell: true });
@@ -106,6 +116,7 @@ app.post('/run-test', (req, res) => {
       }
 
       broadcastLog('done', 'Test cycle completed.');
+      runStartTime = null;
 
       if (code !== 0 || reportCode !== 0) {
         return res.status(500).send('✖️ Test completed with failures');

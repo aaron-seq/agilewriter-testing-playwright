@@ -1,0 +1,12 @@
+{
+  "testerName": "tester_00",
+  "email": "s.vignesh@smarter.codes",
+  "password": "temp@0503",
+  "template": "ICF_SET0_TRIMMED.docx",
+  "source": "Protocol Example (28Sep2023).docx",
+  "folder": "QA Testing",
+  "testFile": "AW_00_10_consolidated_flow.spec.ts",
+  "baseUrl": "https://app-v2-rc1-aw.smarter.codes",
+  "appUrl": "https://app-v2-rc1-aw.smarter.codes/signin",
+  "envName": "QA"
+}
