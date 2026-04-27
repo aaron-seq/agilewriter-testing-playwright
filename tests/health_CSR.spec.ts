@@ -12,12 +12,12 @@
  * HOW TO CONFIGURE (edit .env):
  *   HEALTH_TEMPLATE_CSR=CSR_Template_20FEB2026.docx
  *   HEALTH_TEMPLATE_FOLDER_CSR=CSR
- *   HEALTH_SOURCES_CSR=Mock_CSR_list.docx,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx
+ *   HEALTH_SOURCES_CSR=Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx
  *   HEALTH_SOURCE_FOLDER_CSR=CSR
  *   HEALTH_OUTPUT_PREFIX_CSR=CSR_Test
  *
  * SOURCE DOCUMENTS (from user's health report spec):
- *   - Mock_CSR_Tables_30Oct25.rtf
+ *   - Mock_CSR _Tables_30Oct25.rtf
  *   - Mock_CSR_Protocol.docx
  *   - Mock_CSR Key messages_with_heading.docx
  */
@@ -43,11 +43,11 @@ test.describe('Health Report: CSR', () => {
       reportName: 'CSR',
       templateName: process.env.HEALTH_TEMPLATE_CSR || 'CSR_Template_20FEB2026.docx',
       templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_CSR || 'CSR',
-      // TODO: CONFIRM exact source filenames and folder with team.
-      // "Mock_CSR_Tables_30Oct25.rtf" currently fails search (No files match).
+      // Source filenames confirmed April 27, 2026.
+      // Note: "Mock_CSR _Tables_30Oct25.rtf" has a space between CSR and _Tables.
       sourceNames: (
         process.env.HEALTH_SOURCES_CSR ||
-        'Mock_CSR_Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
+        'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
       )
         .split(',')
         .map((s) => s.trim()),
