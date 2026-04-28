@@ -20,7 +20,7 @@ function cellText(value: unknown): string {
   return String(value).trim();
 }
 
-export function loadReferenceFile(filePath: string, sheetName?: string): Map<string, PlaceholderRef> {
+export function loadReferenceFile(filePath: string, sheetName?: string): Map<string, PlaceholderRef[]> {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Reference file not found: ${filePath}`);
   }
@@ -33,7 +33,7 @@ export function loadReferenceFile(filePath: string, sheetName?: string): Map<str
   }
 
   const rows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1, defval: '' });
-  const references = new Map<string, PlaceholderRef>();
+  const references = new Map<string, PlaceholderRef[]>();
 
   for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
     const row = rows[rowIndex];
@@ -42,7 +42,11 @@ export function loadReferenceFile(filePath: string, sheetName?: string): Map<str
       continue;
     }
 
-    references.set(normalizePlaceholderName(name), {
+    const key = normalizePlaceholderName(name);
+    if (!references.has(key)) {
+      references.set(key, []);
+    }
+    references.get(key)!.push({
       name,
       type: cellText(row[1]) || 'Unknown',
       expectedText: cellText(row[2]),

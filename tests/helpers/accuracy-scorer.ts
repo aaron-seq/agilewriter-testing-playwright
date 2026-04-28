@@ -63,8 +63,22 @@ type RawPlaceholderRow = {
 
 type ExcelFormat = 'Evaluation_Data' | 'QA';
 
-const MATCH_THRESHOLD = 0.85;
-const PARTIAL_THRESHOLD = 0.5;
+type PlaceholderTypeName =
+  | 'KeyValue'
+  | 'Inline'
+  | 'Paragraph'
+  | 'List'
+  | 'Table'
+  | 'Unknown'
+  | string;
+
+function getThresholds(type: PlaceholderTypeName): { match: number; partial: number } {
+  const normalizedType = (type ?? '').trim().toLowerCase();
+  if (normalizedType === 'keyvalue' || normalizedType === 'inline') {
+    return { match: 0.85, partial: 0.5 };
+  }
+  return { match: 0.65, partial: 0.4 };
+}
 
 function cellText(value: unknown): string {
   if (value === null || value === undefined) {
@@ -118,11 +132,15 @@ function similarity(expected: string, actual: string): number {
   return compareTwoStrings(normalizedExpected, normalizedActual);
 }
 
-function statusFromSimilarity(score: number): MatchStatus {
-  if (score >= MATCH_THRESHOLD) {
+function statusFromSimilarity(
+  score: number,
+  type: PlaceholderTypeName = 'KeyValue'
+): 'Match' | 'Partial Match' | 'No Match' {
+  const { match, partial } = getThresholds(type);
+  if (score >= match) {
     return 'Match';
   }
-  if (score >= PARTIAL_THRESHOLD) {
+  if (score >= partial) {
     return 'Partial Match';
   }
   return 'No Match';
@@ -163,7 +181,7 @@ function tableShape(value: string): { rows: number; columns: number; text: strin
 
 function scoreKeyValue(expected: string, actual: string): KeyValueScore {
   const score = similarity(expected.trim(), actual.trim());
-  return { similarity: score, status: statusFromSimilarity(score) };
+  return { similarity: score, status: statusFromSimilarity(score, 'KeyValue') };
 }
 
 function scoreParagraph(expected: string, actual: string): ParagraphScore {
@@ -180,7 +198,7 @@ function scoreParagraph(expected: string, actual: string): ParagraphScore {
     aiHeaderAvailable,
     similarity: score,
     percentage: Math.round(score * 10000) / 100,
-    status: statusFromSimilarity(score),
+    status: statusFromSimilarity(score, 'Paragraph'),
   };
 }
 
@@ -194,7 +212,7 @@ function scoreList(expected: string, actual: string): ListScore {
     aiPoints: actualItems.length,
     pointsMatch: expectedItems.length === actualItems.length,
     similarity: score,
-    status: statusFromSimilarity(score),
+    status: statusFromSimilarity(score, 'List'),
   };
 }
 
@@ -210,7 +228,7 @@ function scoreTable(expected: string, actual: string): TableScore {
     aiColumns: actualShape.columns,
     alignment: expectedShape.rows === actualShape.rows && expectedShape.columns === actualShape.columns,
     similarity: score,
-    status: statusFromSimilarity(score),
+    status: statusFromSimilarity(score, 'Table'),
   };
 }
 
@@ -218,7 +236,7 @@ function scoreInline(expected: string, actual: string): KeyValueScore {
   const normalizedExpected = normalizeForCompare(expected);
   const normalizedActual = normalizeForCompare(actual);
   const score = normalizedExpected === normalizedActual ? 1 : similarity(expected, actual);
-  return { similarity: score, status: statusFromSimilarity(score) };
+  return { similarity: score, status: statusFromSimilarity(score, 'Inline') };
 }
 
 function detectExcelFormat(workbook: XLSX.WorkBook): ExcelFormat {
@@ -297,7 +315,49 @@ function scoreByType(type: string, expected: string, actual: string): ScoredPlac
   return { ...base, overallSimilarity: kv.similarity, status: kv.status, kv };
 }
 
-export function scoreAll(rawQAPath: string, refMap: Map<string, PlaceholderRef>): ScoredPlaceholder[] {
+function buildMissingReferenceResult(rawRow: RawPlaceholderRow): ScoredPlaceholder {
+  return {
+    name: rawRow.name,
+    type: rawRow.type || 'Unknown',
+    expectedText: '',
+    aiText: rawRow.aiText,
+    source: rawRow.source,
+    instruction: rawRow.instruction,
+    placeholderId: rawRow.placeholderId,
+    overallSimilarity: 0,
+    status: 'Missing Reference',
+  };
+}
+
+function buildSkippedResult(rawRow: RawPlaceholderRow, ref: PlaceholderRef): ScoredPlaceholder {
+  return {
+    name: rawRow.name,
+    type: ref.type || rawRow.type || 'Unknown',
+    expectedText: ref.expectedText,
+    aiText: rawRow.aiText,
+    source: ref.sourceDocument || rawRow.source,
+    instruction: rawRow.instruction,
+    placeholderId: rawRow.placeholderId,
+    overallSimilarity: 0,
+    status: 'Skipped',
+  };
+}
+
+function scoreSingleRef(rawRow: RawPlaceholderRow, ref: PlaceholderRef): ScoredPlaceholder {
+  const scored = scoreByType(ref.type || rawRow.type || 'KeyValue', ref.expectedText, rawRow.aiText);
+  return {
+    ...scored,
+    name: rawRow.name,
+    type: ref.type || rawRow.type || 'Unknown',
+    expectedText: ref.expectedText,
+    aiText: rawRow.aiText,
+    source: ref.sourceDocument || rawRow.source,
+    instruction: rawRow.instruction,
+    placeholderId: rawRow.placeholderId,
+  };
+}
+
+export function scoreAll(rawQAPath: string, refMap: Map<string, PlaceholderRef[]>): ScoredPlaceholder[] {
   if (!fs.existsSync(rawQAPath)) {
     throw new Error(`Raw QA workbook not found: ${rawQAPath}`);
   }
@@ -307,45 +367,26 @@ export function scoreAll(rawQAPath: string, refMap: Map<string, PlaceholderRef>)
   const rawRows = format === 'Evaluation_Data' ? parseEvaluationData(workbook) : parseQAReport(workbook);
 
   return rawRows.map((rawRow) => {
-    const ref = refMap.get(normalizePlaceholderName(rawRow.name));
-    if (!ref) {
-      return {
-        name: rawRow.name,
-        type: rawRow.type || 'Unknown',
-        expectedText: '',
-        aiText: rawRow.aiText,
-        source: rawRow.source,
-        instruction: rawRow.instruction,
-        placeholderId: rawRow.placeholderId,
-        overallSimilarity: 0,
-        status: 'Missing Reference',
-      };
+    const refs = refMap.get(normalizePlaceholderName(rawRow.name));
+    if (!refs || refs.length === 0) {
+      return buildMissingReferenceResult(rawRow);
     }
 
-    if (!ref.expectedText.trim()) {
-      return {
-        name: rawRow.name,
-        type: ref.type || rawRow.type || 'Unknown',
-        expectedText: ref.expectedText,
-        aiText: rawRow.aiText,
-        source: ref.sourceDocument || rawRow.source,
-        instruction: rawRow.instruction,
-        placeholderId: rawRow.placeholderId,
-        overallSimilarity: 0,
-        status: 'Skipped',
-      };
+    let bestScore = -1;
+    let bestScored: ScoredPlaceholder | null = null;
+
+    for (const candidateRef of refs) {
+      if (!candidateRef.expectedText.trim()) {
+        continue;
+      }
+
+      const candidate = scoreSingleRef(rawRow, candidateRef);
+      if (candidate.overallSimilarity > bestScore) {
+        bestScore = candidate.overallSimilarity;
+        bestScored = candidate;
+      }
     }
 
-    const scored = scoreByType(ref.type || rawRow.type || 'KeyValue', ref.expectedText, rawRow.aiText);
-    return {
-      ...scored,
-      name: rawRow.name,
-      type: ref.type || rawRow.type || 'Unknown',
-      expectedText: ref.expectedText,
-      aiText: rawRow.aiText,
-      source: ref.sourceDocument || rawRow.source,
-      instruction: rawRow.instruction,
-      placeholderId: rawRow.placeholderId,
-    };
+    return bestScored ?? buildSkippedResult(rawRow, refs[0]);
   });
 }
