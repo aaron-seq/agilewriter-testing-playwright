@@ -157,3 +157,54 @@ If a test fails, don't panic! Check this list for the most common problems and t
 | **Stuck on "Populating Placeholders"** | Backend performance issue | This is not a script bug! The server is hanging. Report this to the dev/infrastructure team. |
 | **Login popup does not appear** | Credentials not set in `.env` | Open your `.env` file and make sure `EMAIL` and `PASSWORD` are filled out correctly. |
 | **TypeScript errors** | Dependency mismatch | Run `npm install` and then `npx tsc --noEmit` to fix missing packages. |
+
+## ── SECTION 11: Automation UI Guide ────────────
+
+## Overview
+The automation UI provides a web interface to configure and trigger automated test runs locally. It acts as a bridge between the user and the Playwright test environment.
+
+---
+
+## Core File Details
+
+### 1. `ui/index.html` (Interface Structure)
+- **Role**: Serves as the application's entry point and structural layout.
+- **Initialization**: Loads the design system via `styles.css` and the interaction logic via `script.js`.
+- **Key Components**:
+  - **Input Grid**: Captures environment details (Tester name, Microsoft credentials, Folder/Template names).
+  - **Dynamic List**: A `<select>` element that is populated at runtime with available test scripts.
+  - **Action Buttons**: Triggers the execution and allows report downloads.
+  - **Log Terminal**: A hidden `div` that becomes visible during execution to display real-time terminal output.
+
+### 2. `ui/script.js` (Frontend Logic)
+- **Initialization**: Listens for the `DOMContentLoaded` event. Once triggered, it calls `GET /list-tests` from the server to dynamically fill the script selection dropdown.
+- **Core Functions**:
+  - **`runTest()`**: 
+    1. Collects all form values into a JSON object.
+    2. Initializes a front-end timer and clears the log terminal.
+    3. Establishes a **Server-Sent Events (SSE)** connection to `/stream` to receive live logs.
+    4. Makes an asynchronous `POST /run-test` request to start the backend process.
+  - **`EventSource.onmessage`**: Listens for server updates. It parses incoming JSON to determine log type (e.g., `info`, `error`, `phase`) and applies CSS styles, timestamps, and icons before appending them to the UI terminal.
+  - **`addSourceInput()`**: Manages the dynamic UI state by appending or removing source file input fields as needed.
+
+### 3. `server/test-runner-server.js` (Backend Orchestration)
+- **Initialization**: Starts an Express server on port 3000 and prepares an array to manage active SSE clients.
+- **API Endpoints**:
+  - **`GET /list-tests`**: Uses the `fs` module to scan the `./tests` directory for any file ending in `.spec.ts`.
+  - **`GET /stream`**: Keeps a persistent HTTP connection open with the UI. It includes a `broadcastLog` helper that redacts sensitive information (paths/emails) before sending data to the browser.
+  - **`POST /run-test`**: 
+    1. Writes the received configuration to an ephemeral `runtime-config.json`.
+    2. Uses `child_process.spawn` to trigger `npx playwright test`. 
+    3. Bridges the process's `stdout` and `stderr` to the `broadcastLog` function to stream logs in real-time.
+    4. On completion, it triggers the `generate-word-report.js` script.
+    5. **Cleanup**: Automatically deletes `runtime-config.json` once the cycle ends to ensure security.
+
+---
+
+## Execution Flow
+1. **User Input**: The user configures their parameters and clicks "Start".
+2. **Data Submission**: The UI sends the config to the server and opens a log stream.
+3. **Test Execution**: The server saves the config and spawns the Playwright process.
+4. **Live Logging**: Output from the test runner is sanitized and streamed back to the UI terminal.
+5. **Report & Cleanup**: A Word report is generated, the config is deleted, and the UI notifies the user of completion.
+6. **Download**: The user retrieves the report via the "Download" button.
