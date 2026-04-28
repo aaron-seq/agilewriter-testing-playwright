@@ -25,11 +25,11 @@ module.exports = async (config) => {
   // Remove the entire reports directory and all its contents
   if (fs.existsSync(REPORT_DIR)) {
     fs.rmSync(REPORT_DIR, { recursive: true, force: true });
-    console.log('🧹 Cleaned up old reports directory.');
+    console.log('-----> Cleaned up old reports directory.');
   }
 
   // Create fresh directories for this run
   fs.mkdirSync(REPORT_DIR, { recursive: true });
   fs.mkdirSync(REPORT_DIR + '/screenshots', { recursive: true });
-  console.log('📁 Created fresh reports directory.');
+  console.log('-----> Created fresh reports directory.');
 };
