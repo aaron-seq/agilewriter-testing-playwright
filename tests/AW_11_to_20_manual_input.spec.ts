@@ -25,7 +25,7 @@
 
 import { test, expect, Locator, Page } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
-import { openAgileMapping, isVisible, waitForApplyAllToast } from './helpers/app-navigation';
+import { openAgileMapping, isVisible, waitForApplyAllToast, dismissModalOverlay } from './helpers/app-navigation';
 import { initTracker, saveResults, trackStep, trackSoftStep } from './helpers/step-tracker';
 import {
   TrainingSession,
@@ -340,6 +340,7 @@ async function openPrimaryPlaceholder(page: Page): Promise<void> {
 
 async function openFinalDocumentFlow(page: Page): Promise<void> {
   await expect(createFinalDocButton(page)).toBeEnabled({ timeout: 300_000 });
+  await dismissModalOverlay(page);
   await createFinalDocButton(page).click();
 
   await expect(page).toHaveURL(/.*\/review\?id=.*/, { timeout: 600_000 });
