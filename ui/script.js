@@ -17,16 +17,75 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Could not load test list:', error);
   }
+
+  // Show/hide manual config section based on selected test script
+  testSelect.addEventListener('change', toggleManualConfig);
+  toggleManualConfig(); // Run once on load in case manual is pre-selected
+
+  // Auto-fill per-row source folder inputs when shared source folder changes
+  const sharedFolder = document.getElementById('manualSourceFolder');
+  if (sharedFolder) {
+    sharedFolder.addEventListener('input', () => {
+      document.querySelectorAll('.source-folder-input').forEach(input => {
+        if (!input.dataset.manuallyEdited) {
+          input.value = sharedFolder.value;
+        }
+      });
+    });
+  }
 });
+
+/** Toggle visibility of manual config section and per-row folder inputs. */
+function toggleManualConfig() {
+  const testSelect = document.getElementById('testFile');
+  const isManual = testSelect.value.includes('manual_input');
+  const manualSection = document.getElementById('manual-config');
+  if (manualSection) {
+    manualSection.style.display = isManual ? 'block' : 'none';
+  }
+  // Show/hide per-row source folder inputs
+  document.querySelectorAll('.source-folder-input').forEach(input => {
+    input.style.display = isManual ? 'block' : 'none';
+  });
+}
 
 function addSourceInput() {
   const container = document.getElementById('source-files-container');
+  const testSelect = document.getElementById('testFile');
+  const isManual = testSelect && testSelect.value.includes('manual_input');
+  const sharedFolder = document.getElementById('manualSourceFolder');
+
   const group = document.createElement('div');
   group.className = 'source-input-group';
-  group.innerHTML = `
-    <input type="text" class="source-input" placeholder="Additional_Source.docx" />
-    <button type="button" class="btn-icon btn-remove" onclick="this.parentElement.remove()">-</button>
-  `;
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'text';
+  fileInput.className = 'source-input';
+  fileInput.placeholder = 'Additional_Source.docx';
+
+  const folderInput = document.createElement('input');
+  folderInput.type = 'text';
+  folderInput.className = 'source-folder-input';
+  folderInput.placeholder = 'Folder';
+  folderInput.style.display = isManual ? 'block' : 'none';
+  // Pre-fill with shared folder value
+  if (sharedFolder && sharedFolder.value) {
+    folderInput.value = sharedFolder.value;
+  }
+  // Mark as manually edited when user types in it
+  folderInput.addEventListener('input', () => {
+    folderInput.dataset.manuallyEdited = 'true';
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'btn-icon btn-remove';
+  removeBtn.textContent = '-';
+  removeBtn.onclick = () => group.remove();
+
+  group.appendChild(fileInput);
+  group.appendChild(folderInput);
+  group.appendChild(removeBtn);
   container.appendChild(group);
 }
 
@@ -123,6 +182,9 @@ async function runTest() {
     }
   };
 
+  const testFile = document.getElementById('testFile').value;
+  const isManual = testFile.includes('manual_input');
+
   const data = {
     testerName: document.getElementById('tester').value,
     email: document.getElementById('email').value,
@@ -130,11 +192,29 @@ async function runTest() {
     template: document.getElementById('template').value,
     source: Array.from(document.querySelectorAll('.source-input')).map(input => input.value.trim()).filter(Boolean).join(','),
     folder: document.getElementById('folder').value,
-    testFile: document.getElementById('testFile').value,
+    testFile: testFile,
     baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
     appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
     envName: 'QA'
   };
+
+  // Add manual input fields when the manual script is selected
+  if (isManual) {
+    const sharedFolder = document.getElementById('manualSourceFolder').value.trim();
+    data.manualTemplateName = data.template;
+    data.manualTemplateFolder = document.getElementById('manualTemplateFolder').value.trim();
+    data.manualTemplateTab = document.getElementById('manualTemplateTab').value;
+    data.generatedScriptName = document.getElementById('generatedScriptName').value.trim();
+    data.useQaFolderForSources = false;
+    data.manualSourceFiles = Array.from(document.querySelectorAll('.source-input-group')).map(group => {
+      const nameInput = group.querySelector('.source-input');
+      const folderInput = group.querySelector('.source-folder-input');
+      return {
+        name: nameInput ? nameInput.value.trim() : '',
+        folder: (folderInput && folderInput.value.trim()) || sharedFolder,
+      };
+    }).filter(s => s.name);
+  }
 
   try {
     const response = await fetch('http://localhost:3000/run-test', {

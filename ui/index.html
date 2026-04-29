@@ -55,7 +55,38 @@
       <label>Source File(s)</label>
       <div class="source-input-group">
         <input type="text" class="source-input" placeholder="Source_Protocol.docx" />
+        <input type="text" class="source-folder-input" placeholder="Folder" style="display:none;" />
         <button type="button" class="btn-icon" onclick="addSourceInput()">+</button>
+      </div>
+    </div>
+
+    <!-- Manual Input Configuration (shown only for AW_11_to_20_manual_input) -->
+    <div id="manual-config" style="display: none;">
+      <div class="section-divider">Manual Input Configuration</div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="manualTemplateFolder">Template Folder</label>
+          <input id="manualTemplateFolder" type="text" placeholder="CSR" />
+        </div>
+        <div class="form-group">
+          <label for="manualTemplateTab">Template Tab</label>
+          <select id="manualTemplateTab">
+            <option value="Clinical">Clinical</option>
+            <option value="Non-Clinical">Non-Clinical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="manualSourceFolder">Source Folder (shared)</label>
+          <input id="manualSourceFolder" type="text" placeholder="CSR" />
+        </div>
+        <div class="form-group">
+          <label for="generatedScriptName">Health Script Name</label>
+          <input id="generatedScriptName" type="text" placeholder="CSR" />
+        </div>
       </div>
     </div>
 

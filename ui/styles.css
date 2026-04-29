@@ -286,3 +286,36 @@
       user-select: none;
       min-width: 3.6rem;
     }
+
+    /* ── Manual Config Section ──────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0 1rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #a78bfa;
+    }
+
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(167, 139, 250, 0.3);
+    }
+
+    #manual-config {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Per-row source folder input */
+    .source-folder-input {
+      flex: 0 0 35%;
+      max-width: 35%;
+      font-size: 0.85rem;
+    }
+

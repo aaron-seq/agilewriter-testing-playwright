@@ -135,7 +135,20 @@ function mergeConfig(overrides: Partial<Config>): Config {
 function loadConfig(): Config {
   if (fs.existsSync(CONFIG_FILE)) {
     console.log('Using UI config');
-    return mergeConfig(JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8')));
+    const raw = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+
+    // Safety: if manualSourceFiles arrived as a comma-separated string,
+    // convert it to the expected Array<{name, folder}> format.
+    if (typeof raw.manualSourceFiles === 'string') {
+      const folder = raw.manualTemplateFolder || raw.folder || '';
+      raw.manualSourceFiles = raw.manualSourceFiles
+        .split(',')
+        .map((name: string) => name.trim())
+        .filter(Boolean)
+        .map((name: string) => ({ name, folder }));
+    }
+
+    return mergeConfig(raw);
   }
 
   console.log('Using .env config');
