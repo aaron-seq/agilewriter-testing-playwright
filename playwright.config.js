@@ -3,6 +3,7 @@ const { defineConfig } = require('@playwright/test');
 require('dotenv').config();
 
 module.exports = defineConfig({
+  globalSetup: require.resolve('./global-setup'),
   reporter: 'html',
   timeout: 600_000,
   expect: {
@@ -11,14 +12,14 @@ module.exports = defineConfig({
   workers: 1,
   use: {
     baseURL: process.env.BASE_URL,
-    headless: false,
+    headless: process.env.CI ? true : false,
     actionTimeout: 30_000,
     navigationTimeout: 120_000,
   },
   projects: [
     {
       name: 'setup',
-      testMatch: /AW_00_auth\.setup\.ts/,
+      testMatch: /AW_00_10_consolidated_flow\.spec\.ts/,
     },
     {
       name: 'smarter-tests',

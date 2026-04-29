@@ -1,6 +1,6 @@
 import { Locator, Page, expect } from '@playwright/test';
 import dotenv from 'dotenv';
-import { openAgileMapping, openDashboard } from './app-navigation';
+import { openAgileMapping, openDashboard, isVisible, confirmPickerDialog } from './app-navigation';
 
 dotenv.config();
 
@@ -10,10 +10,6 @@ const UI_TIMEOUT = 60_000;
 export interface TrainingSession {
   trainUrl: string;
   outputFileName: string;
-}
-
-async function isVisible(locator: Locator, timeout = 2_000): Promise<boolean> {
-  return locator.isVisible({ timeout }).catch(() => false);
 }
 
 async function waitForPickerSearch(page: Page): Promise<void> {
@@ -130,24 +126,59 @@ export async function waitForWorkspaceReady(
   await expect(firstPlaceholder(page)).toBeVisible({ timeout: UI_TIMEOUT });
 }
 
+// NOTE: These hardcoded fallbacks ('CSR_Table_Trimmed.docx' etc.) only affect code paths
+// where createTrainingSession is explicitly called (e.g. AW_13-AW_20).
+// AW_11_to_20.spec.ts does not use this flow directly for initial training.
 async function selectDestinationTemplate(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select destination template/i }).click();
   await waitForPickerSearch(page);
-  await page.getByRole('textbox', { name: /Search files/i }).fill('CSR_Table_Trimmed.docx');
-  await page.getByRole('button', { name: /Expand CSR/i }).click();
-  await page.getByRole('checkbox', { name: /Select CSR_Table_Trimmed\.docx/i }).check();
-  await page.getByRole('button', { name: /Select \[ENTER\]/i }).click();
+  
+  const templateName = process.env.HEALTH_TEMPLATE_NAME || 'CSR_Table_Trimmed.docx';
+  await page.getByRole('textbox', { name: /Search files/i }).fill(templateName);
+  
+  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+  if (!(await isVisible(anyFolder, 20000))) {
+    throw new Error(`No folder found in search results for template: ${templateName}`);
+  }
+
+  const expandBtn = page.getByRole('button', { name: /Expand/i }).first();
+  if (await isVisible(expandBtn, 2000)) {
+    await expandBtn.click();
+  }
+  
+  const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
+  if (!(await isVisible(checkbox, 2000))) {
+     throw new Error(`Template file checkbox not found: ${templateName}`);
+  }
+  await checkbox.check();
+  await confirmPickerDialog(page, /Select \[ENTER\]/i, page.getByRole('dialog'));
 }
 
 async function selectSourceDocuments(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select source documents/i }).click();
   await waitForPickerSearch(page);
-  await page
-    .getByRole('textbox', { name: /Search files/i })
-    .fill('Protocol Example (28Sep2023)_trimmed.docx');
-  await page.getByRole('button', { name: /Expand Protocol/i }).click();
-  await page.getByRole('checkbox', { name: /Select Protocol Example/i }).check();
-  await page.getByRole('button', { name: /Done \[ENTER\]/i }).click();
+  
+  const sourceRaw = process.env.HEALTH_SOURCE_NAMES || 'Protocol Example (28Sep2023)_trimmed.docx';
+  const sourceName = sourceRaw.split(',')[0].trim();
+  
+  await page.getByRole('textbox', { name: /Search files/i }).fill(sourceName);
+  
+  const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
+  if (!(await isVisible(anyFolder, 20000))) {
+    throw new Error(`No folder found in search results for source: ${sourceName}`);
+  }
+
+  const expandBtn = page.getByRole('button', { name: /Expand/i }).first();
+  if (await isVisible(expandBtn, 2000)) {
+    await expandBtn.click();
+  }
+  
+  const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
+  if (!(await isVisible(checkbox, 2000))) {
+    throw new Error(`Source file checkbox not found: ${sourceName}`);
+  }
+  await checkbox.check();
+  await confirmPickerDialog(page, /Done \[ENTER\]/i, page.getByRole('dialog'));
 }
 
 export async function createTrainingSession(page: Page): Promise<TrainingSession> {

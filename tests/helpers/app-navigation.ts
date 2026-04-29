@@ -1,18 +1,101 @@
 import { Browser, BrowserContext, Locator, Page, expect } from '@playwright/test';
 import path from 'path';
-import dotenv from 'dotenv';
+import { runtimeConfig } from '../../runtime-config';
 
-dotenv.config();
-
-export const BASE_URL = process.env.BASE_URL || 'https://app-v2-rc1-aw.smarter.codes';
+export const BASE_URL = runtimeConfig.baseUrl;
 export const AUTH_FILE = path.join(process.cwd(), 'playwright', '.auth', 'user.json');
 const MICROSOFT_SIGN_IN_BUTTON = /Sign In with Microsoft/i;
 
 const DASHBOARD_TIMEOUT = 120_000;
 const TRAIN_DOCUMENT_TIMEOUT = 120_000;
 
-async function isVisible(locator: Locator, timeout = 2_000): Promise<boolean> {
+export const DEFAULT_VISIBLE_TIMEOUT = 2000;
+
+export async function isVisible(locator: Locator, timeout = DEFAULT_VISIBLE_TIMEOUT): Promise<boolean> {
   return locator.isVisible({ timeout }).catch(() => false);
+}
+
+export async function clickIfVisible(locator: Locator, timeout = 3_000): Promise<boolean> {
+  if (await isVisible(locator, timeout)) {
+    await locator.click();
+    return true;
+  }
+  return false;
+}
+
+export async function navigateToFolder(page: Page, folderName: string): Promise<void> {
+  const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${folderName}`, 'i') });
+  const collapseButton = page.getByRole('button', { name: new RegExp(`Collapse ${folderName}`, 'i') });
+  
+  // If already expanded, we're done
+  if (await isVisible(collapseButton, 2000)) {
+    return;
+  }
+  
+  let found = await clickIfVisible(expandButton);
+  
+  if (!found) {
+    const nextBtn = page.getByRole('button', { name: /Next page/i });
+    const folderToggle = expandButton.or(collapseButton);
+    while (await nextBtn.isEnabled().catch(() => false) && !found) {
+      await nextBtn.click();
+      await expect(folderToggle).toBeVisible({ timeout: 10_000 });
+      if (await isVisible(collapseButton, 500)) {
+        found = true;
+        break;
+      }
+      found = await clickIfVisible(expandButton);
+    }
+  }
+  
+  if (!found) {
+    throw new Error(`Could not find folder "${folderName}" across all pages.`);
+  }
+  
+  await expect(collapseButton).toBeVisible({ timeout: 10000 });
+}
+
+export async function confirmPickerDialog(
+  page: Page,
+  buttonName: RegExp | string,
+  dialogLocator: Locator,
+  timeout = 60_000
+): Promise<void> {
+  await page.getByRole('button', { name: buttonName }).click();
+  const closed = await dialogLocator.isHidden({ timeout: 3000 }).catch(() => false);
+  if (!closed) {
+    console.log(`  ⚠ Dialog did not close on "${buttonName}", trying Enter key...`);
+    await page.keyboard.press('Enter');
+    await expect(dialogLocator).toBeHidden({ timeout });
+  }
+}
+
+export async function waitForApplyAllToast(page: Page, timeoutMs = 30000): Promise<string> {
+  return page.evaluate((timeoutValue) => {
+    return new Promise<string>((resolve, reject) => {
+      let observer: MutationObserver | undefined;
+      const timeout = window.setTimeout(() => {
+        observer?.disconnect();
+        reject(new Error(`Apply All toast did not appear within ${timeoutValue}ms.`));
+      }, timeoutValue);
+
+      observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (!(node instanceof Element)) continue;
+            const text = (node.textContent || '').trim();
+            if (/Applied all(?:\s+\d+)?\s+mappings?\.?/i.test(text)) {
+              window.clearTimeout(timeout);
+              observer?.disconnect();
+              resolve(text);
+              return;
+            }
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }, timeoutMs);
 }
 
 async function assertAppIsReachable(page: Page, step: string): Promise<void> {
@@ -74,12 +157,8 @@ export async function openAgileMapping(page: Page): Promise<void> {
     await expect(openButton).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
     await openButton.click();
 
-    const trainDocumentSignal = page
-      .getByRole('heading', { name: /Train Document/i })
-      .or(page.getByRole('textbox', { name: /Enter desired output filename/i }));
-
     try {
-      await expect(trainDocumentSignal.first()).toBeVisible({ timeout: TRAIN_DOCUMENT_TIMEOUT });
+      await expect(page.getByRole('heading', { name: /Train Document/i })).toBeVisible({ timeout: TRAIN_DOCUMENT_TIMEOUT });
       return;
     } catch (error) {
       if (attempt === 2) {
@@ -93,4 +172,23 @@ export async function openAgileMapping(page: Page): Promise<void> {
 
 export async function newAuthenticatedContext(browser: Browser): Promise<BrowserContext> {
   return browser.newContext({ storageState: AUTH_FILE });
+}
+
+/**
+ * Dismisses any modal overlay currently blocking pointer events.
+ * Safe to call even when no overlay is present.
+ */
+export async function dismissModalOverlay(page: Page): Promise<void> {
+  const overlay = page.locator(
+    '[role="presentation"] [aria-hidden="true"].absolute.inset-0'
+  );
+  if (await overlay.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    const closeModal = page.getByRole('button', { name: /Close modal/i });
+    if (await closeModal.isVisible({ timeout: 1_000 }).catch(() => false)) {
+      await closeModal.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
+    await expect(overlay).toBeHidden({ timeout: 10_000 });
+  }
 }
