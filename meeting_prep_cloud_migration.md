@@ -4,7 +4,7 @@ Moving a heavy Playwright E2E suite (with 20-45 minute test durations) to the cl
 
 ---
 
-## 🏗️ 1. Technical Requirements (What the suite needs to run)
+## 1. Technical Requirements (What the suite needs to run)
 
 ### Compute (Where the tests actually run)
 - **Requirement:** A containerized environment capable of running Playwright browsers.
@@ -32,7 +32,7 @@ Moving a heavy Playwright E2E suite (with 20-45 minute test durations) to the cl
 
 ---
 
-## 🎯 2. How to Direct the Meeting (Agenda)
+## 2. How to Direct the Meeting (Agenda)
 
 Use this agenda to control the conversation and ensure you get the answers you need from DevOps/Stakeholders.
 
@@ -54,7 +54,7 @@ Use this agenda to control the conversation and ensure you get the answers you n
 
 ---
 
-## 🛠️ 3. What You Need to Change in the Code (Next Steps)
+## 3. What You Need to Change in the Code (Next Steps)
 
 Once they choose the cloud provider, you will likely need to:
 1. **Create a `Dockerfile`**: Based on `mcr.microsoft.com/playwright:v1.58.2-focal`.
