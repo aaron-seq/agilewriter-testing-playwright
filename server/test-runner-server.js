@@ -1,29 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const { spawn } = require('child_process');
-
-let sseClients = [];
-
-let runStartTime = null;
-
-function broadcastLog(type, message) {
-  // Sanitize message: Remove Windows/Unix paths, emails, URLs, and stack traces
-  let sanitized = message.toString()
-    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '[EMAIL]')
-    .replace(/https?:\/\/[^\s]+/gi, '[URL]')
-    .replace(/[a-zA-Z]:\\[^\s)]+/gi, '[PATH]') // Windows paths
-    .replace(/(?:\/[a-zA-Z0-9._-]+){2,}/g, '[PATH]'); // Unix paths
-
-  // Strip stack trace lines
-  if (sanitized.includes(' at ')) {
-    sanitized = sanitized.split('\n').filter(line => !line.trim().startsWith('at ')).join('\n');
-  }
-
-  const elapsed = runStartTime ? Date.now() - runStartTime : 0;
-  const payload = `data: ${JSON.stringify({ type, message: sanitized, elapsed })}\n\n`;
-  sseClients.forEach(client => client.write(payload));
-}
+const crypto = require('crypto');
 
 const app = express();
 app.use(cors());
@@ -32,109 +12,210 @@ app.use(express.json());
 // Serve static files from the 'ui' directory at the '/ui' path
 app.use('/ui', express.static('ui'));
 
-const CONFIG_FILE = './runtime-config.json';
-const REPORT_FILE = './reports/AgileWriter_Validation_Report.docx';
+// ── Session Store ────────────────────────────────────────────────────────────
+// Map<sessionId, { clients: res[], startTime: number }>
+const sessions = new Map();
 
-const TESTING_DIR = './tests';
+const SESSIONS_DIR = path.join(__dirname, '..', 'sessions');
+const TESTING_DIR = path.join(__dirname, '..', 'tests');
 
-// List available test files
+// TTL for session auto-cleanup: 1 hour
+const SESSION_TTL_MS = 60 * 60 * 1000;
+
+function ensureSessionDir(sessionId) {
+  const dir = path.join(SESSIONS_DIR, sessionId);
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+function sessionDir(sessionId) {
+  return path.join(SESSIONS_DIR, sessionId);
+}
+
+// ── Session Broadcast ─────────────────────────────────────────────────────────
+function broadcastLog(sessionId, type, message) {
+  const session = sessions.get(sessionId);
+  if (!session) return;
+
+  // Sanitize message
+  let sanitized = message.toString()
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '[EMAIL]')
+    .replace(/https?:\/\/[^\s]+/gi, '[URL]')
+    .replace(/[a-zA-Z]:\\[^\s)]+/gi, '[PATH]')
+    .replace(/(?:\/[a-zA-Z0-9._-]+){2,}/g, '[PATH]');
+
+  if (sanitized.includes(' at ')) {
+    sanitized = sanitized.split('\n').filter(line => !line.trim().startsWith('at ')).join('\n');
+  }
+
+  const elapsed = Date.now() - session.startTime;
+  const payload = `data: ${JSON.stringify({ type, message: sanitized, elapsed })}\n\n`;
+  session.clients.forEach(client => client.write(payload));
+}
+
+// ── Session TTL Cleanup ───────────────────────────────────────────────────────
+function scheduleSessionCleanup(sessionId) {
+  setTimeout(() => {
+    const dir = sessionDir(sessionId);
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log(`✔ Session ${sessionId} cleaned up (TTL expired)`);
+    }
+    sessions.delete(sessionId);
+  }, SESSION_TTL_MS);
+}
+
+// ── List available test files ─────────────────────────────────────────────────
 app.get('/list-tests', (req, res) => {
   if (!fs.existsSync(TESTING_DIR)) {
     return res.status(404).json({ error: 'Tests directory not found' });
   }
   const files = fs.readdirSync(TESTING_DIR);
-  // Filter for .spec.ts files and avoid directories
   const specFiles = files.filter(file => file.endsWith('.spec.ts'));
   res.json(specFiles);
 });
 
-// SSE Stream endpoint
+// ── SSE Stream endpoint (per-session) ────────────────────────────────────────
 app.get('/stream', (req, res) => {
+  const { sessionId } = req.query;
+  if (!sessionId || !sessions.has(sessionId)) {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  sseClients.push(res);
-  req.on('close', () => { sseClients = sseClients.filter(c => c !== res); });
+  const session = sessions.get(sessionId);
+  session.clients.push(res);
+
+  req.on('close', () => {
+    const s = sessions.get(sessionId);
+    if (s) {
+      s.clients = s.clients.filter(c => c !== res);
+    }
+  });
 });
 
-// Run test
+// ── Run test ──────────────────────────────────────────────────────────────────
 app.post('/run-test', (req, res) => {
   const testFile = req.body.testFile;
   if (!testFile) {
     return res.status(400).json({ error: 'testFile is required' });
   }
 
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(req.body, null, 2));
+  // Create a unique session for this run
+  const sessionId = crypto.randomUUID();
+  const dir = ensureSessionDir(sessionId);
 
-  // Reset elapsed timer for this run
-  runStartTime = Date.now();
+  // Store session state
+  sessions.set(sessionId, {
+    clients: [],
+    startTime: Date.now(),
+  });
+
+  // Write session-scoped config file
+  const configFile = path.join(dir, 'runtime-config.json');
+  fs.writeFileSync(configFile, JSON.stringify(req.body, null, 2));
 
   const testPath = `tests/${testFile}`;
-  console.log(`✔ Running Playwright tests: ${testPath}...`);
+  console.log(`✔ [${sessionId}] Running Playwright tests: ${testPath}...`);
 
-  // ── Phase 1: Running Tests ──────────────────────────────────────
-  broadcastLog('phase', 'Running Tests');
-  broadcastLog('info', `Running Playwright tests: ${testFile}...`);
+  // Respond immediately with sessionId so the UI can connect to SSE right away
+  res.status(202).json({ sessionId });
 
-  const pwProcess = spawn(`npx playwright test "${testPath}"`, { shell: true });
+  // ── Phase 1: Running Tests ────────────────────────────────────────
+  broadcastLog(sessionId, 'phase', 'Running Tests');
+  broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
+
+  const pwProcess = spawn(
+    `npx playwright test "${testPath}"`,
+    {
+      shell: true,
+      env: {
+        ...process.env,
+        SESSION_ID: sessionId,
+      },
+    }
+  );
 
   pwProcess.stdout.on('data', data => {
     process.stdout.write(data);
-    broadcastLog('log', data);
+    broadcastLog(sessionId, 'log', data);
   });
   pwProcess.stderr.on('data', data => {
     process.stderr.write(data);
-    broadcastLog('error', data);
+    broadcastLog(sessionId, 'error', data);
   });
 
   pwProcess.on('close', (code) => {
-    broadcastLog('info', `Playwright exited with code: ${code}`);
+    broadcastLog(sessionId, 'info', `Playwright exited with code: ${code}`);
 
-    // ── Phase 2: Generating Report ──────────────────────────────────
-    console.log('📄 Generating test report...');
-    broadcastLog('phase', 'Generating Report');
-    broadcastLog('info', 'Generating test report...');
+    // ── Phase 2: Generating Report ────────────────────────────────────
+    console.log(`📄 [${sessionId}] Generating test report...`);
+    broadcastLog(sessionId, 'phase', 'Generating Report');
+    broadcastLog(sessionId, 'info', 'Generating test report...');
 
-    const reportProcess = spawn('node generate-word-report.js', { shell: true });
-    
+    const reportProcess = spawn('node generate-word-report.js', {
+      shell: true,
+      cwd: path.join(__dirname, '..'),
+      env: {
+        ...process.env,
+        SESSION_ID: sessionId,
+      },
+    });
+
     reportProcess.stdout.on('data', data => {
       process.stdout.write(data);
-      broadcastLog('log', data);
+      broadcastLog(sessionId, 'log', data);
     });
     reportProcess.stderr.on('data', data => {
       process.stderr.write(data);
-      broadcastLog('error', data);
+      broadcastLog(sessionId, 'error', data);
     });
 
     reportProcess.on('close', (reportCode) => {
-      // SECURITY FIX — DELETE CONFIG
-      if (fs.existsSync(CONFIG_FILE)) {
-        fs.unlinkSync(CONFIG_FILE);
-        console.log('✔ runtime-config.json deleted');
+      // SECURITY: delete runtime config after run
+      if (fs.existsSync(configFile)) {
+        fs.unlinkSync(configFile);
+        console.log(`✔ [${sessionId}] runtime-config.json deleted`);
       }
-
-      broadcastLog('done', 'Test cycle completed.');
-      runStartTime = null;
 
       if (code !== 0 || reportCode !== 0) {
-        return res.status(500).send('✖️ Test completed with failures');
+        broadcastLog(sessionId, 'done', '✖️ Test cycle completed with failures.');
+      } else {
+        broadcastLog(sessionId, 'done', '✔ Test cycle completed successfully.');
       }
 
-      res.send({ message: '✔ Test completed successfully' });
+      // Schedule TTL cleanup for this session (1 hour)
+      scheduleSessionCleanup(sessionId);
     });
   });
 });
 
-// Download report
+// ── Download report (per-session) ─────────────────────────────────────────────
 app.get('/download-report', (req, res) => {
-  if (!fs.existsSync(REPORT_FILE)) {
+  const { sessionId } = req.query;
+  if (!sessionId) {
+    return res.status(400).send('sessionId is required');
+  }
+
+  const dir = sessionDir(sessionId);
+  if (!fs.existsSync(dir)) {
+    return res.status(404).send('✖️ Session not found');
+  }
+
+  // Find the .docx report file (name is dynamic: testName_timestamp_AgileWriter...)
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.docx'));
+  if (!files.length) {
     return res.status(404).send('✖️ Report not found');
   }
 
-  res.download(REPORT_FILE);
+  const reportFile = path.join(dir, files[0]);
+  res.download(reportFile, files[0]); // second arg sets the download filename
 });
+
 
 app.listen(3000, () => {
   console.log('✔ Server running at http://localhost:3000');
