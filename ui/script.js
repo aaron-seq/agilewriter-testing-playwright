@@ -92,6 +92,7 @@ function addSourceInput() {
 let logEventSource = null;
 let timerInterval = null;
 let startTime = 0;
+let currentSessionId = null; // tracks the active session for this browser tab
 
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -127,10 +128,65 @@ async function runTest() {
   if (logEventSource) {
     logEventSource.close();
   }
-  
-  // Connect to SSE stream
-  logEventSource = new EventSource('http://localhost:3000/stream');
-  logEventSource.onmessage = (event) => {
+
+  // POST to /run-test first to get the sessionId, then connect SSE
+  const testFile = document.getElementById('testFile').value;
+  const isManual = testFile.includes('manual_input');
+
+  const data = {
+    testerName: document.getElementById('tester').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    template: document.getElementById('template').value,
+    source: Array.from(document.querySelectorAll('.source-input')).map(input => input.value.trim()).filter(Boolean).join(','),
+    folder: document.getElementById('folder').value,
+    testFile: testFile,
+    baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
+    appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
+    envName: 'QA'
+  };
+
+  // Add manual input fields when the manual script is selected
+  if (isManual) {
+    const sharedFolder = document.getElementById('manualSourceFolder').value.trim();
+    data.manualTemplateName = data.template;
+    data.manualTemplateFolder = document.getElementById('manualTemplateFolder').value.trim();
+    data.manualTemplateTab = document.getElementById('manualTemplateTab').value;
+    data.generatedScriptName = document.getElementById('generatedScriptName').value.trim();
+    data.useQaFolderForSources = false;
+    data.manualSourceFiles = Array.from(document.querySelectorAll('.source-input-group')).map(group => {
+      const nameInput = group.querySelector('.source-input');
+      const folderInput = group.querySelector('.source-folder-input');
+      return {
+        name: nameInput ? nameInput.value.trim() : '',
+        folder: (folderInput && folderInput.value.trim()) || sharedFolder,
+      };
+    }).filter(s => s.name);
+  }
+
+  try {
+    // Step 1: Start the run and get back a sessionId immediately
+    const startResponse = await fetch('http://localhost:3000/run-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!startResponse.ok) {
+      statusEl.innerText = '✖️ Failed to start test run';
+      runStatusEl.innerText = '✖️ Failed';
+      clearInterval(timerInterval);
+      runBtn.disabled = false;
+      runBtn.style.opacity = '1';
+      return;
+    }
+
+    const { sessionId } = await startResponse.json();
+    currentSessionId = sessionId;
+
+    // Step 2: Connect SSE to this session's isolated stream
+    logEventSource = new EventSource(`http://localhost:3000/stream?sessionId=${sessionId}`);
+    logEventSource.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
 
@@ -177,70 +233,34 @@ async function runTest() {
       if (data.type === 'info' || data.type === 'done') {
         runStatusEl.innerText = data.message.trim();
       }
+
+      // When run is complete, re-enable the UI
+      if (data.type === 'done') {
+        clearInterval(timerInterval);
+        logEventSource.close();
+        runBtn.disabled = false;
+        runBtn.style.opacity = '1';
+        const success = data.message.includes('✔');
+        statusEl.innerText = success ? '✔ Test Cycle Completed Successfully' : '✖️ Test Execution Completed with Failures';
+      }
     } catch (e) {
       console.error(e);
     }
   };
 
-  const testFile = document.getElementById('testFile').value;
-  const isManual = testFile.includes('manual_input');
-
-  const data = {
-    testerName: document.getElementById('tester').value,
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-    template: document.getElementById('template').value,
-    source: Array.from(document.querySelectorAll('.source-input')).map(input => input.value.trim()).filter(Boolean).join(','),
-    folder: document.getElementById('folder').value,
-    testFile: testFile,
-    baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
-    appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
-    envName: 'QA'
-  };
-
-  // Add manual input fields when the manual script is selected
-  if (isManual) {
-    const sharedFolder = document.getElementById('manualSourceFolder').value.trim();
-    data.manualTemplateName = data.template;
-    data.manualTemplateFolder = document.getElementById('manualTemplateFolder').value.trim();
-    data.manualTemplateTab = document.getElementById('manualTemplateTab').value;
-    data.generatedScriptName = document.getElementById('generatedScriptName').value.trim();
-    data.useQaFolderForSources = false;
-    data.manualSourceFiles = Array.from(document.querySelectorAll('.source-input-group')).map(group => {
-      const nameInput = group.querySelector('.source-input');
-      const folderInput = group.querySelector('.source-folder-input');
-      return {
-        name: nameInput ? nameInput.value.trim() : '',
-        folder: (folderInput && folderInput.value.trim()) || sharedFolder,
-      };
-    }).filter(s => s.name);
-  }
-
-  try {
-    const response = await fetch('http://localhost:3000/run-test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      statusEl.innerText = '✔ Test Cycle Completed Successfully';
-      runStatusEl.innerText = '✔ Completed';
-    } else {
-      statusEl.innerText = '✖️ Test Execution Failed';
-      runStatusEl.innerText = '✖️ Failed';
-    }
   } catch (error) {
     statusEl.innerText = '✖️ Connection Error: Backend server unreachable';
     runStatusEl.innerText = '✖️ Error';
-  } finally {
     clearInterval(timerInterval);
-    if (logEventSource) logEventSource.close();
     runBtn.disabled = false;
     runBtn.style.opacity = '1';
   }
 }
 
 function downloadReport() {
-  window.open('http://localhost:3000/download-report');
+  if (!currentSessionId) {
+    alert('No completed test run found in this tab. Please run a test first.');
+    return;
+  }
+  window.open(`http://localhost:3000/download-report?sessionId=${currentSessionId}`);
 }

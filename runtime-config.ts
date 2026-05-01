@@ -3,7 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const CONFIG_FILE = 'runtime-config.json';
+const CONFIG_FILE = process.env.SESSION_ID
+  ? `sessions/${process.env.SESSION_ID}/runtime-config.json`
+  : 'runtime-config.json';
+
 
 type HealthConfig = {
   reportName: string;

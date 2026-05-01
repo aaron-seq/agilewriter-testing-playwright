@@ -3,10 +3,21 @@ const fs = require('fs');
 const path = require('path');
 const htmlToDocx = require('html-to-docx');
 
-const REPORT_DIR = path.join(__dirname, 'reports');
+// ── Session-scoped paths ──────────────────────────────────────────────────────
+const SESSION_ID = process.env.SESSION_ID || null;
+const SESSIONS_DIR = path.join(__dirname, 'sessions');
+
+// If a session ID is provided, use session-scoped directory.
+// Otherwise fall back to the legacy reports/ directory for backwards compatibility.
+const REPORT_DIR = SESSION_ID
+  ? path.join(SESSIONS_DIR, SESSION_ID)
+  : path.join(__dirname, 'reports');
+
 const STEP_FILE = path.join(REPORT_DIR, 'step-results.json');
 const OUTPUT_FILE = path.join(REPORT_DIR, 'AgileWriter_Validation_Report.docx');
-const RUNTIME_CONFIG_FILE = path.join(__dirname, 'runtime-config.json');
+const RUNTIME_CONFIG_FILE = SESSION_ID
+  ? path.join(SESSIONS_DIR, SESSION_ID, 'runtime-config.json')
+  : path.join(__dirname, 'runtime-config.json');
 
 const DOCUMENT_SECTIONS = [
   { label: 'ICF Trimmed', suffix: 'ICF_TRIMMED' },
