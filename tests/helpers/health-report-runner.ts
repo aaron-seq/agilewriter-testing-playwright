@@ -162,7 +162,7 @@ async function selectTemplateBySearch(
   // 7. Click "Select [ENTER]"
   const selectBtn = page.getByRole('button', { name: 'Select [ENTER]' });
   await selectBtn.click();
-  
+
   // Ensure dialog closes
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
@@ -257,7 +257,7 @@ async function selectSourcesBySearch(
   // 4. Confirm selection
   const doneBtn = page.getByRole('button', { name: 'Done [ENTER]' });
   await doneBtn.click();
-  
+
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
     console.log('  ⚠ Dialog did not close, trying Enter key...');
