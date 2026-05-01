@@ -14,10 +14,25 @@ const REPORT_DIR = SESSION_ID
   : path.join(__dirname, 'reports');
 
 const STEP_FILE = path.join(REPORT_DIR, 'step-results.json');
-const OUTPUT_FILE = path.join(REPORT_DIR, 'AgileWriter_Validation_Report.docx');
 const RUNTIME_CONFIG_FILE = SESSION_ID
   ? path.join(SESSIONS_DIR, SESSION_ID, 'runtime-config.json')
   : path.join(__dirname, 'runtime-config.json');
+
+// ── Report filename: <testName>_<YYYYMMDD_HHmm>_Report.docx ──────────────────
+function buildReportFilename(testFile) {
+  const base = path.basename(testFile || '', '.spec.ts') || 'run';
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+  return `${base}_${ts}_Report.docx`;
+}
+
+const runtimeMeta = fs.existsSync(RUNTIME_CONFIG_FILE)
+  ? JSON.parse(fs.readFileSync(RUNTIME_CONFIG_FILE, 'utf8'))
+  : {};
+
+// Resolve output path now that runtimeMeta is available
+const OUTPUT_FILE = path.join(REPORT_DIR, buildReportFilename(runtimeMeta.testFile));
 
 const DOCUMENT_SECTIONS = [
   { label: 'ICF Trimmed', suffix: 'ICF_TRIMMED' },
@@ -25,10 +40,6 @@ const DOCUMENT_SECTIONS = [
   { label: 'CSR', suffix: 'CSR' },
   { label: 'M264', suffix: 'M264' },
 ];
-
-const runtimeMeta = fs.existsSync(RUNTIME_CONFIG_FILE)
-  ? JSON.parse(fs.readFileSync(RUNTIME_CONFIG_FILE, 'utf8'))
-  : {};
 
 const testerName =
   runtimeMeta.testerName ||
@@ -547,6 +558,7 @@ ${renderCoverage(steps)}
 </html>
 `;
 }
+
 
 async function generateWordReport() {
   ensureDir();

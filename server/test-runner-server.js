@@ -201,13 +201,21 @@ app.get('/download-report', (req, res) => {
     return res.status(400).send('sessionId is required');
   }
 
-  const reportFile = path.join(sessionDir(sessionId), 'AgileWriter_Validation_Report.docx');
-  if (!fs.existsSync(reportFile)) {
+  const dir = sessionDir(sessionId);
+  if (!fs.existsSync(dir)) {
+    return res.status(404).send('✖️ Session not found');
+  }
+
+  // Find the .docx report file (name is dynamic: testName_timestamp_AgileWriter...)
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.docx'));
+  if (!files.length) {
     return res.status(404).send('✖️ Report not found');
   }
 
-  res.download(reportFile);
+  const reportFile = path.join(dir, files[0]);
+  res.download(reportFile, files[0]); // second arg sets the download filename
 });
+
 
 app.listen(3000, () => {
   console.log('✔ Server running at http://localhost:3000');
