@@ -44,14 +44,17 @@ Agile Writer Test/
 │       └── accuracy-report-writer.ts         Writes the 8-sheet Excel and JSON accuracy outputs. (Owner: Aaron)
 ├── reference_files/
 │   └── ref_ICF_Full.xlsx                     Answer key for ICF Full placeholders (74 rows). (Owner: Anil/Aaron)
+├── raw_qa_files/                              Drop your QA Excel output here after each run. (Owner: You)
 ├── reports/                                  All output lives here (gitignored automatically).
 │   ├── step-results.json                     Live tracking of script execution.
+│   ├── accuracy/                             Accuracy scoring Excel + JSON reports.
 │   ├── AgileWriterValidationReport.docx      Final generated Word report.
 │   └── screenshots/                          Failure and state screenshots.
+├── sessions/                                  Session-scoped output (one folder per UI-triggered run).
 ├── ui/
-│   └── index.html                            Browser UI for triggering tests locally. (Owner: Inayathulla)
+│   └── index.html                            Browser UI for triggering tests and accuracy scoring. (Owner: Inayathulla/Aaron)
 ├── server/
-│   └── test-runner-server.js                 Node server: receives UI requests, spawns Playwright. (Owner: Inayathulla)
+│   └── test-runner-server.js                 Node server: receives UI requests, spawns Playwright, runs scoring. (Owner: Inayathulla/Aaron)
 ├── generate-word-report.js                   Converts step-results.json to the final .docx report. (Owner: Inayathulla)
 ├── global-setup.js                           Logs in, saves cookies, cleans reports/ before tests. (Owner: Inayathulla)
 ├── bootstrap-reference.js                   Creates blank reference Excel keys from existing QA reports. (Owner: Aaron)
@@ -126,6 +129,16 @@ The Accuracy Scorer is a mathematical tool that automates this human check. It c
 
 To understand how the math works, how to create an Answer Key, and how to adjust the passing grades, please read the **[Accuracy Checker Walkthrough](Accuracy_Checker_Walkthrough.md)**.
 
+<!-- ADDED May 2026 -->
+## Running the Scorer from the Browser UI
+
+The server UI at `http://localhost:3000/ui/` now includes an **Accuracy Scorer** panel at the bottom of the page. This is the recommended way for non-developers to run accuracy scoring:
+
+1. Drop your reference file into `reference_files/`.
+2. Drop your raw QA output into `raw_qa_files/`.
+3. Open the UI, expand the Accuracy Scorer section, select your files, and click **Run Accuracy Score**.
+4. The result card shows overall accuracy, per-type breakdown, and a download link for the full Excel report.
+
 # Part 6 — The Reporting Pipeline
 
 How do we actually get the nice Word document report after a test runs? It is a two-step pipeline.
@@ -142,7 +155,10 @@ The final file is saved to `reports/AgileWriterValidationReport.docx`.
 
 Here are the commands to run the different parts of the test suite from your terminal.
 
-**⚠️ Important:** Never run two Playwright tests simultaneously. It places massive load on the backend servers and will overwrite the `reports/step-results.json` file, destroying both reports.
+**⚠️ Important:** Never run two Playwright tests simultaneously. It places massive load on the backend servers and will overwrite the `reports/step-results.json` file, destroying both reports. *(Note: When running via the browser UI, session isolation prevents this. See below.)*
+
+<!-- ADDED May 2026 -->
+**Session Isolation (May 2026):** When you run tests from the browser UI, each run gets a unique `SESSION_ID`. All output goes to `sessions/<SESSION_ID>/` instead of `reports/`. This means concurrent runs from the UI no longer collide. Terminal runs still use the legacy `reports/` directory.
 
 **Running the UI Checks (Category 1)**
 ```bash
@@ -184,6 +200,87 @@ Every commit message must be properly prefixed:
 
 If you have questions about specific parts of the project, reach out to the relevant owner:
 
-- **Inayathulla** — The browser UI (`ui/index.html`), the Node test runner server, Playwright configuration, and `generate-word-report.js`.
-- **Aaron Sequeira** — All test specifications (AW00-20, Health Scripts, Accuracy Scorer), `.env` configuration, and this handbook.
-- **Anil** — Expected placeholder values, QA sign-off, and reference file content.
+- **Inayathulla** — The browser UI (`ui/index.html`), the Node test runner server, Playwright configuration, `generate-word-report.js`, and session isolation.
+- **Aaron Sequeira** — All test specifications (AW00-20, Health Scripts, Accuracy Scorer), `.env` configuration, accuracy scoring UI panel, and this handbook.
+- **Anil** — Expected placeholder values, QA sign-off, reference file contents, and threshold calibration.
+
+<!-- ADDED May 2026 -->
+# Part 10 — File Drop Guide
+
+If you are a non-developer who just wants to use the system, here is where to put your files:
+
+| Folder | What Goes Here | When |
+|--------|---------------|------|
+| `reference_files/` | Your Excel "answer key" file. Contains the correct expected text for every placeholder. | Once, when Anil approves the reference. |
+| `raw_qa_files/` | The QA Excel file downloaded after each AgileWriter training run. | After every training run you want to score. |
+| `reports/` | **Do not touch.** Automatically filled by the system with Word reports, screenshots, and accuracy reports. | Never — read only. |
+| `sessions/` | **Do not touch.** Automatically filled by the server for each UI-triggered run. Cleaned up after 1 hour. | Never — read only. |
+
+When in doubt, open the server UI at `http://localhost:3000/ui/` and use the dropdowns — they will automatically show all files in the correct folders.
+<!-- ADDED May 2026 -->
+# Part 10 - File Drop Guide (for Product Users and Product Owners)
+
+This section is for non-developers. No code is required.
+
+**Where to put your files**
+- `reference_files\` - your answer key Excel file. One per document type such as ICF, CSR, or M264.
+- `raw_qa_files\` - the QA output file downloaded after an AgileWriter training run.
+- `reports\` - do not touch. The system writes here automatically.
+- `reports\accuracy\` - generated accuracy report Excel files land here after scoring.
+
+**Step-by-step**
+1. Ask the test engineer to run the health script for your document type.
+2. When the run finishes, get the QA output Excel file from them.
+3. Drop it into `raw_qa_files\`.
+4. Open `http://localhost:3000/ui/` in your browser.
+5. Scroll to the Accuracy Scorer panel.
+6. Select your reference file from the left dropdown and the QA file from the right dropdown.
+7. Click **Run Accuracy Score**.
+8. View results on screen or download the Excel report.
+
+<!-- ADDED May 2026 -->
+# Part 11 - Session Isolation (for Developers)
+
+**What:** Each UI-triggered test run writes to `sessions\<SESSION_ID>\` instead of `reports\`.
+
+**Why:** Two engineers can run tests at the same time without overwriting each other's `step-results.json`.
+
+**How to enable**
+```env
+SESSION_ID=aaron-csr-may05
+```
+
+**How to disable:** Leave `SESSION_ID` blank or remove it from `.env` to fall back to the legacy `reports\` path.
+
+<!-- ADDED May 2026 -->
+# Part 12 - Updated Repo Map
+
+```text
+tests/
+  health_ICF_trimmed.spec.ts    - ICF Trimmed health script (Clinical tab)
+  health_ICF_full.spec.ts       - ICF Full health script (Clinical tab)
+  health_CSR.spec.ts            - CSR health script (Clinical tab, 129 placeholders)
+  health_M264.spec.ts           - M264 health script (Non-Clinical tab)
+  helpers/
+    health-report-runner.ts     - shared runner for all 4 scripts
+    app-navigation.ts           - MutationObserver toast fix, navigation helpers
+    step-tracker.ts             - trackStep, trackSoftStep, color counting
+    training-setup.ts           - training configuration helpers
+    accuracy-scorer.ts          - scoring engine (5 placeholder types)
+    accuracy-report-writer.ts   - Excel + JSON report generator
+    reference-file-loader.ts    - loads reference .xlsx into a Map
+server/
+  test-runner-server.js         - Express server (health runner + accuracy scorer routes)
+ui/
+  index.html                    - Web UI (test runner panel + accuracy scorer panel)
+  script.js                     - Browser-side logic for runner + scoring UI
+reference_files/                - answer key .xlsx files
+raw_qa_files/                   - AgileWriter QA output dropped here before scoring
+reports/
+  step-results.json             - real-time step log (written during test run)
+  screenshots/                  - one PNG per step
+  accuracy/                     - accuracy Excel + JSON reports
+  AgileWriterValidationReport.docx - Word report generated by generate-word-report.js
+sessions/
+  <SESSION_ID>/                 - per-run isolated output
+```

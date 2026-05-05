@@ -151,7 +151,10 @@ async function selectTemplateBySearch(
   console.log(`[Template] Expanded folder "${folderName}" confirmed`);
 
   // 5. Select the file's checkbox
-  const fileCheckbox = page.getByRole('checkbox', { name: `Select ${templateName}` }).first();
+  const safeName = templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  const fileCheckbox = page
+    .getByRole('checkbox', { name: new RegExp(`Select.*${safeName}`, 'i') })
+    .first();
   await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
   await fileCheckbox.check();
   console.log(`[Template] ✓ Checked "${templateName}"`);
@@ -162,7 +165,7 @@ async function selectTemplateBySearch(
   // 7. Click "Select [ENTER]"
   const selectBtn = page.getByRole('button', { name: 'Select [ENTER]' });
   await selectBtn.click();
-  
+
   // Ensure dialog closes
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
@@ -232,9 +235,16 @@ async function selectSourcesBySearch(
     await searchBox.click();
     await searchBox.fill(sourceName);
 
+    // Collapse folder first if already expanded (state from previous iteration)
+    const collapseFirst = page.getByRole('button', { name: `Collapse ${sourceFolder}` });
+    if (await collapseFirst.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await collapseFirst.click();
+      console.log(`[Sources] Collapsed "${sourceFolder}" before next search`);
+    }
+
     // Expand the folder
     const expandButton = page.getByRole('button', { name: `Expand ${sourceFolder}` });
-    await expect(expandButton).toBeVisible({ timeout: 20_000 });
+    await expect(expandButton).toBeVisible({ timeout: 70_000 });
     await expandButton.click();
     console.log(`[Sources] Clicked expand for folder "${sourceFolder}"`);
 
@@ -243,7 +253,10 @@ async function selectSourcesBySearch(
     await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
 
     // Select the exact file checkbox (NOT the folder checkbox)
-    const fileCheckbox = page.getByRole('checkbox', { name: `Select ${sourceName}` }).first();
+    const safeSourceName = sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const fileCheckbox = page
+      .getByRole('checkbox', { name: new RegExp(`Select.*${safeSourceName}`, 'i') })
+      .first();
     await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
     await fileCheckbox.check();
     console.log(`[Sources] ✓ Checked "${sourceName}"`);
@@ -257,7 +270,7 @@ async function selectSourcesBySearch(
   // 4. Confirm selection
   const doneBtn = page.getByRole('button', { name: 'Done [ENTER]' });
   await doneBtn.click();
-  
+
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
     console.log('  ⚠ Dialog did not close, trying Enter key...');
@@ -434,8 +447,11 @@ export async function runHealthReport(
   await trackStep(page, testName, 'Apply All mappings',
     'All placeholder mappings are applied', async () => {
       // Set up toast detection before clicking
-      const toastPromise = waitForApplyAllToast(page);
+      const applyAllTimeoutMs = Math.max(90_000, config.expectedTrainingMinutes * 3_000);
+      const toastPromise = waitForApplyAllToast(page, applyAllTimeoutMs);
 
+      // Give the observer a short head start so very fast toast updates are not missed.
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await page.getByRole('button', { name: /Apply All/i }).click();
       const toastText = await toastPromise;
       console.log(`  ✅ ${toastText}`);
@@ -467,24 +483,52 @@ export async function runHealthReport(
         .getByRole('button', { name: /^Save(?:\s*\[Alt\+[A-Z]\])?$/i })
         .or(page.getByRole('button', { name: /\bSave\b/i }))
         .first();
+      const downloadBtn = page.getByRole('button', { name: /Download/i }).first();
+      const reviewLoadingIndicator = page.getByText(/Loading\.\.\.|Loading content/i).first();
 
       await expect(saveButton).toBeVisible({ timeout: 300_000 });
 
+      // The review route renders quickly, but the document payload may still be loading.
+      if (await isVisible(reviewLoadingIndicator, 5_000)) {
+        await expect(reviewLoadingIndicator).toBeHidden({ timeout: 300_000 });
+      }
+
+      await expect.poll(async () => {
+        if (await saveButton.isEnabled().catch(() => false)) {
+          return 'save';
+        }
+        if (await isVisible(downloadBtn, 1_000)) {
+          return 'download';
+        }
+        return 'pending';
+      }, {
+        timeout: 300_000,
+        message: 'Waiting for the review screen to finish preparing a downloadable document.',
+      }).not.toBe('pending');
+
       const downloadPromise = page.waitForEvent('download', { timeout: 120_000 }).catch(() => null);
-      await saveButton.click({ timeout: 120_000 });
+      if (await saveButton.isEnabled().catch(() => false)) {
+        await saveButton.click({ timeout: 120_000 });
+      }
 
       const download = await downloadPromise;
       if (download) {
         const filename = await download.suggestedFilename();
         console.log(`  📥 Downloaded: ${filename}`);
+        const savePath = require('path').join(process.cwd(), 'reports', filename);
+        await download.saveAs(savePath);
+        console.log(`  💾 Saved permanently to: reports/${filename}`);
       } else {
-        // Check for download button as fallback
-        const downloadBtn = page.getByRole('button', { name: /Download/i }).first();
+        // Some review screens expose the download button directly instead of downloading from Save.
         if (await isVisible(downloadBtn, 5_000)) {
           const dlPromise = page.waitForEvent('download', { timeout: 120_000 });
           await downloadBtn.click();
           const dl = await dlPromise;
-          console.log(`  📥 Downloaded: ${await dl.suggestedFilename()}`);
+          const dlName = await dl.suggestedFilename();
+          console.log(`  📥 Downloaded: ${dlName}`);
+          const savePath = require('path').join(process.cwd(), 'reports', dlName);
+          await dl.saveAs(savePath);
+          console.log(`  💾 Saved permanently to: reports/${dlName}`);
         }
       }
 

@@ -132,12 +132,12 @@ export async function waitForWorkspaceReady(
 async function selectDestinationTemplate(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select destination template/i }).click();
   await waitForPickerSearch(page);
-  
+
   const templateName = process.env.HEALTH_TEMPLATE_NAME || 'CSR_Table_Trimmed.docx';
   await page.getByRole('textbox', { name: /Search files/i }).fill(templateName);
-  
+
   const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
-  if (!(await isVisible(anyFolder, 20000))) {
+  if (!(await isVisible(anyFolder, 60000))) {
     throw new Error(`No folder found in search results for template: ${templateName}`);
   }
 
@@ -145,10 +145,10 @@ async function selectDestinationTemplate(page: Page): Promise<void> {
   if (await isVisible(expandBtn, 2000)) {
     await expandBtn.click();
   }
-  
+
   const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
   if (!(await isVisible(checkbox, 2000))) {
-     throw new Error(`Template file checkbox not found: ${templateName}`);
+    throw new Error(`Template file checkbox not found: ${templateName}`);
   }
   await checkbox.check();
   await confirmPickerDialog(page, /Select \[ENTER\]/i, page.getByRole('dialog'));
@@ -157,14 +157,14 @@ async function selectDestinationTemplate(page: Page): Promise<void> {
 async function selectSourceDocuments(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Select source documents/i }).click();
   await waitForPickerSearch(page);
-  
+
   const sourceRaw = process.env.HEALTH_SOURCE_NAMES || 'Protocol Example (28Sep2023)_trimmed.docx';
   const sourceName = sourceRaw.split(',')[0].trim();
-  
+
   await page.getByRole('textbox', { name: /Search files/i }).fill(sourceName);
-  
+
   const anyFolder = page.getByRole('button', { name: /^Folder:/i }).first();
-  if (!(await isVisible(anyFolder, 20000))) {
+  if (!(await isVisible(anyFolder, 60000))) {
     throw new Error(`No folder found in search results for source: ${sourceName}`);
   }
 
@@ -172,7 +172,7 @@ async function selectSourceDocuments(page: Page): Promise<void> {
   if (await isVisible(expandBtn, 2000)) {
     await expandBtn.click();
   }
-  
+
   const checkbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}`, 'i') });
   if (!(await isVisible(checkbox, 2000))) {
     throw new Error(`Source file checkbox not found: ${sourceName}`);

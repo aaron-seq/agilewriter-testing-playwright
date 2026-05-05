@@ -17,12 +17,12 @@
  *   - We need real-time persistence (writes to disk after each step, survives crashes)
  *
  * HOW IT WORKS:
- *   1. initTracker() — called in test.beforeAll, creates /reports/ directories
+ *   1. initTracker() — called in test.beforeAll, creates output directories
  *   2. trackStep(page, testName, stepName, validation, fn) — wraps a test step
  *      - Records start time
  *      - Executes the step function
  *      - Records pass/fail, duration, takes screenshot
- *      - Appends to reports/step-results.json immediately
+ *      - Appends to step-results.json immediately (session-scoped if SESSION_ID set)
  *   3. saveResults() — no-op (results saved in real-time for crash safety)
  *
  * CONSEQUENCES:
@@ -30,6 +30,11 @@
  *   - Pro: Screenshots give stakeholders visual evidence
  *   - Con: Screenshot capture adds ~500ms per step (acceptable)
  *   - Con: JSON file grows with each step (cleared by global-setup.js before each run)
+ *
+ * SESSION ISOLATION:
+ *   When SESSION_ID env var is set (injected by test-runner-server.js), all output
+ *   is written to sessions/<SESSION_ID>/ so concurrent runs never collide.
+ *   Without SESSION_ID, falls back to legacy reports/ directory.
  *
  * BASED ON: Inayat's feature/custom_report branch (commit b4c5a7f)
  * ENHANCED WITH: ISO timestamps, color count support, stage timing
@@ -41,7 +46,14 @@ import path from 'path';
 
 export const EXPECT_POLL_INTERVALS = [2000, 3000, 5000];
 
-const REPORT_DIR = 'reports';
+// ── Session-scoped output paths ───────────────────────────────────────────────
+// SESSION_ID is injected by test-runner-server.js into the spawned Playwright
+// process environment. When present, all output goes to sessions/<SESSION_ID>/
+// so concurrent runs never overwrite each other's data.
+const SESSION_ID = process.env.SESSION_ID || null;
+const REPORT_DIR = SESSION_ID
+  ? path.join(process.cwd(), 'sessions', SESSION_ID)
+  : path.join(process.cwd(), 'reports');
 const FILE_PATH = path.join(REPORT_DIR, 'step-results.json');
 
 /**

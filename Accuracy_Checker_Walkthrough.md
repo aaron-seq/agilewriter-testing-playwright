@@ -38,6 +38,36 @@ tests/accuracy.spec.ts
 ```
 This is the entry point. When you want to run the scorer, you run this file. It acts as the manager: it looks at your environment variables to find out which files to use, and then tells the reader, the brain, and the printer to do their jobs in order.
 
+<!-- ADDED May 2026 -->
+# Running the Scorer from the Browser UI
+
+As of May 2026, there is a faster way to run the accuracy scorer without touching the terminal.
+
+1. Start the server: `node server/test-runner-server.js`
+2. Open `http://localhost:3000/ui/` in your browser.
+3. Scroll down to the **Accuracy Scorer** panel and click the header to expand it.
+4. Select a **Reference File** from the dropdown. These are loaded from the `reference_files/` folder.
+5. Select a **Raw QA File** from the dropdown. These are loaded from the `raw_qa_files/` folder (newest first).
+6. Click **Run Accuracy Score**.
+7. The result card shows:
+   - **Overall Accuracy** as a large percentage
+   - **Per-type breakdown table** (Type / Total / Correct / Accuracy)
+   - A **Download Excel Report** link
+
+If you see a warning banner, it means:
+- **"Reference file loaded 0 entries"** — your reference file has no data rows, or the column layout doesn't match what the loader expects.
+- **"All rows returned Missing Reference"** — the raw QA file and reference file are probably for different document types (e.g., CSR QA file with ICF reference).
+
+<!-- ADDED May 2026 -->
+# Input Folders
+
+Two folders support the accuracy scoring workflow. Both are auto-created by the server if they don't exist.
+
+| Folder | What Goes Here | Who Fills It |
+|--------|---------------|--------------|
+| `reference_files/` | Excel "answer keys". Each file contains the correct expected text for every placeholder in a specific document type. Example: `ref_ICF_Full.xlsx` | Anil / Aaron |
+| `raw_qa_files/` | The raw QA Excel file downloaded after each AgileWriter training run. Drop it here before scoring. | You (the tester) |
+
 # The Reference File — Your Answer Key
 
 The Accuracy Scorer is completely useless without an answer key. We call this answer key a **Reference File**. 
@@ -199,6 +229,21 @@ WARNING: Possible document-type mismatch.
 ```
 The test will still run, but almost every row in your final report will say "Missing Reference" because it couldn't find CSR placeholder names in an ICF answer key.
 
+<!-- ADDED May 2026 -->
+# Understanding Missing Reference and Skipped Rows
+
+Two statuses that confuse new users:
+
+**Missing Reference** means the scorer found a placeholder in the raw QA file, but there is no matching placeholder name in the reference file. The placeholder simply has no answer key entry.
+
+**How to fix it:** Open the reference file in Excel. Add a new row with the placeholder name in column A, type in column B, and the correct expected text in column C.
+
+**Skipped** means the reference file *does* contain the placeholder, but the expected text column (column C) is blank. Anil intentionally left it empty because there is no expected value for this placeholder in this specific document.
+
+**How to fix it (if the expected text is now known):** Open the reference file, find the row for this placeholder, and fill in column C with the correct expected text. Then re-run the scorer.
+
+Both statuses are excluded from the final accuracy percentage calculation so they don't unfairly penalize the score.
+
 # Adjusting Thresholds
 
 What if the scorer is being too strict on Paragraphs? You can easily change the passing grades by editing the `getThresholds()` function inside `tests/helpers/accuracy-scorer.ts`.
@@ -235,6 +280,127 @@ If you are testing a brand new document type (like a CSR), you need to build a n
 
 If you need help or have questions, reach out to the right person:
 
-- **Aaron Sequeira:** Accuracy scorer code, reference files, and this documentation.
+- **Aaron Sequeira:** Accuracy scorer code, reference files, browser UI scoring panel, and this documentation.
 - **Anil:** Expected placeholder values, QA sign-off, reference file contents, and threshold calibration.
-- **Inayathulla:** General Playwright infrastructure and testing server setup.
+- **Inayathulla:** General Playwright infrastructure, test runner server, and session isolation.
+
+<!-- ADDED May 2026 -->
+# The Five Placeholder Types and Their Thresholds
+
+| Type | Match threshold | Partial Match threshold |
+|---|---:|---:|
+| KeyValue | >= 0.85 | >= 0.50 |
+| Inline | >= 0.85 | >= 0.50 |
+| Paragraph | >= 0.65 | >= 0.40 |
+| List | >= 0.65 | >= 0.40 |
+| Table | >= 0.65 | >= 0.40 |
+
+To change these values, edit `getThresholds()` in [accuracy-scorer.ts](</C:/Users/Aaron Sequeira/Agile Writer Test/tests/helpers/accuracy-scorer.ts>).
+
+<!-- ADDED May 2026 -->
+# Full ICF Example - `<Sponsor's Name>`
+
+**Placeholder:** `<Sponsor's Name>`  
+**Type:** `KeyValue`  
+**Expected:** `Stendarr, Inc.`  
+**AI text:** `Stendarr, Inc.`
+
+**`normalizeForCompare()` pipeline**
+1. `stripHtml()` -> `Stendarr, Inc.`
+2. `toLowerCase()` -> `stendarr, inc.`
+3. replace non-word chars -> `stendarr  inc `
+4. collapse whitespace -> `stendarr inc`
+
+`compareTwoStrings("stendarr inc", "stendarr inc")` -> `1.0`  
+Threshold check: `1.0 >= 0.85` -> **Status: Match**  
+Overall similarity: `1.0000`
+
+**Partial-match punctuation example**
+- AI text: `Stendarr Inc`
+- Normalized value: `stendarr inc`
+- Similarity: `1.0`
+- Status: **Match**
+
+**No-match example**
+- AI text: `N/A`
+- Normalized value: `n a`
+- Similarity vs `stendarr inc`: approximately `0.08`
+- Threshold check: `0.08 < 0.50`
+- Status: **No Match**
+
+<!-- ADDED May 2026 -->
+# Understanding Missing Reference
+
+**What it means:** The raw QA file contains a placeholder name that has no entry in the reference file.
+
+**Common causes**
+1. A new placeholder was added after the reference file was created.
+2. The placeholder name differs by spelling or punctuation.
+3. The wrong reference file was selected for the document type.
+
+**How to fix**
+- Add the placeholder to the reference file with the correct expected text.
+- Check spelling and punctuation in the reference workbook.
+- Make sure the reference file matches the same document family as the raw QA file.
+
+<!-- ADDED May 2026 -->
+# Understanding Skipped
+
+**What it means:** The placeholder exists in the reference file, but the expected text cell is blank.
+
+**Why it matters:** The scorer knows the placeholder name, but it has no answer key text to compare against.
+
+**How to fix**
+- Fill in the expected text in the reference file if that value is now known.
+- Leave it blank only when the placeholder intentionally has no approved answer for that document.
+
+**Calculation note:** Skipped rows are excluded from the final accuracy percentage.
+
+<!-- ADDED May 2026 -->
+# Workflow A - Score from the Server UI
+
+1. Start the server:
+   ```bash
+   cd "C:\Users\Aaron Sequeira\Agile Writer Test"
+   node server/test-runner-server.js
+   ```
+2. Open `http://localhost:3000/ui/`
+3. Scroll to **Accuracy Scorer**
+4. Drop your reference file into `C:\Users\Aaron Sequeira\Agile Writer Test\reference_files\`
+5. Drop your raw QA file into `C:\Users\Aaron Sequeira\Agile Writer Test\raw_qa_files\`
+6. Click **Refresh File Lists**
+7. Select the reference file, select the raw QA file, then click **Run Accuracy Score**
+
+<!-- ADDED May 2026 -->
+# Workflow B - Score from Terminal
+
+```bash
+node -e "
+  const { loadReferenceFile } = require('./tests/helpers/reference-file-loader');
+  const { scoreAll } = require('./tests/helpers/accuracy-scorer');
+  const { generateReport } = require('./tests/helpers/accuracy-report-writer');
+  const refMap = loadReferenceFile('./reference_files/ICF_reference.xlsx');
+  const scored = scoreAll('./raw_qa_files/ICF_QA_output.xlsx', refMap);
+  generateReport(scored, './reports/accuracy/result.xlsx', './reports/accuracy/result.json');
+"
+```
+
+**Note:** This requires `ts-node` so Node can require the TypeScript helper modules directly.
+
+<!-- ADDED May 2026 -->
+# How to Read the Excel Output Report
+
+- **Summary**: overall accuracy, per-type breakdown, row counts, generated timestamp.
+- **QA**: the master sheet with all placeholders and all columns.
+- **KeyValue**: short-value placeholders only.
+- **Paragraph**: long-form text placeholders only.
+- **Table**: structured data placeholders only.
+- **Lists**: bullet and numbered list placeholders only.
+
+**Key QA columns**
+- Column A: Placeholder
+- Column C: Placeholder Type
+- Column D: Expected Value
+- Column G: AI Replaced Text
+- Column I: Matching Accuracy
+- Column J: Similarity Score
