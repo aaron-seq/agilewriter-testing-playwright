@@ -34,12 +34,6 @@ const runtimeMeta = fs.existsSync(RUNTIME_CONFIG_FILE)
 // Resolve output path now that runtimeMeta is available
 const OUTPUT_FILE = path.join(REPORT_DIR, buildReportFilename(runtimeMeta.testFile));
 
-const DOCUMENT_SECTIONS = [
-  { label: 'ICF Trimmed', suffix: 'ICF_TRIMMED' },
-  { label: 'ICF Full', suffix: 'ICF_FULL' },
-  { label: 'CSR', suffix: 'CSR' },
-  { label: 'M264', suffix: 'M264' },
-];
 
 const testerName =
   runtimeMeta.testerName ||
@@ -117,11 +111,6 @@ function formatDuration(ms) {
   return `${s}s`;
 }
 
-function normalizeLabel(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-}
 
 function readSteps() {
   if (!fs.existsSync(STEP_FILE)) return [];
@@ -182,48 +171,6 @@ function statusBadge(status) {
   `;
 }
 
-function readHealthConfig(suffix) {
-  const sourceNames = (
-    process.env[`HEALTH_SOURCES_${suffix}`] || ''
-  )
-    .split(',')
-    .map((x) => x.trim())
-    .filter(Boolean);
-
-  return {
-    templateName:
-      process.env[`HEALTH_TEMPLATE_${suffix}`] ||
-      'Not Configured',
-
-    templateFolder:
-      process.env[`HEALTH_TEMPLATE_FOLDER_${suffix}`] ||
-      'Not Configured',
-
-    sourceFolder:
-      process.env[`HEALTH_SOURCE_FOLDER_${suffix}`] ||
-      'Not Configured',
-
-    outputPrefix:
-      process.env[`HEALTH_OUTPUT_PREFIX_${suffix}`] ||
-      'Not Configured',
-
-    sourceNames,
-  };
-}
-
-function buildOutputPatterns(prefix) {
-  const p =
-    prefix && prefix !== 'Not Configured'
-      ? prefix
-      : 'OUTPUT_PREFIX';
-
-  return [
-    `${p}_*_SB_raw_qa.xlsx`,
-    `${p}_*_SB_raw.docx`,
-    `${p}_*_SB_clean.docx`,
-    `${p}_*_SB.docx`,
-  ];
-}
 
 function renderTable(headers, rows) {
   return `
@@ -310,35 +257,13 @@ function renderFailures(steps, criticalOnly) {
   `;
 }
 
-function findHealthSteps(allSteps, label) {
-  const target = normalizeLabel(label);
-
-  return allSteps.filter((step) => {
-    if (
-      !step.testName ||
-      !step.testName.startsWith('Health:')
-    ) {
-      return false;
-    }
-
-    const report = step.testName
-      .split(':')
-      .slice(1)
-      .join(':')
-      .trim();
-
-    return normalizeLabel(report) === target;
-  });
-}
-
-function renderDocumentSection(allSteps, section) {
-  const steps = findHealthSteps(
-    allSteps,
-    section.label
-  );
-
+/**
+ * Render a detailed section for any group of steps, identified by testName.
+ * Works for Health scripts (e.g. "Health: CSR") and AW scripts alike.
+ * Automatically appears in the report for any testName found in step-results.json.
+ */
+function renderTestGroup(testName, steps) {
   const summary = summarizeSteps(steps);
-  const cfg = readHealthConfig(section.suffix);
 
   const timelineRows = steps.map((s) => [
     escapeHtml(s.stepName),
@@ -350,106 +275,32 @@ function renderDocumentSection(allSteps, section) {
   ]);
 
   return `
-    <h2>${escapeHtml(section.label)}</h2>
+    <h2>${escapeHtml(testName)}</h2>
 
-    <p><strong>Status:</strong> ${statusBadge(
-    summary.overallStatus
-  )}</p>
-    <p><strong>Total Steps:</strong> ${summary.totalSteps
-    }</p>
-    <p><strong>Duration:</strong> ${formatDuration(
-      summary.totalDuration
-    )}</p>
+    <p><strong>Status:</strong> ${statusBadge(summary.overallStatus)}</p>
+    <p><strong>Total Steps:</strong> ${summary.totalSteps}</p>
+    <p><strong>Passed:</strong> ${summary.passedSteps}</p>
+    <p><strong>Failed:</strong> ${summary.failedSteps}</p>
+    <p><strong>Duration:</strong> ${formatDuration(summary.totalDuration)}</p>
 
-    <h3>Configured Documents</h3>
+    ${summary.criticalFailures.length ? `
+      <h3>Critical Failures</h3>
+      ${renderFailures(steps, true)}
+    ` : ''}
 
-    <p><strong>Template:</strong> ${escapeHtml(
-      cfg.templateName
-    )}</p>
+    ${summary.softFailures.length ? `
+      <h3>Soft Failures</h3>
+      ${renderFailures(steps, false)}
+    ` : ''}
 
-    <p><strong>Template Folder:</strong> ${escapeHtml(
-      cfg.templateFolder
-    )}</p>
-
-    <p><strong>Source Folder:</strong> ${escapeHtml(
-      cfg.sourceFolder
-    )}</p>
-
-    <h3>Generated Output Files</h3>
-
-    <ul>
-      ${buildOutputPatterns(cfg.outputPrefix)
-      .map(
-        (x) =>
-          `<li>${escapeHtml(x)}</li>`
-      )
-      .join('')}
-    </ul>
-
-    <h3>Critical Failures</h3>
-    ${renderFailures(steps, true)}
-
-    <h3>Soft Failures</h3>
-    ${renderFailures(steps, false)}
-
-    <h3>Timeline</h3>
+    <h3>Step Timeline</h3>
     ${timelineRows.length
       ? renderTable(
-        [
-          'Step',
-          'Validation',
-          'Type',
-          'Status',
-          'Duration',
-          'Date & Time',
-        ],
+        ['Step', 'Validation', 'Type', 'Status', 'Duration', 'Date & Time'],
         timelineRows
       )
       : '<p>No Steps Found</p>'
     }
-  `;
-}
-
-function renderCoverage(steps) {
-  const grouped = groupByTestName(
-    steps.filter(
-      (x) =>
-        !String(
-          x.testName || ''
-        ).startsWith('Health:')
-    )
-  );
-
-  const names = Object.keys(grouped);
-
-  if (!names.length) return '';
-
-  const rows = names.map((name) => {
-    const s = summarizeSteps(grouped[name]);
-
-    return [
-      escapeHtml(name),
-      statusBadge(s.overallStatus),
-      s.totalSteps,
-      formatDuration(s.totalDuration),
-      s.criticalFailures.length,
-      s.softFailures.length,
-    ];
-  });
-
-  return `
-    <h2>Additional Automated Coverage</h2>
-    ${renderTable(
-    [
-      'Test Name',
-      'Status',
-      'Steps',
-      'Duration',
-      'Critical',
-      'Soft',
-    ],
-    rows
-  )}
   `;
 }
 
@@ -534,13 +385,9 @@ function buildHtml(steps) {
 
 <hr/>
 
-${DOCUMENT_SECTIONS.map((s) =>
-      renderDocumentSection(steps, s)
-    ).join('<hr/>')}
-
-<hr/>
-
-${renderCoverage(steps)}
+${Object.entries(groupByTestName(steps))
+  .map(([name, groupSteps]) => renderTestGroup(name, groupSteps))
+  .join('<hr/>')}
 
 <hr/>
 
@@ -559,11 +406,28 @@ ${renderCoverage(steps)}
 `;
 }
 
+function filterStepsForReport(steps, testFile) {
+  if (!testFile) return steps; // Fallback if run without UI
+
+  if (testFile.startsWith('health_')) {
+    // Only include steps starting with 'Health:'
+    return steps.filter(s => s.testName && s.testName.startsWith('Health:'));
+  }
+
+  if (testFile.includes('AW_11_to_20')) {
+    // Exclude setup steps (AW_00 to AW_10)
+    return steps.filter(s => s.testName && !/^AW_0\d/.test(s.testName));
+  }
+
+  // Otherwise, return all steps (e.g. for AW_00_10 itself)
+  return steps;
+}
 
 async function generateWordReport() {
   ensureDir();
 
-  const steps = readSteps();
+  const rawSteps = readSteps();
+  const steps = filterStepsForReport(rawSteps, runtimeMeta.testFile);
   const html = buildHtml(steps);
 
   const fileBuffer = await htmlToDocx(
