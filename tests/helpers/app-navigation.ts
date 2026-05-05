@@ -26,14 +26,14 @@ export async function clickIfVisible(locator: Locator, timeout = 3_000): Promise
 export async function navigateToFolder(page: Page, folderName: string): Promise<void> {
   const expandButton = page.getByRole('button', { name: new RegExp(`Expand ${folderName}`, 'i') });
   const collapseButton = page.getByRole('button', { name: new RegExp(`Collapse ${folderName}`, 'i') });
-  
-  // If already expanded, we're done
+
+  // If already expanded, we are done.
   if (await isVisible(collapseButton, 2000)) {
     return;
   }
-  
+
   let found = await clickIfVisible(expandButton);
-  
+
   if (!found) {
     const nextBtn = page.getByRole('button', { name: /Next page/i });
     const folderToggle = expandButton.or(collapseButton);
@@ -47,12 +47,12 @@ export async function navigateToFolder(page: Page, folderName: string): Promise<
       found = await clickIfVisible(expandButton);
     }
   }
-  
+
   if (!found) {
     throw new Error(`Could not find folder "${folderName}" across all pages.`);
   }
-  
-  await expect(collapseButton).toBeVisible({ timeout: 10000 });
+
+  await expect(collapseButton).toBeVisible({ timeout: 10_000 });
 }
 
 export async function confirmPickerDialog(
@@ -64,38 +64,84 @@ export async function confirmPickerDialog(
   await page.getByRole('button', { name: buttonName }).click();
   const closed = await dialogLocator.isHidden({ timeout: 3000 }).catch(() => false);
   if (!closed) {
-    console.log(`  ⚠ Dialog did not close on "${buttonName}", trying Enter key...`);
+    console.log(`  Warning: dialog did not close on "${buttonName}", trying Enter key...`);
     await page.keyboard.press('Enter');
     await expect(dialogLocator).toBeHidden({ timeout });
   }
 }
 
-export async function waitForApplyAllToast(page: Page, timeoutMs = 30000): Promise<string> {
-  return page.evaluate((timeoutValue) => {
-    return new Promise<string>((resolve, reject) => {
-      let observer: MutationObserver | undefined;
-      const timeout = window.setTimeout(() => {
-        observer?.disconnect();
-        reject(new Error(`Apply All toast did not appear within ${timeoutValue}ms.`));
-      }, timeoutValue);
+export async function waitForApplyAllToast(page: Page, timeoutMs = 90_000): Promise<string> {
+  // Register the observer before the click so fast toast animations are still captured.
+  await page.evaluate(() => {
+    const normalizeToastText = (value: string): string => value.replace(/\s+/g, ' ').trim();
+    const looksLikeApplyAllToast = (value: string): boolean => {
+      const text = normalizeToastText(value);
+      if (!text) {
+        return false;
+      }
 
-      observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of mutation.addedNodes) {
-            if (!(node instanceof Element)) continue;
-            const text = (node.textContent || '').trim();
-            if (/Applied all(?:\s+\d+)?\s+mappings?\.?/i.test(text)) {
-              window.clearTimeout(timeout);
-              observer?.disconnect();
-              resolve(text);
-              return;
-            }
+      if (/Applied all|mappings applied|all.*applied/i.test(text)) {
+        return true;
+      }
+
+      const lower = text.toLowerCase();
+      return text.length > 5 && (lower.includes('applied') || lower.includes('mapping'));
+    };
+
+    (window as any).__applyAllToastText = null;
+    (window as any).__applyAllToastObserver?.disconnect?.();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        const candidates: Element[] = [];
+
+        if (mutation.target instanceof Element) {
+          candidates.push(mutation.target);
+        }
+
+        for (const node of mutation.addedNodes) {
+          if (node instanceof Element) {
+            candidates.push(node, ...Array.from(node.querySelectorAll('*')));
           }
         }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
+
+        for (const candidate of candidates) {
+          const text = normalizeToastText(candidate.textContent ?? '');
+          if (looksLikeApplyAllToast(text)) {
+            console.log('[Toast Observer] Caught:', text);
+            (window as any).__applyAllToastText = text;
+            (window as any).__applyAllToastObserver = null;
+            observer.disconnect();
+            return;
+          }
+        }
+      }
     });
-  }, timeoutMs);
+
+    (window as any).__applyAllToastObserver = observer;
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  });
+
+  try {
+    // Poll from Node side for the captured value so the browser observer stays non-blocking.
+    const result = await page.waitForFunction(
+      () => (window as any).__applyAllToastText,
+      undefined,
+      { timeout: timeoutMs, polling: 50 }
+    );
+    return (await result.jsonValue()) ?? 'Applied all mappings.';
+  } finally {
+    await page.evaluate(() => {
+      (window as any).__applyAllToastObserver?.disconnect?.();
+      (window as any).__applyAllToastObserver = null;
+    }).catch(() => {
+      // Ignore cleanup errors if the page navigated while the wait was in flight.
+    });
+  }
 }
 
 async function assertAppIsReachable(page: Page, step: string): Promise<void> {

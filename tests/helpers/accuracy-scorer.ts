@@ -105,7 +105,7 @@ export function stripHtml(value: string): string {
     .trim();
 }
 
-function normalizeForCompare(value: string): string {
+export function normalizeForCompare(value: string): string {
   return stripHtml(value)
     .toLowerCase()
     .replace(/[^\w\s.%-]/g, ' ')

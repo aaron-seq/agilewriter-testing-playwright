@@ -41,11 +41,18 @@ Agile Writer Test/
 │   ├── helpers/
 │   │   ├── health-report-runner.ts    Shared engine — runs all 13 steps
 │   │   ├── step-tracker.ts            Records every step to JSON in real time
-│   │   └── app-navigation.ts         openAgileMapping, dismissModalOverlay, etc.
+│   │   ├── app-navigation.ts         openAgileMapping, dismissModalOverlay, etc.
+│   │   ├── accuracy-scorer.ts         Mathematical scoring brain
+│   │   ├── accuracy-report-writer.ts  Writes scored Excel + JSON output
+│   │   └── reference-file-loader.ts   Reads reference "answer key" Excel files
+├── reference_files/                   Answer key Excel files for accuracy scoring
+├── raw_qa_files/                      Raw QA output files from AgileWriter runs
 ├── reports/
 │   ├── step-results.json             Written during test — one entry per step
+│   ├── accuracy/                     Accuracy scoring Excel + JSON output
 │   ├── AgileWriter_Validation_Report.docx   Generated after test
 │   └── screenshots/                  One screenshot per step
+├── sessions/                          Session-scoped output (when run via the UI)
 ├── generate-word-report.js           Reads step-results.json, writes .docx
 ├── global-setup.js                   Cleans the reports/ folder before each run
 ├── .env                              Your local config (never committed to git)
@@ -185,6 +192,7 @@ This is a custom web interface built by Inayathulla.
 4. Enter your Microsoft email and password.
 5. Click **"Start Automation Run"**.
 6. Watch the terminal stream directly in your browser. When it finishes, find the Word report at `reports/AgileWriter_Validation_Report.docx`.
+7. **New (May 2026):** After the test completes, expand the **Accuracy Scorer** panel at the bottom of the UI to score the QA output against a reference file — see the section below.
 
 **Method B — The Terminal (For Developers)**
 This is the standard Playwright way to run tests.
@@ -241,12 +249,140 @@ If a test fails, don't panic! Check this list for the most common issues.
 **Problem 4: Mixed up test results**
 - **Symptom:** The Word report looks chaotic, or `step-results.json` contains entries from two different test runs jumbled together.
 - **Root Cause:** You tried to run two health scripts at the exact same time in different terminal windows.
-- **Fix:** Only run one health script at a time. The step tracker writes to a single shared file.
+- **Fix:** Only run one health script at a time. The step tracker writes to a single shared file. *(Note: When running from the browser UI, each run gets its own isolated session — see Session Isolation below.)*
+
+<!-- ADDED May 2026 -->
+# Session Isolation
+
+As of May 2026 (Inayat's commit `89a02c7`), when you run a health script from the **browser UI**, each run is completely isolated.
+
+Here is how it works:
+- The server generates a unique `SESSION_ID` for each run.
+- All output (step-results.json, screenshots, reports) is written to `sessions/<SESSION_ID>/` instead of `reports/`.
+- This means you *can* run multiple tests concurrently from the UI without data collisions.
+- When running from the **terminal** (without the UI), the old `reports/` behavior is unchanged.
+
+The `SESSION_ID` environment variable is injected automatically by `test-runner-server.js`. You never need to set it manually.
+
+<!-- ADDED May 2026 -->
+# Accuracy Scoring — What Comes After a Health Script
+
+A health script tells you whether the AI *ran correctly*. But did the AI *generate the right text?*
+
+That is the job of the **Accuracy Scorer**. After a health script finishes and downloads the QA output, you can score it against a pre-approved answer key.
+
+There are two ways to run the scorer:
+
+**From the Browser UI:**
+1. Run a health script from the UI (see Method A above).
+2. Copy the downloaded QA Excel file into the `raw_qa_files/` folder.
+3. Expand the **Accuracy Scorer** panel at the bottom of the UI.
+4. Select your reference file and raw QA file from the dropdowns.
+5. Click **Run Accuracy Score**.
+6. The result card shows the overall accuracy percentage, per-type breakdown, and a download link for the full Excel report.
+
+**From the Terminal:**
+```bash
+npx playwright test tests/accuracy.spec.ts --reporter=line
+```
+
+For a deep dive into how the scoring math works, how to adjust thresholds, and how to create reference files for new document types, see the **[Accuracy Checker Walkthrough](Accuracy_Checker_Walkthrough.md)**.
+
+<!-- ADDED May 2026 -->
+# Input Folders for Accuracy Scoring
+
+Two folders support the accuracy scoring workflow:
+
+| Folder | What Goes Here | Who Fills It |
+|--------|---------------|--------------|
+| `reference_files/` | Excel "answer keys" (e.g., `ref_ICF_Full.xlsx`). Contains the correct expected text for every placeholder. | Anil / Aaron |
+| `raw_qa_files/` | The raw QA Excel output downloaded after an AgileWriter training run. | You (the tester) |
+
+These folders are auto-created by the server on startup if they don't exist.
 
 # Contacts and Ownership
 
 If you need help or have questions, reach out to the right person:
 
-- **Aaron Sequeira:** Health scripts, `.env` configuration, this documentation, and the accuracy scorer.
-- **Inayathulla:** The browser UI (`ui/index.html`), the Node server, Playwright infrastructure, and the `generate-word-report.js` code.
-- **Anil:** Expected placeholder values, QA sign-off, and reference file contents.
+- **Aaron Sequeira:** Health scripts, `.env` configuration, accuracy scorer, reference file loader, and this documentation.
+- **Inayathulla:** The browser UI (`ui/index.html`), the Node server (`test-runner-server.js`), Playwright infrastructure, `generate-word-report.js`, and session isolation.
+- **Anil:** Expected placeholder values, QA sign-off, reference file contents, and threshold calibration.
+
+<!-- ADDED May 2026 -->
+# Workflow A - Run from Terminal
+
+**Prerequisites:** Node.js installed, `npm install` completed, Playwright browsers installed, and `.env` configured.
+
+**Commands**
+```bash
+cd "C:\Users\Aaron Sequeira\Agile Writer Test"
+npx playwright test tests/health_ICF_trimmed.spec.ts --project=smarter-tests
+npx playwright test tests/health_ICF_full.spec.ts --project=smarter-tests
+npx playwright test tests/health_CSR.spec.ts --project=smarter-tests
+npx playwright test tests/health_M264.spec.ts --project=smarter-tests
+```
+
+**What you see:** Step-by-step console output, timestamps, and pass/fail per tracked step.
+
+**Where results go:** `reports/step-results.json`, `reports/screenshots\`, and `reports/AgileWriterValidationReport.docx`.
+
+<!-- ADDED May 2026 -->
+# Workflow B - Run from VS Code
+
+**Extension:** Playwright Test for VS Code (`ms-playwright.playwright`)
+
+**How to run**
+1. Open the **Testing** panel in VS Code.
+2. Expand the `smarter-tests` project.
+3. Find the health script you want to run.
+4. Click the play button beside that script.
+
+**Why teams use it:** You can watch steps highlight live in the editor while the browser is running.
+
+<!-- ADDED May 2026 -->
+# Workflow C - Run from the Server UI
+
+**Start the server**
+```bash
+cd "C:\Users\Aaron Sequeira\Agile Writer Test"
+node server/test-runner-server.js
+```
+
+**Open the UI**
+- Browser URL: `http://localhost:3000/ui/`
+- Select the health script from the dropdown.
+- Fill in the runtime fields.
+- Click **Start Automation Run**.
+
+**Current status:** The health runner UI is live. It triggers Playwright through `child_process` and streams the log output into the browser in real time.
+
+<!-- ADDED May 2026 -->
+# Accuracy Scoring Workflow
+
+1. Run a health script using the terminal, VS Code, or the server UI.
+2. Take the AgileWriter QA output Excel file and place it in `raw_qa_files\`.
+3. Open `http://localhost:3000/ui/` and scroll to the **Accuracy Scorer** panel.
+4. Select the matching reference file from the left dropdown.
+5. Select the QA output file from the right dropdown.
+6. Click **Run Accuracy Score**.
+7. Review the overall accuracy, per-type breakdown, warnings, trend line, and download link.
+
+<!-- ADDED May 2026 -->
+# Session Isolation
+
+**What changed:** Session mode writes outputs to `sessions\<SESSION_ID>\` instead of the shared `reports\` directory.
+
+**Why it matters:** Two engineers can run browser-triggered tests at the same time without overwriting each other's `step-results.json` or screenshots.
+
+**How to use it**
+```env
+SESSION_ID=aaron-icf-run-001
+```
+
+Leave `SESSION_ID` blank to keep legacy `reports\` behavior for terminal runs.
+
+<!-- ADDED May 2026 -->
+# Contact and Ownership Update
+
+- Inayat Shaik Karaballa - `server\`, `generate-word-report.js`, session isolation, `global-setup.js`
+- Aaron Sequeira - health scripts, accuracy scorer, `reference-file-loader.ts`, `step-tracker.ts`, documentation
