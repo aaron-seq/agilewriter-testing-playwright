@@ -284,3 +284,22 @@ reports/
 sessions/
   <SESSION_ID>/                 - per-run isolated output
 ```
+
+## Known Windows Gotcha: Server Path Separator (Updated May 2026)
+<!-- UPDATED May 2026 -->
+
+If you run the server on Windows and trigger a test from the UI and see:
+```
+Error: No tests found. Make sure that arguments are regular expressions matching test files.
+Playwright exited with code: 1
+```
+This is caused by `path.join()` using backslashes on Windows, which break Playwright's 
+regex-based file matching. The fix is already applied in `server/test-runner-server.js` 
+(line 454). If you ever re-encounter this after a merge or rebase, check that line reads:
+```js
+const testPath = `tests/${testFile}`;
+```
+NOT:
+```js
+const testPath = path.join('tests', testFile);
+```
