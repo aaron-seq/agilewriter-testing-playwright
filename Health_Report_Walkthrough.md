@@ -356,6 +356,41 @@ node server/test-runner-server.js
 
 **Current status:** The health runner UI is live. It triggers Playwright through `child_process` and streams the log output into the browser in real time.
 
+## Windows Path Fix for UI-Triggered Runs (Updated May 2026)
+<!-- UPDATED May 2026 -->
+
+When health scripts are triggered via the server UI on Windows, the Playwright command 
+is built programmatically in `server/test-runner-server.js`. 
+
+### The Problem
+`path.join('tests', testFile)` on Windows produces `tests\health_CSR.spec.ts` with 
+backslashes. Playwright treats CLI arguments as **regex patterns** — backslashes are 
+regex escape characters, so `\h` and `\C` are invalid sequences. Playwright finds zero 
+tests and exits with code 1: `Error: No tests found`.
+
+### The Fix
+```js
+// Before (broken on Windows):
+const testPath = path.join('tests', testFile);
+spawn(`npx playwright test "${testPath}"`, ...)
+
+// After (works on all platforms):
+const testPath = `tests/${testFile}`;
+spawn(`npx playwright test ${testPath}`, ...)
+```
+Forward slashes work universally in Playwright's path matching, even on Windows.
+
+### Verification
+After this fix, triggering `health_CSR.spec.ts` from the UI produces:
+```
+[Session] xxxx ready for fresh run.
+Running Playwright tests: health_CSR.spec.ts...
+✔ [CRITICAL][PASS] Navigate to sign-in page
+✔ [CRITICAL][PASS] Complete Microsoft SSO login
+... (all 10 steps pass)
+```
+Confirmed live: 18 tests passed, 7.7 minutes, Word report generated successfully.
+
 <!-- ADDED May 2026 -->
 # Accuracy Scoring Workflow
 

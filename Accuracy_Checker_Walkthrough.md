@@ -404,3 +404,16 @@ node -e "
 - Column G: AI Replaced Text
 - Column I: Matching Accuracy
 - Column J: Similarity Score
+
+## Server Environment Variables for Accuracy Routes (Updated May 2026)
+<!-- UPDATED May 2026 -->
+
+The accuracy scorer server (`server/test-runner-server.js`) uses `dotenv` to load 
+environment variables at startup. As of May 2026 the dotenv call is anchored explicitly:
+```js
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+```
+This ensures the `.env` at the project root is always loaded regardless of which 
+directory the server process is started from. The accuracy scorer routes themselves 
+do not require any specific `.env` variables — they work as long as the server starts 
+and the `reference_files/` and `raw_qa_files/` directories exist.
