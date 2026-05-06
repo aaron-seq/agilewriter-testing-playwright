@@ -5,7 +5,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const XLSX = require('xlsx');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 app.use(cors());
@@ -451,7 +451,7 @@ app.post('/run-test', (req, res) => {
   const configFile = path.join(dirPath, 'runtime-config.json');
   fs.writeFileSync(configFile, JSON.stringify(req.body, null, 2));
 
-  const testPath = path.join('tests', testFile);
+  const testPath = `tests/${testFile}`;
   console.log(`[${sessionId}] Running Playwright tests: ${testPath}`);
 
   res.status(202).json({ sessionId });
@@ -459,7 +459,7 @@ app.post('/run-test', (req, res) => {
   broadcastLog(sessionId, 'phase', 'Running Tests');
   broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
 
-  const pwProcess = spawn(`npx playwright test "${testPath}"`, {
+  const pwProcess = spawn(`npx playwright test ${testPath}`, {
     shell: true,
     cwd: ROOT_DIR,
     env: {
