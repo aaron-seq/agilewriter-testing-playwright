@@ -21,24 +21,29 @@ The Accuracy Scorer is powered by four specific files in the codebase. Here is h
 ```
 tests/helpers/reference-file-loader.ts
 ```
+
 This is the file reader. It opens the "answer key" (like `ref_ICF_Full.xlsx`) and reads every row. It exports a function that returns a Map where the key is the placeholder name, and the value is a list of all the expected answers for that name.
 
 ```
 tests/helpers/accuracy-scorer.ts
 ```
+
 This is the mathematical brain. It opens the raw QA Excel file containing the AI's answers. For every answer, it asks the file reader for the correct answer key, and then calculates exactly how similar the two pieces of text are. It exports the final graded results.
 
 ```
 tests/helpers/accuracy-report-writer.ts
 ```
+
 This is the printer. It takes the graded results from the brain and writes them out into a massive, heavily formatted 8-sheet Excel document and a JSON file. It also prints a quick summary table to your terminal.
 
 ```
 tests/accuracy.spec.ts
 ```
+
 This is the entry point. When you want to run the scorer, you run this file. It acts as the manager: it looks at your environment variables to find out which files to use, and then tells the reader, the brain, and the printer to do their jobs in order.
 
 <!-- ADDED May 2026 -->
+
 # Running the Scorer from the Browser UI
 
 As of May 2026, there is a faster way to run the accuracy scorer without touching the terminal.
@@ -55,32 +60,34 @@ As of May 2026, there is a faster way to run the accuracy scorer without touchin
    - A **Download Excel Report** link
 
 If you see a warning banner, it means:
+
 - **"Reference file loaded 0 entries"** — your reference file has no data rows, or the column layout doesn't match what the loader expects.
 - **"All rows returned Missing Reference"** — the raw QA file and reference file are probably for different document types (e.g., CSR QA file with ICF reference).
 
 <!-- ADDED May 2026 -->
+
 # Input Folders
 
 Two folders support the accuracy scoring workflow. Both are auto-created by the server if they don't exist.
 
-| Folder | What Goes Here | Who Fills It |
-|--------|---------------|--------------|
-| `reference_files/` | Excel "answer keys". Each file contains the correct expected text for every placeholder in a specific document type. Example: `ref_ICF_Full.xlsx` | Anil / Aaron |
-| `raw_qa_files/` | The raw QA Excel file downloaded after each AgileWriter training run. Drop it here before scoring. | You (the tester) |
+| Folder               | What Goes Here                                                                                                                                     | Who Fills It     |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `reference_files/` | Excel "answer keys". Each file contains the correct expected text for every placeholder in a specific document type. Example:`ref_ICF_Full.xlsx` | Anil / Aaron     |
+| `raw_qa_files/`    | The raw QA Excel file downloaded after each AgileWriter training run. Drop it here before scoring.                                                 | You (the tester) |
 
 # The Reference File — Your Answer Key
 
-The Accuracy Scorer is completely useless without an answer key. We call this answer key a **Reference File**. 
+The Accuracy Scorer is completely useless without an answer key. We call this answer key a **Reference File**.
 
 A reference file is a simple Excel document stored in the `reference_files/` folder (for example, `ref_ICF_Full.xlsx`). It has five columns:
 
-| Col | Name | Example Value |
-|-----|------|---------------|
-| A (0) | Placeholder Name | `<Sponsor's Name>` |
-| B (1) | Placeholder Type | KeyValue |
-| C (2) | Expected Text | Smarter Codes Inc. |
-| D (3) | Source Document | Protocol Example (28Sep2023).docx |
-| E (4) | Notes | *(optional — e.g., "No expected value per Anil")* |
+| Col   | Name             | Example Value                                        |
+| ----- | ---------------- | ---------------------------------------------------- |
+| A (0) | Placeholder Name | `<Sponsor's Name>`                                 |
+| B (1) | Placeholder Type | KeyValue                                             |
+| C (2) | Expected Text    | Smarter Codes Inc.                                   |
+| D (3) | Source Document  | Protocol Example (28Sep2023).docx                    |
+| E (4) | Notes            | *(optional — e.g., "No expected value per Anil")* |
 
 **⚠️ Important:** Sometimes the exact same placeholder name (like `<side effect>`) appears multiple times in the same document because it is used in different sentences. In the reference file, you list it 8 times with 8 different expected answers. The scorer is smart enough to try the AI's answer against *all 8* expected answers and pick the best match automatically.
 
@@ -88,15 +95,18 @@ A reference file is a simple Excel document stored in the `reference_files/` fol
 
 How does a computer know if a paragraph of text is "correct"? It uses a mathematical formula called the **Dice Coefficient**.
 
-A Dice coefficient measures how similar two pieces of text are by looking at pairs of consecutive characters (called bigrams) and counting how many appear in both texts. 
+A Dice coefficient measures how similar two pieces of text are by looking at pairs of consecutive characters (called bigrams) and counting how many appear in both texts.
 
 The formula is:
+
 ```
 score = (2 × shared bigrams) ÷ (bigrams in text A + bigrams in text B)
 ```
+
 A score of `1.0` means they are perfectly identical. A score of `0.0` means they have absolutely no letters in common.
 
 **Let's look at a plain English example:** "Smarter Codes" vs "Smarter Code"
+
 - Bigrams in A: `Sm`, `ma`, `ar`, `rt`, `te`, `er`, `r_`, `_C`, `Co`, `od`, `de`, `es` (12 pairs)
 - Bigrams in B: `Sm`, `ma`, `ar`, `rt`, `te`, `er`, `r_`, `_C`, `Co`, `od`, `de` (11 pairs)
 - Shared pairs: 11
@@ -105,61 +115,73 @@ A score of `1.0` means they are perfectly identical. A score of `0.0` means they
 Because `0.957` is very close to `1.0`, the scorer knows this is a nearly perfect match.
 
 ### Scoring the Five Placeholder Types
+
 Not all placeholders are just a few words. The scorer uses different logic and different passing thresholds depending on the *Type* of the placeholder.
 
 **1. KeyValue** (e.g., a sponsor name or date)
+
 - **Logic:** Trims spaces and calculates the Dice coefficient.
 - **Threshold:** Match ≥ `0.85`, Partial ≥ `0.50`
 
 **2. Inline** (e.g., a fragment of text mid-sentence)
+
 - **Logic:** Checks for an exact, case-insensitive match first. If that fails, falls back to the Dice coefficient.
 - **Threshold:** Match ≥ `0.85`, Partial ≥ `0.50`
 
 **3. Paragraph** (e.g., a multi-sentence rationale)
-- **Logic:** First, it checks if the very first sentence of the expected text appears anywhere in the AI output. Then, it calculates a Dice score for the whole block of text. 
+
+- **Logic:** First, it checks if the very first sentence of the expected text appears anywhere in the AI output. Then, it calculates a Dice score for the whole block of text.
 - **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`. *(This is much lower than KeyValue because the AI is allowed to rephrase paragraphs slightly).*
 
 **4. List** (e.g., numbered bullet points)
+
 - **Logic:** Splits both texts by newlines and bullet characters. It compares how many bullet points were expected vs how many the AI generated. Then it averages the Dice score across all points.
 - **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`
 
 **5. Table** (e.g., structured data grids)
+
 - **Logic:** Counts the rows and columns in the expected text. Counts the rows and columns in the AI's HTML output. If they match exactly, it's marked as "Aligned". It then calculates Dice similarity across all the cell data.
 - **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`
 
 # The ICF Walkthrough — A Real Example
 
 Let's walk through what happens when we run the scorer on the ICF Full document. We feed the scorer two files:
+
 1. `QA report_ICF_FULL_new version.xlsx` (The raw export from AgileWriter)
 2. `reference_files/ref_ICF_Full.xlsx` (Anil's answer key)
 
 Here is how the scorer handles 5 real examples from that run:
 
 **Example 1 — KeyValue: `<Sponsor's Name>`**
+
 - **Reference Expected:** "Smarter Codes Inc."
 - **AI Output:** "Smarter Codes Inc."
-- **Math:** Exact identical strings. Dice = 1.0. 
+- **Math:** Exact identical strings. Dice = 1.0.
 - **Result:** **Match** ✓
 
 **Example 2 — Paragraph: `<study rationale>`**
+
 - **Reference Expected:** A multi-sentence paragraph about the study purpose.
 - **AI Output:** A semantically similar paragraph, but with a few words changed.
 - **Math:** The scorer finds the header sentence. The full text Dice score is `0.71`. Because `0.71` is greater than the `0.65` threshold for Paragraphs...
 - **Result:** **Match** ✓
 
 **Example 3 — List: `<list of study procedures>`**
+
 - **Reference Expected:** 8 bullet points.
 - **AI Output:** 7 bullet points (the AI combined two of them into one sentence).
 - **Math:** The points match check fails (`8 ≠ 7`). The average text similarity is `0.62`. Because `0.62` is less than `0.65` but higher than `0.40`...
 - **Result:** **Partial Match**
 
 **Example 4 — Table: `<adverse events table>`**
+
 - **Reference Expected:** 3 rows by 4 columns.
 - **AI Output:** An HTML table with `<tr>` and `<td>` tags resulting in 3 rows and 4 columns.
 - **Math:** The rows and columns match perfectly, so Alignment is `true`. The text inside the cells scores a `0.89`.
 - **Result:** **Match** ✓
 
 **Example 5 — Skipped: `<CRO Name>`**
+
 - **Reference Expected:** "" (Completely blank).
 - **AI Output:** "" (Also blank).
 - **Math:** Anil intentionally left the reference blank because this specific document has no CRO Name. The scorer detects the blank expected text.
@@ -170,12 +192,14 @@ Here is how the scorer handles 5 real examples from that run:
 AgileWriter exports its raw QA data in two different spreadsheet layouts, depending on how you download it. The Accuracy Scorer is smart enough to auto-detect which format you gave it based on the name of the sheet inside the Excel file.
 
 **Format A — "Evaluation_Data" Sheet (The direct raw export)**
+
 - Col 0: AI detected placeholder name
 - Col 9: AI Replaced Text
 - Col 17: Placeholder Type
 - Col 18: Placeholder ID
 
 **Format B — "QA" Sheet (Anil's manual format)**
+
 - Col 0: Placeholder name
 - Col 2: Placeholder Type
 - Col 3: Expected Value (Note: The scorer ignores this column and uses our internal reference file instead)
@@ -191,6 +215,7 @@ When the test finishes, it generates an Excel file like `accuracy-report-2026-04
 - **Sheets 3 through 8 — Filtered Views:** Separate tabs for `Inline`, `Paragraph`, `KeyValue`, `Table`, `Lists`, and `Multi Tables`. These are smaller, easier-to-read views that only show columns relevant to that specific type.
 
 If you look at the Master Sheet, here is what the columns mean:
+
 - **Cols 0-10:** Common to everything (Name, Type, AI Text, Similarity, Final Status).
 - **Cols 11-12:** Specific to KeyValue scoring.
 - **Cols 13-17:** Specific to Paragraph scoring (Did it find the header? What was the percentage?).
@@ -199,9 +224,9 @@ If you look at the Master Sheet, here is what the columns mean:
 
 # How This Relates to Anil's Manual Report
 
-If you open Anil's manual QA report, you will notice it looks almost identical to our generated Sheet 2 (QA Master Sheet). 
+If you open Anil's manual QA report, you will notice it looks almost identical to our generated Sheet 2 (QA Master Sheet).
 
-This is highly intentional. 
+This is highly intentional.
 
 The accuracy scorer was designed to produce an output file that Anil can open and immediately understand because all the columns are exactly where he expects them to be. We are taking his blank template, running the heavy mathematical calculations, and pre-filling the Similarity Scores and Statuses for him. He can sort by "Status" and just review the rows we flagged as "Partial Match" or "No Match."
 
@@ -211,25 +236,30 @@ To run the scorer, open your terminal in the `Agile Writer Test` folder.
 
 **Using the Default Files (ICF Full)**
 If you just want to run the standard ICF Full accuracy check, run:
+
 ```bash
 npx playwright test tests/accuracy.spec.ts --reporter=line
 ```
 
 **Using Custom Files**
 If you have a brand new QA report and a custom reference file, you pass them in as environment variables right before the command:
+
 ```bash
 ACCURACY_RAW_QA_PATH="CSR_Test_raw_qa.xlsx" ACCURACY_REF_PATH="reference_files/ref_CSR.xlsx" ACCURACY_OUTPUT_DIR="reports/" npx playwright test tests/accuracy.spec.ts --reporter=line
 ```
 
 **⚠️ Important:** If you pass a CSR raw QA file but accidentally pass an ICF reference file, the script will notice the names don't match and warn you in the terminal:
+
 ```
 WARNING: Possible document-type mismatch.
   Raw QA: CSR_Test_raw_qa.xlsx  (detected token: "csr")
   Ref:    reference_files/ref_ICF_Full.xlsx  (detected token: "icf")
 ```
+
 The test will still run, but almost every row in your final report will say "Missing Reference" because it couldn't find CSR placeholder names in an ICF answer key.
 
 <!-- ADDED May 2026 -->
+
 # Understanding Missing Reference and Skipped Rows
 
 Two statuses that confuse new users:
@@ -285,43 +315,48 @@ If you need help or have questions, reach out to the right person:
 - **Inayathulla:** General Playwright infrastructure, test runner server, and session isolation.
 
 <!-- ADDED May 2026 -->
+
 # The Five Placeholder Types and Their Thresholds
 
-| Type | Match threshold | Partial Match threshold |
-|---|---:|---:|
-| KeyValue | >= 0.85 | >= 0.50 |
-| Inline | >= 0.85 | >= 0.50 |
-| Paragraph | >= 0.65 | >= 0.40 |
-| List | >= 0.65 | >= 0.40 |
-| Table | >= 0.65 | >= 0.40 |
+| Type      | Match threshold | Partial Match threshold |
+| --------- | --------------: | ----------------------: |
+| KeyValue  |         >= 0.85 |                 >= 0.50 |
+| Inline    |         >= 0.85 |                 >= 0.50 |
+| Paragraph |         >= 0.65 |                 >= 0.40 |
+| List      |         >= 0.65 |                 >= 0.40 |
+| Table     |         >= 0.65 |                 >= 0.40 |
 
-To change these values, edit `getThresholds()` in [accuracy-scorer.ts](</C:/Users/Aaron Sequeira/Agile Writer Test/tests/helpers/accuracy-scorer.ts>).
+To change these values, edit `getThresholds()` in [accuracy-scorer.ts](/C:/Users/Aaron Sequeira/Agile Writer Test/tests/helpers/accuracy-scorer.ts).
 
 <!-- ADDED May 2026 -->
+
 # Full ICF Example - `<Sponsor's Name>`
 
-**Placeholder:** `<Sponsor's Name>`  
-**Type:** `KeyValue`  
-**Expected:** `Stendarr, Inc.`  
+**Placeholder:** `<Sponsor's Name>`
+**Type:** `KeyValue`
+**Expected:** `Stendarr, Inc.`
 **AI text:** `Stendarr, Inc.`
 
 **`normalizeForCompare()` pipeline**
+
 1. `stripHtml()` -> `Stendarr, Inc.`
 2. `toLowerCase()` -> `stendarr, inc.`
 3. replace non-word chars -> `stendarr  inc `
 4. collapse whitespace -> `stendarr inc`
 
-`compareTwoStrings("stendarr inc", "stendarr inc")` -> `1.0`  
-Threshold check: `1.0 >= 0.85` -> **Status: Match**  
+`compareTwoStrings("stendarr inc", "stendarr inc")` -> `1.0`
+Threshold check: `1.0 >= 0.85` -> **Status: Match**
 Overall similarity: `1.0000`
 
 **Partial-match punctuation example**
+
 - AI text: `Stendarr Inc`
 - Normalized value: `stendarr inc`
 - Similarity: `1.0`
 - Status: **Match**
 
 **No-match example**
+
 - AI text: `N/A`
 - Normalized value: `n a`
 - Similarity vs `stendarr inc`: approximately `0.08`
@@ -329,21 +364,25 @@ Overall similarity: `1.0000`
 - Status: **No Match**
 
 <!-- ADDED May 2026 -->
+
 # Understanding Missing Reference
 
 **What it means:** The raw QA file contains a placeholder name that has no entry in the reference file.
 
 **Common causes**
+
 1. A new placeholder was added after the reference file was created.
 2. The placeholder name differs by spelling or punctuation.
 3. The wrong reference file was selected for the document type.
 
 **How to fix**
+
 - Add the placeholder to the reference file with the correct expected text.
 - Check spelling and punctuation in the reference workbook.
 - Make sure the reference file matches the same document family as the raw QA file.
 
 <!-- ADDED May 2026 -->
+
 # Understanding Skipped
 
 **What it means:** The placeholder exists in the reference file, but the expected text cell is blank.
@@ -351,12 +390,14 @@ Overall similarity: `1.0000`
 **Why it matters:** The scorer knows the placeholder name, but it has no answer key text to compare against.
 
 **How to fix**
+
 - Fill in the expected text in the reference file if that value is now known.
 - Leave it blank only when the placeholder intentionally has no approved answer for that document.
 
 **Calculation note:** Skipped rows are excluded from the final accuracy percentage.
 
 <!-- ADDED May 2026 -->
+
 # Workflow A - Score from the Server UI
 
 1. Start the server:
@@ -372,6 +413,7 @@ Overall similarity: `1.0000`
 7. Select the reference file, select the raw QA file, then click **Run Accuracy Score**
 
 <!-- ADDED May 2026 -->
+
 # Workflow B - Score from Terminal
 
 ```bash
@@ -388,6 +430,7 @@ node -e "
 **Note:** This requires `ts-node` so Node can require the TypeScript helper modules directly.
 
 <!-- ADDED May 2026 -->
+
 # How to Read the Excel Output Report
 
 - **Summary**: overall accuracy, per-type breakdown, row counts, generated timestamp.
@@ -398,6 +441,7 @@ node -e "
 - **Lists**: bullet and numbered list placeholders only.
 
 **Key QA columns**
+
 - Column A: Placeholder
 - Column C: Placeholder Type
 - Column D: Expected Value
@@ -406,14 +450,17 @@ node -e "
 - Column J: Similarity Score
 
 ## Server Environment Variables for Accuracy Routes (Updated May 2026)
+
 <!-- UPDATED May 2026 -->
 
-The accuracy scorer server (`server/test-runner-server.js`) uses `dotenv` to load 
+The accuracy scorer server (`server/test-runner-server.js`) uses `dotenv` to load
 environment variables at startup. As of May 2026 the dotenv call is anchored explicitly:
+
 ```js
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 ```
-This ensures the `.env` at the project root is always loaded regardless of which 
-directory the server process is started from. The accuracy scorer routes themselves 
-do not require any specific `.env` variables — they work as long as the server starts 
+
+This ensures the `.env` at the project root is always loaded regardless of which
+directory the server process is started from. The accuracy scorer routes themselves
+do not require any specific `.env` variables — they work as long as the server starts
 and the `reference_files/` and `raw_qa_files/` directories exist.

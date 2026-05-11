@@ -1,7 +1,8 @@
 import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const CONFIG_FILE = process.env.SESSION_ID
   ? `sessions/${process.env.SESSION_ID}/runtime-config.json`
@@ -58,7 +59,7 @@ function defaultHealthConfigs(): HealthConfigs {
       templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_CSR || 'CSR',
       sourceNames: csv(
         process.env.HEALTH_SOURCES_CSR ||
-          'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
+        'Mock_CSR _Tables_30Oct25.rtf,Mock_CSR_Protocol.docx,Mock_CSR Key messages_with_heading.docx'
       ),
       sourceFolder: process.env.HEALTH_SOURCE_FOLDER_CSR || 'CSR',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_CSR || 'CSR_Test',
@@ -70,7 +71,7 @@ function defaultHealthConfigs(): HealthConfigs {
       templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_M264 || 'M264',
       sourceNames: csv(
         process.env.HEALTH_SOURCES_M264 ||
-          'Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx'
+        'Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx'
       ),
       sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'M264',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_M264 || 'M264_Test',
@@ -96,7 +97,7 @@ function defaultHealthConfigs(): HealthConfigs {
       templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED || 'QA Testing',
       sourceNames: csv(
         process.env.HEALTH_SOURCES_ICF_TRIMMED ||
-          'Protocol Example (28Sep2023)_trimmed.docx'
+        'Protocol Example (28Sep2023)_trimmed.docx'
       ),
       sourceFolder: process.env.HEALTH_SOURCE_FOLDER_ICF_TRIMMED || 'Protocol',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_TRIMMED || 'ICF_Trimmed',
@@ -131,7 +132,7 @@ function mergeConfig(overrides: Partial<Config>): Config {
       m264: { ...defaults.health.m264, ...overrides.health?.m264 },
       icfFull: { ...defaults.health.icfFull, ...overrides.health?.icfFull },
       icfTrimmed: { ...defaults.health.icfTrimmed, ...overrides.health?.icfTrimmed },
-    },
+},
   };
 }
 

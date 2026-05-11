@@ -456,34 +456,47 @@ app.post('/run-test', (req, res) => {
 
   res.status(202).json({ sessionId });
 
-  broadcastLog(sessionId, 'phase', 'Running Tests');
-  broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
+  broadcastLog(sessionId, 'phase', 'Pre-flight Check');
+  broadcastLog(sessionId, 'info', 'Checking TypeScript compilation...');
 
-  const pwProcess = spawn(`npx playwright test ${testPath}`, {
+  const tscProcess = spawn('npx tsc --noEmit --pretty', {
     shell: true,
     cwd: ROOT_DIR,
-    env: {
-      ...process.env,
-      SESSION_ID: sessionId,
-    },
   });
 
-  pwProcess.stdout.on('data', (data) => {
-    process.stdout.write(data);
-    broadcastLog(sessionId, 'log', data);
+  let tscErrors = '';
+
+  tscProcess.stdout.on('data', (data) => {
+    tscErrors += data.toString();
   });
 
-  pwProcess.stderr.on('data', (data) => {
-    process.stderr.write(data);
-    broadcastLog(sessionId, 'error', data);
+  tscProcess.stderr.on('data', (data) => {
+    tscErrors += data.toString();
   });
 
-  pwProcess.on('close', (code) => {
-    broadcastLog(sessionId, 'info', `Playwright exited with code: ${code}`);
-    broadcastLog(sessionId, 'phase', 'Generating Report');
-    broadcastLog(sessionId, 'info', 'Generating test report...');
+  tscProcess.on('close', (tscCode) => {
+    if (tscCode !== 0) {
+      console.error(`[${sessionId}] TypeScript compilation failed:\n${tscErrors}`);
+      broadcastLog(sessionId, 'error', 'TypeScript syntax error found — test cannot run.');
+      broadcastLog(
+        sessionId,
+        'error',
+        tscErrors.trim() || 'Run "npx tsc --noEmit" in your terminal to see the full error.'
+      );
+      broadcastLog(sessionId, 'done', 'Test cycle aborted due to TypeScript errors.');
 
-    const reportProcess = spawn('node generate-word-report.js', {
+      if (fs.existsSync(configFile)) {
+        fs.unlinkSync(configFile);
+      }
+      scheduleSessionCleanup(sessionId);
+      return;
+    }
+
+    broadcastLog(sessionId, 'info', 'TypeScript compilation OK.');
+    broadcastLog(sessionId, 'phase', 'Running Tests');
+    broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
+
+    const pwProcess = spawn(`npx playwright test ${testPath}`, {
       shell: true,
       cwd: ROOT_DIR,
       env: {
@@ -492,29 +505,54 @@ app.post('/run-test', (req, res) => {
       },
     });
 
-    reportProcess.stdout.on('data', (data) => {
+    pwProcess.stdout.on('data', (data) => {
       process.stdout.write(data);
       broadcastLog(sessionId, 'log', data);
     });
 
-    reportProcess.stderr.on('data', (data) => {
+    pwProcess.stderr.on('data', (data) => {
       process.stderr.write(data);
       broadcastLog(sessionId, 'error', data);
     });
 
-    reportProcess.on('close', (reportCode) => {
-      if (fs.existsSync(configFile)) {
-        fs.unlinkSync(configFile);
-        console.log(`[${sessionId}] runtime-config.json deleted`);
-      }
+    pwProcess.on('close', (code) => {
+      broadcastLog(sessionId, 'info', `Playwright exited with code: ${code}`);
+      broadcastLog(sessionId, 'phase', 'Generating Report');
+      broadcastLog(sessionId, 'info', 'Generating test report...');
 
-      if (code !== 0 || reportCode !== 0) {
-        broadcastLog(sessionId, 'done', 'Test cycle completed with failures.');
-      } else {
-        broadcastLog(sessionId, 'done', 'Test cycle completed successfully.');
-      }
+      const reportProcess = spawn('node generate-word-report.js', {
+        shell: true,
+        cwd: ROOT_DIR,
+        env: {
+          ...process.env,
+          SESSION_ID: sessionId,
+        },
+      });
 
-      scheduleSessionCleanup(sessionId);
+      reportProcess.stdout.on('data', (data) => {
+        process.stdout.write(data);
+        broadcastLog(sessionId, 'log', data);
+      });
+
+      reportProcess.stderr.on('data', (data) => {
+        process.stderr.write(data);
+        broadcastLog(sessionId, 'error', data);
+      });
+
+      reportProcess.on('close', (reportCode) => {
+        if (fs.existsSync(configFile)) {
+          fs.unlinkSync(configFile);
+          console.log(`[${sessionId}] runtime-config.json deleted`);
+        }
+
+        if (code !== 0 || reportCode !== 0) {
+          broadcastLog(sessionId, 'done', 'Test cycle completed with failures.');
+        } else {
+          broadcastLog(sessionId, 'done', 'Test cycle completed successfully.');
+        }
+
+        scheduleSessionCleanup(sessionId);
+      });
     });
   });
 });

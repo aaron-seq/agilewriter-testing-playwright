@@ -238,7 +238,6 @@ async function runTest() {
       .map((input) => input.value.trim())
       .filter(Boolean)
       .join(','),
-    folder: document.getElementById('folder').value,
     testFile,
     baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
     appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
