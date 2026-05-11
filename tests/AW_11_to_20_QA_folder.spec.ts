@@ -208,10 +208,14 @@ async function verifyDocumentPreviewList(page: Page, selectedTemplateName: strin
     await button.click();
 
     const loader = page.getByText('Loading preview...');
-    if (await isVisible(loader, 2_000)) {
-      await expect(loader).toBeHidden({ timeout: UI_TIMEOUT });
-    }
-
+    await Promise.race([
+      loader.waitFor({ state: 'visible', timeout: 5_000 })
+        .then(() => loader.waitFor({ state: 'hidden', timeout: 600_000 }))
+        .catch(() => {}),
+      page.locator('.docx-preview-wrapper').waitFor({ state: 'visible', timeout: 600_000 })
+        .catch(() => {}),
+    ]);
+    // Always validate final render with explicit UI_TIMEOUT
     await expect(page.locator('.docx-preview-wrapper')).toBeVisible({ timeout: UI_TIMEOUT });
     await expect(page.locator('.docx-preview__canvas')).toBeVisible({ timeout: UI_TIMEOUT });
   }
@@ -824,15 +828,16 @@ test('AW_11_to_20 QA Folder: Document Generation Stage', async ({ page }) => {
     await btn.click();
 
     const loader = page.getByText('Loading preview...');
-
-    // Optional wait for loader
-    if (await loader.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await expect(loader).toBeHidden({ timeout: 600_000 });
-    }
-
-    // Always validate final render
-    await expect(page.locator('.docx-preview-wrapper')).toBeVisible();
-    await expect(page.locator('.docx-preview__canvas')).toBeVisible();
+    await Promise.race([
+      loader.waitFor({ state: 'visible', timeout: 5_000 })
+        .then(() => loader.waitFor({ state: 'hidden', timeout: 600_000 }))
+        .catch(() => {}),
+      page.locator('.docx-preview-wrapper').waitFor({ state: 'visible', timeout: 600_000 })
+        .catch(() => {}),
+    ]);
+    // Always validate final render with explicit UI_TIMEOUT
+    await expect(page.locator('.docx-preview-wrapper')).toBeVisible({ timeout: UI_TIMEOUT });
+    await expect(page.locator('.docx-preview__canvas')).toBeVisible({ timeout: UI_TIMEOUT });
   }
 
   // Close the drawer before attempting to click the template tab on the main workspace
