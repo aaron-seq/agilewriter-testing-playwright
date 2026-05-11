@@ -591,6 +591,7 @@ test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
   test('AW_06: Destination template picker opens', async ({ page }) => {
     await openAgileMapping(page);
     await openDestinationTemplatePicker(page);
+    const expectedProvider = process.env.HEALTH_TEMPLATE_PROVIDER || 'Sharepoint';
 
     // Soft: Veeva is a nice-to-have check
     await trackSoftStep(page, 'AW_06: Destination Template Picker',
@@ -603,6 +604,37 @@ test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
     await trackStep(page, 'AW_06: Destination Template Picker',
       'Verify SharePoint template picker', 'Search box and file tree are visible', async () => {
         await openDestinationTemplatePicker(page);
+
+        // Fix 1 — Provider guard: the soft step above may have left Veeva selected.
+        const providerButton = page.getByRole('button', { name: SOURCE_PROVIDER_BUTTON });
+        const providerText = await providerButton.innerText();
+        if (!new RegExp(expectedProvider, 'i').test(providerText)) {
+          await switchProviderIfAvailable(page, new RegExp(expectedProvider, 'i'));
+        }
+
+        // Fix 2 — Wait for either the file tree to load or the error state to appear.
+        // This prevents a race condition after provider switch and replaces the opaque
+        // 60-second timeout with an immediate, actionable failure message.
+        const fileTree = page.getByRole('checkbox').first()
+          .or(page.getByRole('tree').first())
+          .first();
+        const loadError = page.getByText('Failed to load files');
+
+        await Promise.race([
+          fileTree.waitFor({ state: 'visible', timeout: UI_TIMEOUT }),
+          loadError.waitFor({ state: 'visible', timeout: UI_TIMEOUT }),
+        ]);
+
+        if (await loadError.isVisible()) {
+          throw new Error(
+            '[AW_06] File listing API returned "Failed to load files". ' +
+            `Provider: ${await providerButton.innerText()}. ` +
+            'The template picker dialog opened correctly but the file provider API ' +
+            'did not return a file tree. Check the provider connector on staging ' +
+            'before re-running.'
+          );
+        }
+
         await expect(page.getByRole('textbox', { name: /Search files/i })).toBeVisible({
           timeout: UI_TIMEOUT,
         });
