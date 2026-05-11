@@ -73,7 +73,7 @@ function defaultHealthConfigs(): HealthConfigs {
         process.env.HEALTH_SOURCES_M264 ||
         'Absorption_PK Study in Dog.docx,Metabolism_Report.docx,ABC-123_Summary and Conclusion.docx,DDI_Cyp_Report.docx,ABC-123_Method of Analysis.docx,Distribution_Blood Partitioning.docx,Absorption_PK Study in Rat.docx'
       ),
-      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'M264',
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_M264 || 'Module264',
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_M264 || 'M264_Test',
       expectedTrainingMinutes: 25,
       templateTab: 'Non-Clinical',
