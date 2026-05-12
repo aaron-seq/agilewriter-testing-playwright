@@ -30,8 +30,7 @@
 
     .container {
       width: 100%;
-      max-width: 500px;
-      max-width: 1200px;
+      max-width: 1650px;
       padding: 2rem;
       display: flex;
       flex-wrap: wrap;
@@ -52,6 +51,7 @@
       flex: 1;
       min-width: 450px;
     }
+
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -327,3 +327,6 @@
       font-size: 0.85rem;
     }
 
+#manual-config {
+  display: none;
+}
