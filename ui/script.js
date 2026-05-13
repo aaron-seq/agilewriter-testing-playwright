@@ -7,27 +7,32 @@ let startTime = 0;
 let currentSessionId = null;
 let accuracyHistoryLoaded = false;
 
+const scriptsWithManualConfig = [
+  'AW_00_10_consolidated_flow.spec.ts',
+  'AW_11_to_20_manual_input.spec.ts'
+];
+
+function toggleManualConfig() {
+  const selectedScript = document.getElementById('testFile').value;
+  const manualConfig = document.getElementById('manual-config');
+
+  if (scriptsWithManualConfig.includes(selectedScript)) {
+    manualConfig.style.display = 'block';
+  } else {
+    manualConfig.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-  const testSelect = document.getElementById('testFile');
-  const sharedFolder = document.getElementById('manualSourceFolder');
   const historySection = document.getElementById('accuracy-history-section');
 
   await loadTestList();
   await loadEnvStatus();
   startAccuracyWatcher();
 
+  const testSelect = document.getElementById('testFile');
   testSelect.addEventListener('change', toggleManualConfig);
   toggleManualConfig();
-
-  if (sharedFolder) {
-    sharedFolder.addEventListener('input', () => {
-      document.querySelectorAll('.source-folder-input').forEach((input) => {
-        if (!input.dataset.manuallyEdited) {
-          input.value = sharedFolder.value;
-        }
-      });
-    });
-  }
 
   if (historySection) {
     historySection.addEventListener('toggle', async () => {
@@ -140,45 +145,55 @@ function showAccuracyWatchBanner(message) {
   banner.style.display = 'block';
 }
 
-function toggleManualConfig() {
-  const testSelect = document.getElementById('testFile');
-  const manualSection = document.getElementById('manual-config');
-  const isManual = testSelect.value.includes('manual_input');
-
-  if (manualSection) {
-    manualSection.style.display = isManual ? 'block' : 'none';
-  }
-
-  document.querySelectorAll('.source-folder-input').forEach((input) => {
-    input.style.display = isManual ? 'block' : 'none';
-  });
-}
-
 function addSourceInput() {
   const container = document.getElementById('source-files-container');
-  const testSelect = document.getElementById('testFile');
-  const isManual = testSelect && testSelect.value.includes('manual_input');
-  const sharedFolder = document.getElementById('manualSourceFolder');
 
   const group = document.createElement('div');
   group.className = 'source-input-group';
+  group.style.display = 'grid';
+  group.style.gridTemplateColumns = '1.3fr 2fr 2fr 1.5fr auto';
+  group.style.gap = '0.5rem';
+  group.style.marginBottom = '0.5rem';
+
+  const platformSelect = document.createElement('select');
+  platformSelect.className = 'source-platform-input';
+  platformSelect.style.marginBottom = '0';
+
+  const sharePointOpt = document.createElement('option');
+  sharePointOpt.value = 'SharePoint';
+  sharePointOpt.textContent = 'SharePoint';
+
+  const veevaOpt = document.createElement('option');
+  veevaOpt.value = 'Veeva';
+  veevaOpt.textContent = 'Veeva';
+
+  platformSelect.appendChild(sharePointOpt);
+  platformSelect.appendChild(veevaOpt);
 
   const fileInput = document.createElement('input');
   fileInput.type = 'text';
   fileInput.className = 'source-input';
-  fileInput.placeholder = 'Additional_Source.docx';
+  fileInput.placeholder = 'Source Name (e.g. Protocol.docx)';
+  fileInput.style.marginBottom = '0';
 
   const folderInput = document.createElement('input');
   folderInput.type = 'text';
   folderInput.className = 'source-folder-input';
-  folderInput.placeholder = 'Folder';
-  folderInput.style.display = isManual ? 'block' : 'none';
-  if (sharedFolder && sharedFolder.value) {
-    folderInput.value = sharedFolder.value;
-  }
-  folderInput.addEventListener('input', () => {
-    folderInput.dataset.manuallyEdited = 'true';
-  });
+  folderInput.placeholder = 'Source Folder (e.g. Protocol)';
+  folderInput.style.marginBottom = '0';
+  folderInput.style.maxWidth = 'none';
+
+  const tabSelect = document.createElement('select');
+  tabSelect.className = 'source-tab-input';
+  tabSelect.style.marginBottom = '0';
+  const clinicalOpt = document.createElement('option');
+  clinicalOpt.value = 'Clinical';
+  clinicalOpt.textContent = 'Clinical';
+  const nonClinicalOpt = document.createElement('option');
+  nonClinicalOpt.value = 'Non-Clinical';
+  nonClinicalOpt.textContent = 'Non-Clinical';
+  tabSelect.appendChild(clinicalOpt);
+  tabSelect.appendChild(nonClinicalOpt);
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
@@ -186,8 +201,10 @@ function addSourceInput() {
   removeBtn.textContent = '-';
   removeBtn.onclick = () => group.remove();
 
+  group.appendChild(platformSelect);
   group.appendChild(fileInput);
   group.appendChild(folderInput);
+  group.appendChild(tabSelect);
   group.appendChild(removeBtn);
   container.appendChild(group);
 }
@@ -206,6 +223,7 @@ async function runTest() {
   const statsDiv = document.getElementById('execution-stats');
   const timerEl = document.getElementById('timer');
   const runStatusEl = document.getElementById('run-status');
+  
 
   statusEl.textContent = '';
   runBtn.disabled = true;
@@ -228,40 +246,33 @@ async function runTest() {
   }
 
   const testFile = document.getElementById('testFile').value;
-  const isManual = testFile.includes('manual_input');
   const data = {
     testerName: document.getElementById('tester').value,
     email: document.getElementById('email').value,
     password: document.getElementById('password').value,
-    template: document.getElementById('template').value,
-    source: Array.from(document.querySelectorAll('.source-input'))
-      .map((input) => input.value.trim())
-      .filter(Boolean)
-      .join(','),
     testFile,
     baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
     appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
     envName: 'QA',
-  };
-
-  if (isManual) {
-    const sharedFolder = document.getElementById('manualSourceFolder').value.trim();
-    data.manualTemplateName = data.template;
-    data.manualTemplateFolder = document.getElementById('manualTemplateFolder').value.trim();
-    data.manualTemplateTab = document.getElementById('manualTemplateTab').value;
-    data.generatedScriptName = document.getElementById('generatedScriptName').value.trim();
-    data.useQaFolderForSources = false;
-    data.manualSourceFiles = Array.from(document.querySelectorAll('.source-input-group'))
+    templatePlatform: document.getElementById('templatePlatform').value,
+    templateName: document.getElementById('templateName').value.trim(),
+    templateFolder: document.getElementById('templateFolder').value.trim(),
+    templateTab: document.getElementById('templateTab').value,
+    sourceFiles: Array.from(document.querySelectorAll('.source-input-group'))
       .map((group) => {
+        const platformInput = group.querySelector('.source-platform-input');
         const nameInput = group.querySelector('.source-input');
         const folderInput = group.querySelector('.source-folder-input');
+        const tabInput = group.querySelector('.source-tab-input');
         return {
+          platform: platformInput ? platformInput.value : 'SharePoint',
           name: nameInput ? nameInput.value.trim() : '',
-          folder: (folderInput && folderInput.value.trim()) || sharedFolder,
+          folder: folderInput ? folderInput.value.trim() : '',
+          tab: tabInput ? tabInput.value : 'Clinical',
         };
       })
-      .filter((sourceFile) => sourceFile.name);
-  }
+      .filter((sourceFile) => sourceFile.name),
+  };
 
   try {
     const startResponse = await fetch(buildApiUrl('/run-test'), {
