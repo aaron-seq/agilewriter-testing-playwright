@@ -46,4 +46,10 @@ sessions/
 #benchmarking_automation
 benchmarking_automation/venv/
 
+# Python cache
+__pycache__/
+*.pyc
+
+# Pytest
+.pytest_cache/
 
