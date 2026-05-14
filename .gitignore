@@ -42,3 +42,8 @@ patch_heading.js
 reports/
 sessions/
 
+
+#benchmarking_automation
+benchmarking_automation/venv/
+
+
