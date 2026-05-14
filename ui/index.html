@@ -47,53 +47,47 @@
         </div>
       </div>
 
+      <div id="manual-config">
 
-      <div class="form-group">
-        <label for="template">Template Name</label>
-        <input id="template" type="text" placeholder="e.g. CSR_Template_20FEB2026.docx">
-      </div>
+        <div class="section-divider">Template Configuration</div>
 
-      <div class="form-group" id="source-files-container">
-        <label>Source File(s)</label>
-        <div class="source-input-group">
-          <input type="text" class="source-input" placeholder="e.g. Mock_CSR_Protocol.docx">
-          <input
-            type="text"
-            class="source-folder-input"
-            placeholder="Folder"
-            style="display: none;"
-          >
-          <button type="button" class="btn-icon" onclick="addSourceInput()">+</button>
-        </div>
-      </div>
-
-      <div id="manual-config" style="display: none;">
-        <div class="section-divider">Manual Input Configuration</div>
-
-        <div class="grid">
-          <div class="form-group">
-            <label for="manualTemplateFolder">Template Folder</label>
-            <input id="manualTemplateFolder" type="text" placeholder="CSR">
-          </div>
-          <div class="form-group">
-            <label for="manualTemplateTab">Template Tab</label>
-            <select id="manualTemplateTab">
+        <div class="form-group">
+          <label>Template Setup</label>
+          <div style="display: grid; grid-template-columns: 1.3fr 2fr 2fr 1.5fr; gap: 0.5rem;">
+            <select id="templatePlatform" style="margin-bottom: 0;">
+              <option value="SharePoint">SharePoint</option>
+              <option value="Veeva">Veeva</option>
+            </select>
+            <input id="templateName" type="text" placeholder="Template File Name (e.g. Destination_Template.docx)" style="margin-bottom: 0;">
+            <input id="templateFolder" type="text" placeholder="Template Folder (e.g. QA Testing)" style="margin-bottom: 0;">
+            <select id="templateTab" style="margin-bottom: 0;">
               <option value="Clinical">Clinical</option>
               <option value="Non-Clinical">Non-Clinical</option>
             </select>
           </div>
         </div>
 
-        <div class="grid">
-          <div class="form-group">
-            <label for="manualSourceFolder">Source Folder (shared)</label>
-            <input id="manualSourceFolder" type="text" placeholder="CSR">
+        <div class="section-divider">Source Files Configuration</div>
+
+        <div class="form-group" id="source-files-container">
+          <label>Source File(s)</label>
+
+          <div class="source-input-group" style="display: grid; grid-template-columns: 1.3fr 2fr 2fr 1.5fr auto; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <select class="source-platform-input" style="margin-bottom: 0;">
+              <option value="SharePoint">SharePoint</option>
+              <option value="Veeva">Veeva</option>
+            </select>
+            <input type="text" class="source-input" placeholder="Source Name (e.g. Protocol.docx)" style="margin-bottom: 0;">
+            <input type="text" class="source-folder-input" placeholder="Source Folder (e.g. Protocol)" style="margin-bottom: 0; max-width: none;">
+            <select class="source-tab-input" style="margin-bottom: 0;">
+              <option value="Clinical">Clinical</option>
+              <option value="Non-Clinical">Non-Clinical</option>
+            </select>
+            <button type="button" class="btn-icon" onclick="addSourceInput()">+</button>
           </div>
-          <div class="form-group">
-            <label for="generatedScriptName">Health Script Name</label>
-            <input id="generatedScriptName" type="text" placeholder="CSR">
-          </div>
+
         </div>
+
       </div>
 
       <div class="actions">
@@ -117,7 +111,7 @@
       <p id="status"></p>
     </div>
 
-    <div class="card" id="accuracy-card" style="margin-top: 1.5rem;">
+    <div class="card" id="accuracy-card">
       <div
         class="accuracy-header"
         onclick="toggleAccuracyPanel()"
