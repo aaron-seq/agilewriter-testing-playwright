@@ -1,5 +1,3 @@
-#User Story 01: subtask 1
-
 from pathlib import Path
 import pytest
 
@@ -8,7 +6,8 @@ from parser.xml_parser import load_docx
 
 BASE_DIR = Path(__file__).parent
 
-SAMPLE_DOCX = BASE_DIR / "sample_template.docx"
+SAMPLE_DOCX = BASE_DIR / "basic_sample_template.docx"
+# SAMPLE_DOCX = BASE_DIR / "Adv_Sample_Template.docx"
 INVALID_DOCX = BASE_DIR / "invalid.docx"
 
 #ST1-TC01
