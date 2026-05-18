@@ -262,6 +262,8 @@ class CanonicalDocumentTree:
     nodes: list[DocumentNode]
 ```
 
+ST2 intentionally keeps `CanonicalDocumentTree` as a flat ordered list. ST4 may add lookup indexes such as `nodes_by_section` or `nodes_by_table_path` after real alignment access patterns are known; those should be sidecar indexes, not a replacement for the canonical ordered node list.
+
 Example table-cell node:
 
 ```python
@@ -330,7 +332,7 @@ Occurrence IDs should be assigned after canonical tree ordering is fixed. A mono
 
 ### 7.5 Known Limitations
 
-- Nested tables are not fully modeled in ST2.
+- Nested tables are not fully modeled in ST2; they are guarded to avoid crashes, but nested table paragraph extraction is deferred.
 - Images, charts, shapes, text boxes, comments, and footnotes are out of scope.
 - Field result text is only included when represented as visible `w:t`.
 - Formatting comparison is deferred to later validation layers.
@@ -367,6 +369,8 @@ ST2 verifies:
 - ST2-TC12 list item flagging.
 - ST2-TC13 real DOCX integration.
 - ST2-TC14 non-table metadata defaults.
+- ST2-TC15 tracked-deletion `w:delText` exclusion.
+- ST2-TC16 nested table no-crash guard.
 
 ### 8.4 ST3 Test Cases
 

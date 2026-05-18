@@ -227,3 +227,38 @@ def test_st2_tc14_non_table_paragraphs_have_no_table_metadata():
     assert node.location.row_index is None
     assert node.location.cell_index is None
     assert node.location.table_path is None
+
+
+def test_st2_tc15_deleted_text_is_excluded_from_reconstruction():
+    """ST2-TC15: w:delText tracked-deletion content is excluded."""
+    paragraph = xml_element(
+        paragraph_xml(
+            "<w:r><w:t>Visible</w:t></w:r>"
+            "<w:r><w:delText>Deleted</w:delText></w:r>"
+            "<w:r><w:t> Text</w:t></w:r>"
+        )
+    )
+
+    assert reconstruct_paragraph_text(paragraph) == "Visible Text"
+
+
+def test_st2_tc16_nested_table_does_not_raise():
+    """ST2-TC16: Nested tables are out of scope but must not crash ST2."""
+    doc = parsed_document(
+        document_xml(
+            "<w:tbl>"
+            "<w:tr>"
+            "<w:tc>"
+            "<w:p><w:r><w:t>Outer Cell</w:t></w:r></w:p>"
+            "<w:tbl>"
+            "<w:tr><w:tc><w:p><w:r><w:t>Nested Cell</w:t></w:r></w:p></w:tc></w:tr>"
+            "</w:tbl>"
+            "</w:tc>"
+            "</w:tr>"
+            "</w:tbl>"
+        )
+    )
+
+    tree = build_canonical_tree(doc)
+
+    assert [node.text for node in tree.nodes] == ["Outer Cell"]
