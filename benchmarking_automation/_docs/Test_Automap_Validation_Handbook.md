@@ -4,7 +4,7 @@
 
 This repository is a Python document validation pipeline for comparing a template-driven reference document against a test document after placeholder extraction and alignment. It reads DOCX files, produces intermediate text dumps and JSON placeholder maps, reconstructs aligned "final" JSONs for reference and test, then validates each placeholder with exact/normalized comparison for short values and OpenAI-backed semantic comparison for longer text. It also supports a pytest HTML report where each placeholder is treated as its own test case.
 
-## Main entry points 
+## Main entry points
 
 - `main.py`
 
