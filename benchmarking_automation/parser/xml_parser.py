@@ -147,9 +147,12 @@ def is_list_paragraph(paragraph):
     Detect whether paragraph belongs to a numbered/bulleted list.
     """
 
-    num_pr = paragraph.find(".//w:numPr", WORD_NAMESPACE)
+    num_pr = paragraph.xpath(
+        "./w:pPr/w:numPr",
+        namespaces=WORD_NAMESPACE
+    )
 
-    return num_pr is not None
+    return len(num_pr) > 0  
 
 def get_tables(xml_root):
     """

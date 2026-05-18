@@ -13,7 +13,7 @@ from parser.xml_parser import (
 )
 
 
-DOCX_PATH = r"D:\SmarterCodes\automation-validation-tests\benchmarking_automation\tests\sample_template.docx"
+DOCX_PATH = r"D:\SmarterCodes\automation-validation-tests\benchmarking_automation\tests\basic_sample_template.docx"
 
 
 def print_paragraphs(document_xml):
