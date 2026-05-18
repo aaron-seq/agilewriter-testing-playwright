@@ -1,8 +1,8 @@
 # parser/hierarchy_builder.py
 
 from models.nodes import DocumentNode, Location
-from parser.run_normalizer import normalize_runs
-from parser.xml_parser import is_list_paragraph
+from doc_parser.run_normalizer import normalize_runs
+from doc_parser.xml_parser import is_list_paragraph
 from models.nodes import (
     DocumentNode,
     Location,

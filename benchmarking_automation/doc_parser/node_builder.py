@@ -1,5 +1,5 @@
 from models.nodes import DocumentNode
-from parser.hierarchy_builder import HierarchyBuilder
+from doc_parser.hierarchy_builder import HierarchyBuilder
 
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"

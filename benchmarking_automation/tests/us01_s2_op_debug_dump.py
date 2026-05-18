@@ -8,8 +8,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pprint import pprint
 from dataclasses import asdict
 
-from parser.xml_parser import load_docx
-from parser.node_builder import CanonicalDocumentBuilder
+from doc_parser.xml_parser import load_docx
+from doc_parser.node_builder import CanonicalDocumentBuilder
 
 
 def sanitize_node(node_dict):

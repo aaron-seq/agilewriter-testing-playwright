@@ -1,8 +1,8 @@
 from lxml import etree
 import pytest
-from parser.run_normalizer import normalize_runs
+from doc_parser.run_normalizer import normalize_runs
 
-from parser.hierarchy_builder import HierarchyBuilder
+from doc_parser.hierarchy_builder import HierarchyBuilder
 
 from models.nodes import DocumentNode
 
