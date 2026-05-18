@@ -8,7 +8,7 @@ from doc_parser.xml_parser import load_docx
 
 BASE_DIR = Path(__file__).parent
 
-SAMPLE_DOCX = BASE_DIR / "sample_template.docx"
+SAMPLE_DOCX = BASE_DIR / "basic_sample_template.docx"
 INVALID_DOCX = BASE_DIR / "invalid.docx"
 
 #ST1-TC01
