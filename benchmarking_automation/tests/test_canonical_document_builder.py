@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from lxml import etree
 import pytest
 from parser.run_normalizer import normalize_runs
@@ -9,6 +11,8 @@ from models.nodes import DocumentNode
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 }
+
+BASE_DIR = Path(__file__).parent
 
 
 # =========================================================
@@ -289,7 +293,7 @@ def test_real_docx_placeholder_reconstruction():
     from docx import Document
 
     doc = Document(
-        "tests/Adv_Sample_Template.docx"
+        BASE_DIR / "Adv_Sample_Template.docx"
     )
 
     found = False
