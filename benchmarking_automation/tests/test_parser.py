@@ -3,7 +3,7 @@
 from pathlib import Path
 import pytest
 
-from parser.xml_parser import load_docx
+from doc_parser.xml_parser import load_docx
 
 
 BASE_DIR = Path(__file__).parent

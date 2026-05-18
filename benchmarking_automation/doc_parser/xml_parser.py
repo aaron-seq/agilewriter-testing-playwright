@@ -1,6 +1,6 @@
 from lxml import etree
-from parser.xml_models import ParsedXmlPart, ParsedDocument
-from parser.docx_extractor import DocxExtractor
+from doc_parser.xml_models import ParsedXmlPart, ParsedDocument
+from doc_parser.docx_extractor import DocxExtractor
 
 # WordprocessingML namespace
 WORD_NAMESPACE = {

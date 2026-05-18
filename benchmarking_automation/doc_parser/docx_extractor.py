@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 from zipfile import BadZipFile, ZipFile
-from parser.xml_models import XmlPart
+from doc_parser.xml_models import XmlPart
 
 
 # =========================================================
