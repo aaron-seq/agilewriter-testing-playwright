@@ -14,10 +14,14 @@ type HealthConfig = {
   templateName: string;
   templateFolder: string;
   sourceNames: string[];
-  sourceFolder: string;
+  sourceFolder?: string;
   outputPrefix: string;
   expectedTrainingMinutes: number;
   templateTab?: 'Clinical' | 'Non-Clinical';
+  sourceSelectionMode?: 'file' | 'folder';
+  sourceParentFolder?: string;
+  sourceNestedFolders?: string[];
+  allowMissingSourcesSoft?: boolean;
 };
 
 type HealthConfigs = {
@@ -25,6 +29,7 @@ type HealthConfigs = {
   m264: HealthConfig;
   icfFull: HealthConfig;
   icfTrimmed: HealthConfig;
+  ideaya: HealthConfig;
 };
 
 type Config = {
@@ -103,6 +108,19 @@ function defaultHealthConfigs(): HealthConfigs {
       outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_ICF_TRIMMED || 'ICF_Trimmed',
       expectedTrainingMinutes: 5,
     },
+    ideaya: {
+      reportName: 'Ideaya',
+      templateName: process.env.HEALTH_TEMPLATE_IDEAYA || 'IDE196-001_CSR_Destination Template_18May2026_Final.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_IDEAYA || 'Template for SC',
+      sourceNames: csv(process.env.HEALTH_SOURCE_FILE_IDEAYA || 'IDE196 Investigators Brochure_v13.pdf'),
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_IDEAYA || 'Ideaya_CSR',
+      expectedTrainingMinutes: parseInt(process.env.HEALTH_EXPECTED_MINUTES_IDEAYA || '30', 10),
+      templateTab: 'Clinical',
+      sourceSelectionMode: 'folder',
+      sourceParentFolder: process.env.HEALTH_SOURCE_PARENT_FOLDER_IDEAYA || 'IDE196-001 TFLs',
+      sourceNestedFolders: csv(process.env.HEALTH_SOURCE_NESTED_FOLDERS_IDEAYA || 'Efficacy Tables_Test_EP,Safety Tables_Test_EP,Test [From Synterex]'),
+      allowMissingSourcesSoft: true,
+    },
   };
 }
 
@@ -132,6 +150,7 @@ function mergeConfig(overrides: Partial<Config>): Config {
       m264: { ...defaults.health.m264, ...overrides.health?.m264 },
       icfFull: { ...defaults.health.icfFull, ...overrides.health?.icfFull },
       icfTrimmed: { ...defaults.health.icfTrimmed, ...overrides.health?.icfTrimmed },
+      ideaya: { ...defaults.health.ideaya, ...overrides.health?.ideaya },
 },
   };
 }

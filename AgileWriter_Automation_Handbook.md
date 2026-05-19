@@ -35,6 +35,7 @@ Agile Writer Test/
 │   ├── health_ICF_full.spec.ts               Health: Tests ICF Full in 15 min. (Owner: Aaron)
 │   ├── health_CSR.spec.ts                    Health: Tests CSR in 20 min. (Owner: Aaron)
 │   ├── health_M264.spec.ts                   Health: Tests M264 in 25 min. (Owner: Aaron)
+│   ├── health_Ideaya.spec.ts                 Health: Tests Ideaya in 30 min. (Owner: Aaron)
 │   ├── accuracy.spec.ts                      Entry point for the accuracy mathematical scorer. (Owner: Aaron)
 │   └── helpers/
 │       ├── app-navigation.ts                 Helper to open AgileMapping and dismiss overlays. (Owner: Aaron)
@@ -285,6 +286,7 @@ tests/
   health_ICF_full.spec.ts       - ICF Full health script (Clinical tab)
   health_CSR.spec.ts            - CSR health script (Clinical tab, 129 placeholders)
   health_M264.spec.ts           - M264 health script (Non-Clinical tab)
+  health_Ideaya.spec.ts         - Ideaya health script (folder-based source selection)
   helpers/
     health-report-runner.ts     - shared runner for all 4 scripts
     app-navigation.ts           - MutationObserver toast fix, navigation helpers
