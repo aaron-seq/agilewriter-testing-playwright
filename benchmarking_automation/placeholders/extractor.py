@@ -1,4 +1,7 @@
-from placeholders.validator import find_placeholders
+from placeholders.validator import (
+    find_placeholders,
+    find_placeholder_matches
+)
 from placeholders.occurrence_generator import OccurrenceGenerator
 from placeholders.context_extractor import extract_context
 
@@ -24,17 +27,18 @@ class PlaceholderExtractor:
         # Only scan paragraph nodes
         # Prevent duplicate detection from table/row/cell nodes
         if (
-            node.type == "paragraph"
+            node.type in ["paragraph", "list_item"]
             and node.text
         ):
 
-            placeholders = find_placeholders(node.text)
+            matches = find_placeholder_matches(node.text)
 
-            for placeholder in placeholders:
+            for match in matches:
 
                 occurrence = self._build_occurrence(
                     node=node,
-                    placeholder=placeholder
+                    placeholder=match.group(0),
+                    match=match
                 )
 
                 inventory.append(occurrence)
@@ -44,7 +48,12 @@ class PlaceholderExtractor:
 
             self._traverse_node(child, inventory)
 
-    def _build_occurrence(self, node, placeholder):
+    def _build_occurrence(
+        self,
+        node,
+        placeholder,
+        match
+    ):
 
         context = extract_context(
             node.text,
@@ -83,10 +92,10 @@ class PlaceholderExtractor:
 
         location = node.location
 
-        text_span = self._build_text_span(
-            node.text,
-            placeholder
-        )
+        text_span = {
+            "start": match.start(),
+            "end": match.end()
+        }
 
         return {    
             "occurrence_id":
@@ -145,27 +154,3 @@ class PlaceholderExtractor:
         # Human-readable 1-based indexing
         return f"T{table + 1}/R{row + 1}/C{cell + 1}"
 
-    def _build_text_span(
-        self,
-        text,
-        placeholder
-    ):
-        """
-        Returns placeholder character span
-        inside reconstructed paragraph text.
-        """
-
-        start = text.find(placeholder)
-
-        if start == -1:
-            return {
-                "start": None,
-                "end": None
-            }
-
-        end = start + len(placeholder)
-
-        return {
-            "start": start,
-            "end": end
-        }
