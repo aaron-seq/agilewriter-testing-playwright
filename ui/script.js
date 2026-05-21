@@ -23,6 +23,16 @@ function toggleManualConfig() {
   }
 }
 
+function toggleCustomUrl() {
+  const envSelect = document.getElementById('environment');
+  const customGroup = document.getElementById('customUrlGroup');
+  if (envSelect.value === 'custom') {
+    customGroup.style.display = 'block';
+  } else {
+    customGroup.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const historySection = document.getElementById('accuracy-history-section');
 
@@ -94,6 +104,14 @@ async function loadEnvStatus() {
       badge.textContent = `Env OK (${data.present.length}/${data.present.length})`;
       badge.style.color = '#34d399';
       badge.style.borderColor = 'rgba(52, 211, 153, 0.35)';
+      
+      const defaultUrl = data.baseUrl || '';
+      if (defaultUrl) {
+        const envSelect = document.getElementById('environment');
+        if (envSelect && envSelect.options[0].value === 'default') {
+          envSelect.options[0].text = `Default (${defaultUrl})`;
+        }
+      }
     } else {
       badge.textContent = `Env warning (${data.missing.length} missing)`;
       badge.title = `Missing: ${data.missing.join(', ')}`;
@@ -246,11 +264,25 @@ async function runTest() {
   }
 
   const testFile = document.getElementById('testFile').value;
+  
+  const envSelect = document.getElementById('environment').value;
+  let agileWriterUrl = '';
+  if (envSelect === 'custom') {
+    agileWriterUrl = document.getElementById('customUrl').value.trim();
+  } else if (envSelect === 'dev') {
+    agileWriterUrl = 'https://dev.agilewriter.com';
+  } else if (envSelect === 'sandbox') {
+    agileWriterUrl = 'https://sandbox.agilewriter.com';
+  } else if (envSelect === 'prod') {
+    agileWriterUrl = 'https://prod.agilewriter.com';
+  }
+
   const data = {
     testerName: document.getElementById('tester').value,
     email: document.getElementById('email').value,
     password: document.getElementById('password').value,
     testFile,
+    agileWriterUrl,
     baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
     appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
     envName: 'QA',

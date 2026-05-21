@@ -29,10 +29,34 @@
         <div class="form-group">
           <label for="testFile">Test Script</label>
           <select id="testFile">
-            <option value="AW_00_10_consolidated_flow.spec.ts">
-              AW_00_10_consolidated_flow.spec.ts
-            </option>
+            <option value="AW_00_10_consolidated_flow.spec.ts">AW_00_10_consolidated_flow.spec.ts</option>
+            <option value="AW_11_to_20.spec.ts">AW_11_to_20.spec.ts</option>
+            <option value="AW_11_to_20_QA_folder.spec.ts">AW_11_to_20_QA_folder.spec.ts</option>
+            <option value="AW_11_to_20_manual_input.spec.ts">AW_11_to_20_manual_input.spec.ts</option>
+            <option value="accuracy.spec.ts">accuracy.spec.ts</option>
+            <option value="health_CSR.spec.ts">health_CSR.spec.ts</option>
+            <option value="health_ICF_full.spec.ts">health_ICF_full.spec.ts</option>
+            <option value="health_ICF_trimmed.spec.ts">health_ICF_trimmed.spec.ts</option>
+            <option value="health_Ideaya.spec.ts">health_Ideaya.spec.ts</option>
+            <option value="health_M264.spec.ts">health_M264.spec.ts</option>
           </select>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="environment">Environment</label>
+          <select id="environment" onchange="toggleCustomUrl()">
+            <option value="default">Default (.env)</option>
+            <option value="dev">Dev</option>
+            <option value="sandbox">Sandbox</option>
+            <option value="prod">Prod</option>
+            <option value="custom">Custom URL...</option>
+          </select>
+        </div>
+        <div class="form-group" id="customUrlGroup" style="display: none;">
+          <label for="customUrl">Custom URL</label>
+          <input id="customUrl" type="url" placeholder="https://app.example.com">
         </div>
       </div>
 

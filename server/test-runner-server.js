@@ -5,6 +5,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const XLSX = require('xlsx');
+const { normalizeBaseUrl } = require('./normalizeBaseUrl');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
@@ -77,6 +78,7 @@ function collectEnvStatus() {
     ok: missing.length === 0,
     missing,
     present,
+    baseUrl: process.env.BASEURL || process.env.BASE_URL,
   };
 }
 
@@ -496,11 +498,23 @@ app.post('/run-test', (req, res) => {
     broadcastLog(sessionId, 'phase', 'Running Tests');
     broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
 
+    let customBaseUrl = process.env.BASEURL || process.env.BASE_URL;
+    if (req.body.agileWriterUrl) {
+      try {
+        customBaseUrl = normalizeBaseUrl(req.body.agileWriterUrl);
+        console.log(`[${sessionId}] Injected custom BASEURL: ${customBaseUrl}`);
+      } catch (err) {
+        broadcastLog(sessionId, 'error', `Failed to inject URL: ${err.message}`);
+        console.error(`[${sessionId}] Failed to normalize custom URL: ${req.body.agileWriterUrl}`, err);
+      }
+    }
+
     const pwProcess = spawn(`npx playwright test ${testPath}`, {
       shell: true,
       cwd: ROOT_DIR,
       env: {
         ...process.env,
+        BASEURL: customBaseUrl,
         SESSION_ID: sessionId,
       },
     });
@@ -559,6 +573,7 @@ app.post('/run-test', (req, res) => {
 
 app.get('/download-report', (req, res) => {
   const { sessionId } = req.query;
+  console.log(`[Download Request] Session ID: ${sessionId}`);
   if (!sessionId) {
     return res.status(400).send('sessionId is required.');
   }
@@ -568,12 +583,26 @@ app.get('/download-report', (req, res) => {
     return res.status(404).send('Session not found.');
   }
 
-  const files = fs.readdirSync(dirPath).filter((fileName) => fileName.endsWith('.docx'));
+  const allFiles = fs.readdirSync(dirPath);
+  console.log(`[Download] Files found in session dir:`, allFiles);
+  
+  const files = allFiles.filter((fileName) => fileName.endsWith('.docx'));
+  const tmpFiles = allFiles.filter((fileName) => fileName.endsWith('.tmp'));
+  
+  console.log(`[Download] .docx candidates:`, files);
+  console.log(`[Download] .tmp / partial files detected:`, tmpFiles.length > 0);
+
   if (!files.length) {
     return res.status(404).send('Report not found.');
   }
 
   const reportFile = path.join(dirPath, files[0]);
+  const stats = fs.statSync(reportFile);
+  
+  console.log(`[Download] Selected File: ${files[0]}`);
+  console.log(`[Download] File Size: ${stats.size} bytes`);
+  console.log(`[Download] File mtime: ${stats.mtime}`);
+
   return res.download(reportFile, files[0]);
 });
 
