@@ -450,10 +450,9 @@ async function generateWordReport() {
   console.timeEnd('DOCX Rendering');
 
   console.time('Disk Write');
-  fs.writeFileSync(
-    OUTPUT_FILE,
-    fileBuffer
-  );
+  const tmpFile = OUTPUT_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, fileBuffer);
+  fs.renameSync(tmpFile, OUTPUT_FILE);
   console.timeEnd('Disk Write');
 
   console.log(`[DOCX Telemetry] Session ID: ${SESSION_ID || 'None'}`);

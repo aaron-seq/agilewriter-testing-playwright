@@ -62,6 +62,13 @@ function sessionDir(sessionId) {
   return path.join(SESSIONS_DIR, sessionId);
 }
 
+const SAFE_ENV_KEYS = [
+  'HEALTH_TEMPLATE_FOLDER_IDEAYA',
+  'HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED',
+  'BASE_URL',
+  'BASEURL'
+];
+
 function collectEnvStatus() {
   const present = [];
   const missing = [];
@@ -74,11 +81,19 @@ function collectEnvStatus() {
     }
   }
 
+  const safeValues = {};
+  for (const key of SAFE_ENV_KEYS) {
+    if (process.env[key] !== undefined) {
+      safeValues[key] = process.env[key];
+    }
+  }
+
   return {
     ok: missing.length === 0,
     missing,
     present,
     baseUrl: process.env.BASEURL || process.env.BASE_URL,
+    safeValues
   };
 }
 
@@ -378,7 +393,8 @@ app.get('/list-tests', (_req, res) => {
 
   const specFiles = fs
     .readdirSync(TESTING_DIR)
-    .filter((fileName) => fileName.endsWith('.spec.ts'));
+    .filter((fileName) => fileName.endsWith('.spec.ts'))
+    .filter((fileName) => fileName !== 'accuracy.spec.ts' && !fileName.startsWith('AW_11_to_20'));
 
   return res.json(specFiles);
 });
@@ -597,8 +613,25 @@ app.get('/download-report', (req, res) => {
   }
 
   const reportFile = path.join(dirPath, files[0]);
-  const stats = fs.statSync(reportFile);
+  let stats = fs.statSync(reportFile);
   
+  if (stats.size < 1000 || (Date.now() - stats.mtimeMs) < 500) {
+    console.log(`[Download] File too small or too new. Waiting 200ms for flush...`);
+    // Retry exactly once after 200ms
+    setTimeout(() => {
+      if (!fs.existsSync(reportFile)) {
+        return res.status(503).send('Report generation failed or was aborted.');
+      }
+      stats = fs.statSync(reportFile);
+      if (stats.size < 1000 || (Date.now() - stats.mtimeMs) < 500) {
+        console.error(`[Download Error] File is still suspect after retry (size: ${stats.size}). Rejecting download.`);
+        return res.status(503).send('Report is incomplete or still writing. Please try again later.');
+      }
+      return res.download(reportFile, files[0]);
+    }, 200);
+    return;
+  }
+
   console.log(`[Download] Selected File: ${files[0]}`);
   console.log(`[Download] File Size: ${stats.size} bytes`);
   console.log(`[Download] File mtime: ${stats.mtime}`);
