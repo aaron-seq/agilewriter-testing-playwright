@@ -1,4 +1,4 @@
-const { test } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 test('Find Ideaya Folder', async ({ page }) => {
   const BASEURL = process.env.BASEURL || 'https://app-v2-rc1-aw.smarter.codes';
