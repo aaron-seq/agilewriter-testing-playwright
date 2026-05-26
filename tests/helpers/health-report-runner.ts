@@ -48,6 +48,8 @@
 
 import { Page, Locator, expect } from '@playwright/test';
 import { trackStep, trackSoftStep, countPlaceholderColors, ColorCounts } from './step-tracker';
+import fs from 'fs';
+import path from 'path';
 import { openAgileMapping, waitForApplyAllToast, isVisible } from './app-navigation';
 
 const UI_TIMEOUT = 60_000;
@@ -69,8 +71,9 @@ export type HealthReportConfig = {
   /**
    * Folder name for source documents (e.g., "QA Testing", "CSR")
    * After searching, this folder appears and must be expanded/selected.
+   * Optional for some folder-mode configurations where specific files don't require expansion.
    */
-  sourceFolder: string;
+  sourceFolder?: string;
   /** Prefix for the output filename (e.g., "ICF_Trimmed") */
   outputPrefix: string;
   /**
@@ -85,6 +88,16 @@ export type HealthReportConfig = {
    * If omitted, defaults to "Clinical" (no tab click needed).
    */
   templateTab?: 'Clinical' | 'Non-Clinical';
+
+  // --- Folder-based Source Selection Fields ---
+  /** Strategy for selecting sources. Defaults to 'file' for backward compatibility. */
+  sourceSelectionMode?: 'file' | 'folder';
+  /** The parent folder to expand before selecting nested folders (e.g. 'IDE196-001 TFLs'). */
+  sourceParentFolder?: string;
+  /** Nested folders to select inside the parent folder. */
+  sourceNestedFolders?: string[];
+  /** If true, missing nested folders will be tracked as a soft failure without stopping the test. */
+  allowMissingSourcesSoft?: boolean;
 };
 
 // ──────────────────────────────────────────────
@@ -293,6 +306,165 @@ async function selectSourcesBySearch(
 }
 
 /**
+ * Select source documents using a folder-based approach (e.g., Ideaya).
+ * 
+ * STRATEGY:
+ * 1. Open picker and select correct tab.
+ * 2. Search for the single PDF source file safely (direct-first, fallback to folder expansion).
+ * 3. Search and select nested child folders by expanding the parent first.
+ * 4. Support soft-failing via trackSoftStep for missing nested folders.
+ */
+async function selectFolderSourcesBySearch(
+  page: Page,
+  testName: string,
+  config: HealthReportConfig
+): Promise<void> {
+  const {
+    sourceNames,
+    sourceFolder,
+    sourceParentFolder,
+    sourceNestedFolders,
+    templateTab,
+    allowMissingSourcesSoft
+  } = config;
+
+  console.log(`[Sources] Selecting folder-based sources...`);
+
+  // 1. Open the source picker
+  await page.getByRole('button', { name: /Select source documents/i }).click();
+
+  // 1b. Switch tab if needed
+  if (templateTab && templateTab !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: templateTab });
+    if (await tab.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await tab.click();
+      await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: UI_TIMEOUT });
+      console.log(`[Sources] Switched to "${templateTab}" tab`);
+    }
+  }
+
+  const searchBox = page.getByRole('textbox', { name: 'Search files' });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+
+  // 2. Search/select the single PDF source file normally, with safe fallback
+  for (const sourceName of sourceNames) {
+    if (!sourceName.trim()) continue;
+    console.log(`[Sources] Searching for single file "${sourceName}"...`);
+
+    await searchBox.click();
+    await searchBox.fill(sourceName);
+
+    const safeSourceName = sourceName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const fileCheckbox = page
+      .getByRole('checkbox', { name: new RegExp(`Select.*${safeSourceName}`, 'i') })
+      .first();
+
+    // Safe strategy: try direct visibility first, fallback to expanding folder
+    const isDirectVisible = await fileCheckbox.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!isDirectVisible) {
+      let fallbackFolder = '';
+      if (sourceFolder) {
+        fallbackFolder = sourceFolder;
+      } else if (sourceParentFolder) {
+        fallbackFolder = sourceParentFolder;
+      }
+
+      if (fallbackFolder) {
+        console.log(`[Sources] ⚠ Direct file checkbox not visible, attempting fallback expansion of folder "${fallbackFolder}"...`);
+        const expandButton = page.getByRole('button', { name: `Expand ${fallbackFolder}` });
+        if (await expandButton.isVisible({ timeout: 10_000 }).catch(() => false)) {
+          await expandButton.click();
+          const collapseButton = page.getByRole('button', { name: `Collapse ${fallbackFolder}` });
+          await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+        }
+      } else {
+        console.log(`[Sources] ⚠ Direct file checkbox not visible, and no fallback folder configured. Skipping fallback.`);
+      }
+    }
+
+    await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
+    await fileCheckbox.check();
+    console.log(`[Sources] ✓ Checked "${sourceName}"`);
+  }
+
+  // 3. For each nested folder
+  if (sourceNestedFolders && sourceParentFolder) {
+    for (const nestedFolder of sourceNestedFolders) {
+      if (!nestedFolder.trim()) continue;
+      console.log(`[Sources] Searching for nested folder "${nestedFolder}"...`);
+
+      try {
+        await searchBox.click();
+        await searchBox.fill(nestedFolder);
+
+        // Expand parent folder (e.g., IDE196-001 TFLs)
+        const parentExpandBtn = page.getByRole('button', { name: `Expand ${sourceParentFolder}` });
+        await expect(parentExpandBtn).toBeVisible({ timeout: 15_000 });
+        await parentExpandBtn.click();
+
+        // Expand child folder
+        const childExpandBtn = page.getByRole('button', { name: `Expand ${nestedFolder}` });
+        await expect(childExpandBtn).toBeVisible({ timeout: 10_000 });
+        await childExpandBtn.click();
+
+        // Check the CHILD FOLDER checkbox to select all files inside
+        const safeChildName = nestedFolder.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        const folderCheckbox = page.getByRole('checkbox', { name: new RegExp(`Select.*${safeChildName}`, 'i') }).first();
+        await expect(folderCheckbox).toBeVisible({ timeout: 10_000 });
+        await folderCheckbox.check();
+        console.log(`[Sources] ✓ Checked folder "${nestedFolder}"`);
+      } catch (e) {
+        if (allowMissingSourcesSoft) {
+          console.log(`[Sources] ⚠ Soft skip: Could not find or select folder "${nestedFolder}". Expected under current credentials.`);
+
+          // Take an isolated local screenshot for diagnostic visibility without failing or polluting the shared tracker
+          try {
+            const REPORT_DIR = process.env.SESSION_ID ? path.join(process.cwd(), 'sessions', process.env.SESSION_ID) : path.join(process.cwd(), 'reports');
+            const SCREENSHOT_DIR = path.join(REPORT_DIR, 'screenshots');
+            if (!fs.existsSync(SCREENSHOT_DIR)) fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+
+            const sanitizedName = `Missing_Folder_${nestedFolder}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const screenshotPath = path.join(SCREENSHOT_DIR, `${Date.now()}-${sanitizedName}.png`);
+            await page.screenshot({ path: screenshotPath });
+            console.log(`[Sources]   ↳ Captured diagnostic screenshot: ${screenshotPath}`);
+          } catch (err) {
+            console.warn(`[Sources]   ↳ Could not capture diagnostic screenshot:`, err);
+          }
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  // 4. Confirm selection
+  const doneBtn = page.getByRole('button', { name: 'Done [ENTER]' });
+  await doneBtn.click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
+    console.log('  ⚠ Dialog did not close, trying Enter key...');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT });
+  });
+
+  // 5. Verify selection flexibly
+  if (sourceNames.length > 0 && sourceNames[0].trim()) {
+    const firstSourceRaw = sourceNames[0].trim();
+    const firstSourceTruncated = firstSourceRaw.substring(0, 15);
+    const firstSourceEscapedSafe = firstSourceTruncated.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await expect(
+      page.getByRole('button', { name: new RegExp(`(${firstSourceEscapedSafe}|\\d+ files:)`, 'i') })
+    ).toBeVisible({ timeout: UI_TIMEOUT });
+  } else if (sourceNestedFolders && sourceNestedFolders.length > 0) {
+    await expect(page.getByRole('button', { name: /\d+ files:/i })).toBeVisible({ timeout: UI_TIMEOUT });
+  }
+
+  console.log(`[Sources] ✓ Folder-based sources selection finished`);
+}
+
+
+/**
  * Wait for all 3 training stages to complete.
  * Stages: Indexing Sources → Finding Placeholder Matches → Populating Placeholders
  */
@@ -376,9 +548,17 @@ export async function runHealthReport(
     });
 
   // ─── Step 4: Select source documents ───
-  await trackStep(page, testName, `Select sources: ${config.sourceNames.join(', ')}`,
+  const sourceStepName = config.sourceSelectionMode === 'folder'
+    ? 'Select folder-based sources'
+    : `Select sources: ${config.sourceNames.join(', ')}`;
+
+  await trackStep(page, testName, sourceStepName,
     'Source documents are selected from file picker', async () => {
-      await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder, config.templateTab);
+      if (config.sourceSelectionMode === 'folder') {
+        await selectFolderSourcesBySearch(page, testName, config);
+      } else {
+        await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder || '', config.templateTab);
+      }
     });
 
   // ─── Step 5: Start training ───

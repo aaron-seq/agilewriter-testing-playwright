@@ -430,6 +430,10 @@ async function generateWordReport() {
   const steps = filterStepsForReport(rawSteps, runtimeMeta.testFile);
   const html = buildHtml(steps);
 
+  const summary = summarizeSteps(steps);
+  const isSuccess = summary.overallStatus === 'PASS';
+
+  console.time('DOCX Rendering');
   const fileBuffer = await htmlToDocx(
     html,
     null,
@@ -443,12 +447,20 @@ async function generateWordReport() {
       },
     }
   );
+  console.timeEnd('DOCX Rendering');
 
-  fs.writeFileSync(
-    OUTPUT_FILE,
-    fileBuffer
-  );
+  console.time('Disk Write');
+  const tmpFile = OUTPUT_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, fileBuffer);
+  fs.renameSync(tmpFile, OUTPUT_FILE);
+  console.timeEnd('Disk Write');
 
+  console.log(`[DOCX Telemetry] Session ID: ${SESSION_ID || 'None'}`);
+  console.log(`[DOCX Telemetry] Output Path: ${OUTPUT_FILE}`);
+  console.log(`[DOCX Telemetry] Buffer Length: ${fileBuffer.length} bytes`);
+  console.log(`[DOCX Telemetry] Overall Status: ${summary.overallStatus}`);
+  console.log(`[DOCX Telemetry] Run Path: ${isSuccess ? 'Success Path' : 'Failure Path'}`);
+  
   console.log(
     `Word report generated successfully: ${OUTPUT_FILE}`
   );

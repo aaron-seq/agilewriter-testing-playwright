@@ -12,9 +12,13 @@ from parser.xml_parser import (
     extract_text_from_paragraph
 )
 
+import os
+from pathlib import Path
 
-DOCX_PATH = r"D:\SmarterCodes\automation-validation-tests\benchmarking_automation\tests\sample_template.docx"
-
+DOCX_PATH = os.environ.get(
+    "DOCX_PATH",
+    str(Path(__file__).resolve().parent / "tests" / "sample_template.docx")
+)
 
 def print_paragraphs(document_xml):
 

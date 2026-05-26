@@ -5,6 +5,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 const XLSX = require('xlsx');
+const { normalizeBaseUrl } = require('./normalizeBaseUrl');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
@@ -61,6 +62,13 @@ function sessionDir(sessionId) {
   return path.join(SESSIONS_DIR, sessionId);
 }
 
+const SAFE_ENV_KEYS = [
+  'HEALTH_TEMPLATE_FOLDER_IDEAYA',
+  'HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED',
+  'BASE_URL',
+  'BASEURL'
+];
+
 function collectEnvStatus() {
   const present = [];
   const missing = [];
@@ -73,10 +81,19 @@ function collectEnvStatus() {
     }
   }
 
+  const safeValues = {};
+  for (const key of SAFE_ENV_KEYS) {
+    if (process.env[key] !== undefined) {
+      safeValues[key] = process.env[key];
+    }
+  }
+
   return {
     ok: missing.length === 0,
     missing,
     present,
+    baseUrl: process.env.BASEURL || process.env.BASE_URL,
+    safeValues
   };
 }
 
@@ -376,7 +393,8 @@ app.get('/list-tests', (_req, res) => {
 
   const specFiles = fs
     .readdirSync(TESTING_DIR)
-    .filter((fileName) => fileName.endsWith('.spec.ts'));
+    .filter((fileName) => fileName.endsWith('.spec.ts'))
+    .filter((fileName) => fileName !== 'accuracy.spec.ts' && !fileName.startsWith('AW_11_to_20'));
 
   return res.json(specFiles);
 });
@@ -496,11 +514,23 @@ app.post('/run-test', (req, res) => {
     broadcastLog(sessionId, 'phase', 'Running Tests');
     broadcastLog(sessionId, 'info', `Running Playwright tests: ${testFile}...`);
 
+    let customBaseUrl = process.env.BASEURL || process.env.BASE_URL;
+    if (req.body.agileWriterUrl) {
+      try {
+        customBaseUrl = normalizeBaseUrl(req.body.agileWriterUrl);
+        console.log(`[${sessionId}] Injected custom BASEURL: ${customBaseUrl}`);
+      } catch (err) {
+        broadcastLog(sessionId, 'error', `Failed to inject URL: ${err.message}`);
+        console.error(`[${sessionId}] Failed to normalize custom URL: ${req.body.agileWriterUrl}`, err);
+      }
+    }
+
     const pwProcess = spawn(`npx playwright test ${testPath}`, {
       shell: true,
       cwd: ROOT_DIR,
       env: {
         ...process.env,
+        BASEURL: customBaseUrl,
         SESSION_ID: sessionId,
       },
     });
@@ -559,6 +589,7 @@ app.post('/run-test', (req, res) => {
 
 app.get('/download-report', (req, res) => {
   const { sessionId } = req.query;
+  console.log(`[Download Request] Session ID: ${sessionId}`);
   if (!sessionId) {
     return res.status(400).send('sessionId is required.');
   }
@@ -568,12 +599,43 @@ app.get('/download-report', (req, res) => {
     return res.status(404).send('Session not found.');
   }
 
-  const files = fs.readdirSync(dirPath).filter((fileName) => fileName.endsWith('.docx'));
+  const allFiles = fs.readdirSync(dirPath);
+  console.log(`[Download] Files found in session dir:`, allFiles);
+  
+  const files = allFiles.filter((fileName) => fileName.endsWith('.docx'));
+  const tmpFiles = allFiles.filter((fileName) => fileName.endsWith('.tmp'));
+  
+  console.log(`[Download] .docx candidates:`, files);
+  console.log(`[Download] .tmp / partial files detected:`, tmpFiles.length > 0);
+
   if (!files.length) {
     return res.status(404).send('Report not found.');
   }
 
   const reportFile = path.join(dirPath, files[0]);
+  let stats = fs.statSync(reportFile);
+  
+  if (stats.size < 1000 || (Date.now() - stats.mtimeMs) < 500) {
+    console.log(`[Download] File too small or too new. Waiting 200ms for flush...`);
+    // Retry exactly once after 200ms
+    setTimeout(() => {
+      if (!fs.existsSync(reportFile)) {
+        return res.status(503).send('Report generation failed or was aborted.');
+      }
+      stats = fs.statSync(reportFile);
+      if (stats.size < 1000 || (Date.now() - stats.mtimeMs) < 500) {
+        console.error(`[Download Error] File is still suspect after retry (size: ${stats.size}). Rejecting download.`);
+        return res.status(503).send('Report is incomplete or still writing. Please try again later.');
+      }
+      return res.download(reportFile, files[0]);
+    }, 200);
+    return;
+  }
+
+  console.log(`[Download] Selected File: ${files[0]}`);
+  console.log(`[Download] File Size: ${stats.size} bytes`);
+  console.log(`[Download] File mtime: ${stats.mtime}`);
+
   return res.download(reportFile, files[0]);
 });
 

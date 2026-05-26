@@ -14,10 +14,10 @@ from doc_parser.node_builder import CanonicalDocumentBuilder
 from placeholders.extractor import PlaceholderExtractor
 
 
-DOCX_PATH = (
-    r"D:\SmarterCodes\automation-validation-tests"
-    r"\benchmarking_automation\tests"
-    r"\basic_sample_template.docx"
+import os
+DOCX_PATH = os.environ.get(
+    "DOCX_PATH",
+    str(Path(__file__).resolve().parent / "basic_sample_template.docx")
 )
 
 

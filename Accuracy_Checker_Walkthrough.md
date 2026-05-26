@@ -4,7 +4,7 @@ Welcome! If you are reading this, you want to understand how we automatically gr
 
 When AgileWriter generates a document, it fills in dozens of placeholders. Currently, a human QA engineer (like Anil) opens an Excel file and manually reads every single AI-generated answer to check if it's correct. This is slow and tedious.
 
-This document explains the **Accuracy Scorer** — a tool we built to automate that exact checking process. Whether you are a product owner trying to understand how we measure "accuracy", or a developer who needs to tweak the scoring math, this guide will walk you through the *why*, *how*, and *what* of the accuracy checking pipeline.
+This document explains the **Accuracy Scorer** a tool we built to automate that exact checking process. Whether you are a product owner trying to understand how we measure "accuracy", or a developer who needs to tweak the scoring math, this guide will walk you through the _why_, _how_, and _what_ of the accuracy checking pipeline.
 
 # Why We Built the Accuracy Scorer
 
@@ -12,7 +12,7 @@ Imagine taking a 100-question test, but instead of the teacher grading it automa
 
 We built the Accuracy Scorer to be the automatic grader. It takes the AI's "test answers" (the raw QA export) and compares them to an "answer key" (the reference file). It then grades every single answer mathematically and produces a detailed 8-sheet Excel report.
 
-Our goal is **not to replace Anil's human judgment.** Instead, the goal is to *pre-grade* the easy answers. If the AI perfectly matched the answer key, the scorer marks it as a "Match". Anil can then safely skip reading those rows and focus 100% of his time on the tricky "Partial Match" or "No Match" rows.
+Our goal is **not to replace Anil's human judgment.** Instead, the goal is to _pre-grade_ the easy answers. If the AI perfectly matched the answer key, the scorer marks it as a "Match". Anil can then safely skip reading those rows and focus 100% of his time on the tricky "Partial Match" or "No Match" rows.
 
 # The Four Files and What Each One Does
 
@@ -70,10 +70,10 @@ If you see a warning banner, it means:
 
 Two folders support the accuracy scoring workflow. Both are auto-created by the server if they don't exist.
 
-| Folder               | What Goes Here                                                                                                                                     | Who Fills It     |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Folder             | What Goes Here                                                                                                                                   | Who Fills It     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
 | `reference_files/` | Excel "answer keys". Each file contains the correct expected text for every placeholder in a specific document type. Example:`ref_ICF_Full.xlsx` | Anil / Aaron     |
-| `raw_qa_files/`    | The raw QA Excel file downloaded after each AgileWriter training run. Drop it here before scoring.                                                 | You (the tester) |
+| `raw_qa_files/`    | The raw QA Excel file downloaded after each AgileWriter training run. Drop it here before scoring.                                               | You (the tester) |
 
 # The Reference File — Your Answer Key
 
@@ -81,15 +81,15 @@ The Accuracy Scorer is completely useless without an answer key. We call this an
 
 A reference file is a simple Excel document stored in the `reference_files/` folder (for example, `ref_ICF_Full.xlsx`). It has five columns:
 
-| Col   | Name             | Example Value                                        |
-| ----- | ---------------- | ---------------------------------------------------- |
-| A (0) | Placeholder Name | `<Sponsor's Name>`                                 |
-| B (1) | Placeholder Type | KeyValue                                             |
-| C (2) | Expected Text    | Smarter Codes Inc.                                   |
-| D (3) | Source Document  | Protocol Example (28Sep2023).docx                    |
-| E (4) | Notes            | *(optional — e.g., "No expected value per Anil")* |
+| Col   | Name             | Example Value                                     |
+| ----- | ---------------- | ------------------------------------------------- |
+| A (0) | Placeholder Name | `<Sponsor's Name>`                                |
+| B (1) | Placeholder Type | KeyValue                                          |
+| C (2) | Expected Text    | Smarter Codes Inc.                                |
+| D (3) | Source Document  | Protocol Example (28Sep2023).docx                 |
+| E (4) | Notes            | _(optional — e.g., "No expected value per Anil")_ |
 
-**⚠️ Important:** Sometimes the exact same placeholder name (like `<side effect>`) appears multiple times in the same document because it is used in different sentences. In the reference file, you list it 8 times with 8 different expected answers. The scorer is smart enough to try the AI's answer against *all 8* expected answers and pick the best match automatically.
+**⚠️ Important:** Sometimes the exact same placeholder name (like `<side effect>`) appears multiple times in the same document because it is used in different sentences. In the reference file, you list it 8 times with 8 different expected answers. The scorer is smart enough to try the AI's answer against _all 8_ expected answers and pick the best match automatically.
 
 # How Scoring Works
 
@@ -116,7 +116,7 @@ Because `0.957` is very close to `1.0`, the scorer knows this is a nearly perfec
 
 ### Scoring the Five Placeholder Types
 
-Not all placeholders are just a few words. The scorer uses different logic and different passing thresholds depending on the *Type* of the placeholder.
+Not all placeholders are just a few words. The scorer uses different logic and different passing thresholds depending on the _Type_ of the placeholder.
 
 **1. KeyValue** (e.g., a sponsor name or date)
 
@@ -131,7 +131,7 @@ Not all placeholders are just a few words. The scorer uses different logic and d
 **3. Paragraph** (e.g., a multi-sentence rationale)
 
 - **Logic:** First, it checks if the very first sentence of the expected text appears anywhere in the AI output. Then, it calculates a Dice score for the whole block of text.
-- **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`. *(This is much lower than KeyValue because the AI is allowed to rephrase paragraphs slightly).*
+- **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`. _(This is much lower than KeyValue because the AI is allowed to rephrase paragraphs slightly)._
 
 **4. List** (e.g., numbered bullet points)
 
@@ -268,7 +268,7 @@ Two statuses that confuse new users:
 
 **How to fix it:** Open the reference file in Excel. Add a new row with the placeholder name in column A, type in column B, and the correct expected text in column C.
 
-**Skipped** means the reference file *does* contain the placeholder, but the expected text column (column C) is blank. Anil intentionally left it empty because there is no expected value for this placeholder in this specific document.
+**Skipped** means the reference file _does_ contain the placeholder, but the expected text column (column C) is blank. Anil intentionally left it empty because there is no expected value for this placeholder in this specific document.
 
 **How to fix it (if the expected text is now known):** Open the reference file, find the row for this placeholder, and fill in column C with the correct expected text. Then re-run the scorer.
 
@@ -279,15 +279,18 @@ Both statuses are excluded from the final accuracy percentage calculation so the
 What if the scorer is being too strict on Paragraphs? You can easily change the passing grades by editing the `getThresholds()` function inside `tests/helpers/accuracy-scorer.ts`.
 
 ```typescript
-function getThresholds(type: PlaceholderTypeName): { match: number; partial: number } {
-  const t = (type ?? '').trim().toLowerCase();
-  
-  if (t === 'keyvalue' || t === 'inline') {
-    return { match: 0.85, partial: 0.50 };
+function getThresholds(type: PlaceholderTypeName): {
+  match: number;
+  partial: number;
+} {
+  const t = (type ?? "").trim().toLowerCase();
+
+  if (t === "keyvalue" || t === "inline") {
+    return { match: 0.85, partial: 0.5 };
   }
-  
+
   // Paragraph, List, Table, Unknown
-  return { match: 0.65, partial: 0.40 };  
+  return { match: 0.65, partial: 0.4 };
 }
 ```
 
@@ -457,7 +460,7 @@ The accuracy scorer server (`server/test-runner-server.js`) uses `dotenv` to loa
 environment variables at startup. As of May 2026 the dotenv call is anchored explicitly:
 
 ```js
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 ```
 
 This ensures the `.env` at the project root is always loaded regardless of which

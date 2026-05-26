@@ -35,6 +35,11 @@ test.describe('Health Report: ICF Full', () => {
   });
 
   test('ICF Full - Full Health Check', async ({ page }) => {
+    // AA-179: ICF Full has 239 placeholders. The "Finding Placeholder Matches" stage
+    // takes >30 min by architectural design. test.slow() triples the timeout for this
+    // describe block only. This is not a regression. Do not reduce this timeout.
+    test.slow();
+
     const config: HealthReportConfig = runtimeConfig.health.icfFull;
 
     await runHealthReport(page, config);

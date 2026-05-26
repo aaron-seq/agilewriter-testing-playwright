@@ -267,9 +267,12 @@ class DocxExtractor:
 
 if __name__ == "__main__":
 
-    extractor = DocxExtractor(
-    r"D:\SmarterCodes\automation-validation-tests\benchmarking_automation\tests\sample_template.docx"
-)
+    import os
+    DOCX_PATH = os.environ.get(
+        "DOCX_PATH",
+        str(Path(__file__).resolve().parent.parent / "tests" / "sample_template.docx")
+    )
+    extractor = DocxExtractor(DOCX_PATH)
 
     print("\n--- Internal DOCX Files ---")
     for file_name in extractor.list_files():

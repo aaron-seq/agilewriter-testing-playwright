@@ -4,7 +4,7 @@ Welcome to the central hub for the AgileWriter Playwright Automation project.
 
 If you are a new developer setting up the codebase, a product owner wanting a high-level view of our capabilities, or a QA engineer running your first automated test, you are in the right place. This handbook covers the complete test suite from zero to finished report.
 
-# Part 0 — Purpose and Objectives of This Handbook
+# Part 0: Purpose and Objectives of This Handbook
 
 The AgileWriter automation suite is a collection of scripts that automatically control a real web browser. It simulates a human user logging in, picking files, waiting for the AI to train, and verifying the outputs.
 
@@ -35,6 +35,7 @@ Agile Writer Test/
 │   ├── health_ICF_full.spec.ts               Health: Tests ICF Full in 15 min. (Owner: Aaron)
 │   ├── health_CSR.spec.ts                    Health: Tests CSR in 20 min. (Owner: Aaron)
 │   ├── health_M264.spec.ts                   Health: Tests M264 in 25 min. (Owner: Aaron)
+│   ├── health_Ideaya.spec.ts                 Health: Tests Ideaya in 30 min. (Owner: Aaron)
 │   ├── accuracy.spec.ts                      Entry point for the accuracy mathematical scorer. (Owner: Aaron)
 │   └── helpers/
 │       ├── app-navigation.ts                 Helper to open AgileMapping and dismiss overlays. (Owner: Aaron)
@@ -102,7 +103,7 @@ Instead of logging in on every single test, we log in once and save the session 
 node global-setup.js
 ```
 
-*Note: If tests start failing at the login screen days later, your session expired. Just run this command again.*
+_Note: If tests start failing at the login screen days later, your session expired. Just run this command again._
 
 **5. Verify your setup:**
 Check that you didn't introduce any TypeScript errors.
@@ -125,7 +126,7 @@ The scripts named `AW_00_10_consolidated_flow.spec.ts` and `AW_11_to_20_...` are
 
 The second category of our test suite is the **Health Reports**.
 
-While the consolidated flow tests the UI, the Health Scripts test the *AI Engine*. They execute a full 25-minute document generation run for specific, high-priority document formats (ICF Trimmed, ICF Full, CSR, M264). They then read the colors of the resulting placeholders to prove the AI successfully found the content.
+While the consolidated flow tests the UI, the Health Scripts test the _AI Engine_. They execute a full 25-minute document generation run for specific, high-priority document formats (ICF Trimmed, ICF Full, CSR, M264). They then read the colors of the resulting placeholders to prove the AI successfully found the content.
 
 To fully understand how these 13-step scripts work, how to configure their `.env` variables, and how to read their final Word document output, please read the **[Health Report Walkthrough](Health_Report_Walkthrough.md)**.
 
@@ -166,7 +167,7 @@ The final file is saved to `reports/AgileWriterValidationReport.docx`.
 
 Here are the commands to run the different parts of the test suite from your terminal.
 
-**⚠️ Important:** Never run two Playwright tests simultaneously. It places massive load on the backend servers and will overwrite the `reports/step-results.json` file, destroying both reports. *(Note: When running via the browser UI, session isolation prevents this. See below.)*
+**⚠️ Important:** Never run two Playwright tests simultaneously. It places massive load on the backend servers and will overwrite the `reports/step-results.json` file, destroying both reports. _(Note: When running via the browser UI, session isolation prevents this. See below.)_
 
 <!-- ADDED May 2026 -->
 
@@ -226,12 +227,12 @@ If you have questions about specific parts of the project, reach out to the rele
 
 If you are a non-developer who just wants to use the system, here is where to put your files:
 
-| Folder               | What Goes Here                                                                                                   | When                                        |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `reference_files/` | Your Excel "answer key" file. Contains the correct expected text for every placeholder.                          | Once, when Anil approves the reference.     |
-| `raw_qa_files/`    | The QA Excel file downloaded after each AgileWriter training run.                                                | After every training run you want to score. |
-| `reports/`         | **Do not touch.** Automatically filled by the system with Word reports, screenshots, and accuracy reports. | Never — read only.                         |
-| `sessions/`        | **Do not touch.** Automatically filled by the server for each UI-triggered run. Cleaned up after 1 hour.   | Never — read only.                         |
+| Folder             | What Goes Here                                                                                             | When                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `reference_files/` | Your Excel "answer key" file. Contains the correct expected text for every placeholder.                    | Once, when Anil approves the reference.     |
+| `raw_qa_files/`    | The QA Excel file downloaded after each AgileWriter training run.                                          | After every training run you want to score. |
+| `reports/`         | **Do not touch.** Automatically filled by the system with Word reports, screenshots, and accuracy reports. | Never — read only.                          |
+| `sessions/`        | **Do not touch.** Automatically filled by the server for each UI-triggered run. Cleaned up after 1 hour.   | Never — read only.                          |
 
 When in doubt, open the server UI at `http://localhost:3000/ui/` and use the dropdowns — they will automatically show all files in the correct folders.
 
@@ -285,6 +286,7 @@ tests/
   health_ICF_full.spec.ts       - ICF Full health script (Clinical tab)
   health_CSR.spec.ts            - CSR health script (Clinical tab, 129 placeholders)
   health_M264.spec.ts           - M264 health script (Non-Clinical tab)
+  health_Ideaya.spec.ts         - Ideaya health script (folder-based source selection)
   helpers/
     health-report-runner.ts     - shared runner for all 4 scripts
     app-navigation.ts           - MutationObserver toast fix, navigation helpers
@@ -331,5 +333,5 @@ const testPath = `tests/${testFile}`;
 NOT:
 
 ```js
-const testPath = path.join('tests', testFile);
+const testPath = path.join("tests", testFile);
 ```

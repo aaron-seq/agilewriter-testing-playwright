@@ -1,0 +1,338 @@
+[
+  {
+    "occurrence_id": "PH_0001",
+    "placeholder": "<Patient_Name>",
+    "node_id": "P_0002",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 1,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 14,
+      "end": 28
+    },
+    "inline_context": {
+      "before": "Patient Name:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Patient Medical Summary",
+      "after": "Date of Birth: <DOB>"
+    }
+  },
+  {
+    "occurrence_id": "PH_0002",
+    "placeholder": "<DOB>",
+    "node_id": "P_0003",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 2,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 15,
+      "end": 20
+    },
+    "inline_context": {
+      "before": "Date of Birth:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Patient Name: <Patient_Name>",
+      "after": "Patient ID: <Patient_ID>"
+    }
+  },
+  {
+    "occurrence_id": "PH_0003",
+    "placeholder": "<Patient_ID>",
+    "node_id": "P_0004",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 3,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 12,
+      "end": 24
+    },
+    "inline_context": {
+      "before": "Patient ID:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Date of Birth: <DOB>",
+      "after": "Patient Information Table"
+    }
+  },
+  {
+    "occurrence_id": "PH_0004",
+    "placeholder": "<Doctor_Name>",
+    "node_id": "P_0016",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 0,
+    "table_index": 0,
+    "row_index": 1,
+    "cell_index": 1,
+    "table_path": "T1/R2/C2",
+    "matched_text_span": {
+      "start": 0,
+      "end": 13
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "",
+      "after": ""
+    }
+  },
+  {
+    "occurrence_id": "PH_0005",
+    "placeholder": "<Admission_Date>",
+    "node_id": "P_0021",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 0,
+    "table_index": 0,
+    "row_index": 2,
+    "cell_index": 1,
+    "table_path": "T1/R3/C2",
+    "matched_text_span": {
+      "start": 0,
+      "end": 16
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "",
+      "after": ""
+    }
+  },
+  {
+    "occurrence_id": "PH_0006",
+    "placeholder": "<Ward_Number>",
+    "node_id": "P_0026",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 0,
+    "table_index": 0,
+    "row_index": 3,
+    "cell_index": 1,
+    "table_path": "T1/R4/C2",
+    "matched_text_span": {
+      "start": 0,
+      "end": 13
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "",
+      "after": ""
+    }
+  },
+  {
+    "occurrence_id": "PH_0007",
+    "placeholder": "<Diagnosis>",
+    "node_id": "P_0028",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 6,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 0,
+      "end": 11
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Diagnosis",
+      "after": "Treatment Plan"
+    }
+  },
+  {
+    "occurrence_id": "PH_0008",
+    "placeholder": "<Treatment_Item_1>",
+    "node_id": "P_0030",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 8,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 0,
+      "end": 18
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Treatment Plan",
+      "after": "<Treatment_Item_2>"
+    }
+  },
+  {
+    "occurrence_id": "PH_0009",
+    "placeholder": "<Treatment_Item_2>",
+    "node_id": "P_0031",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 9,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 0,
+      "end": 18
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "<Treatment_Item_1>",
+      "after": "Emergency Contact"
+    }
+  },
+  {
+    "occurrence_id": "PH_0010",
+    "placeholder": "<Contact_Name>",
+    "node_id": "P_0033",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 11,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 17,
+      "end": 31
+    },
+    "inline_context": {
+      "before": "Primary Contact:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Emergency Contact",
+      "after": "Secondary Contact: <Contact_Name>"
+    }
+  },
+  {
+    "occurrence_id": "PH_0011",
+    "placeholder": "<Contact_Name>",
+    "node_id": "P_0034",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 12,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 19,
+      "end": 33
+    },
+    "inline_context": {
+      "before": "Secondary Contact:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Primary Contact: <Contact_Name>",
+      "after": "Medical Notes"
+    }
+  },
+  {
+    "occurrence_id": "PH_0012",
+    "placeholder": "<Medical_Notes>",
+    "node_id": "P_0037",
+    "node_type": "paragraph",
+    "section": "document",
+    "paragraph_index": 15,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 0,
+      "end": 15
+    },
+    "inline_context": {
+      "before": "",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "Notes Start",
+      "after": "Notes End"
+    }
+  },
+  {
+    "occurrence_id": "PH_0013",
+    "placeholder": "<Hospital_Name>",
+    "node_id": "P_0039",
+    "node_type": "paragraph",
+    "section": "header_0",
+    "paragraph_index": 0,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 26,
+      "end": 41
+    },
+    "inline_context": {
+      "before": "Medical Report Template -",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "",
+      "after": ""
+    }
+  },
+  {
+    "occurrence_id": "PH_0014",
+    "placeholder": "<Generated_By>",
+    "node_id": "P_0040",
+    "node_type": "paragraph",
+    "section": "footer_0",
+    "paragraph_index": 0,
+    "table_index": null,
+    "row_index": null,
+    "cell_index": null,
+    "table_path": null,
+    "matched_text_span": {
+      "start": 14,
+      "end": 28
+    },
+    "inline_context": {
+      "before": "Generated By:",
+      "after": ""
+    },
+    "neighbor_context": {
+      "before": "",
+      "after": ""
+    }
+  }
+]
