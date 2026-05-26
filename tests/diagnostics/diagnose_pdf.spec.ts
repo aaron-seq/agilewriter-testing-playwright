@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { openAgileMapping } from './helpers/app-navigation';
+import { openAgileMapping } from '../helpers/app-navigation';
 
 test('Diagnose PDF Rendering Bug (AA-177)', async ({ page }) => {
   // Listen for console errors from the page

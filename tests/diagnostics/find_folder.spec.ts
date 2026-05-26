@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { openAgileMapping } from './helpers/app-navigation';
+import { openAgileMapping } from '../helpers/app-navigation';
 
 test('Find Ideaya Template Folder', async ({ page }) => {
   await openAgileMapping(page);
