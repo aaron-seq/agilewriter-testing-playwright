@@ -6,15 +6,16 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(PROJECT_ROOT))
-from app.pipeline import PlaceholderPipeline
 
+from app.pipeline import PlaceholderPipeline
 
 def main():
 
     pipeline = PlaceholderPipeline()
 
     inventory = pipeline.run(
-        input_docx="tests/basic_sample_template.docx",
+        # input_docx="tests/basic_sample_template.docx",
+        input_docx="tests/CSR_Template_20FEB2026.docx",
         # input_docx="tests/Adv_Sample_Template.docx",
         output_json="tests/output/inventory.json"
     )
