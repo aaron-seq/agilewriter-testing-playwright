@@ -1,8 +1,3 @@
-from classification.models.classification_result import (
-    ClassificationResult
-)
-from classification.models.placeholder_type import PlaceholderType
-
 from classification.precedence import resolve_precedence
 from classification.registry import RuleRegistry
 from classification.result_builder import build_output
@@ -12,12 +7,18 @@ from classification.syntax.tables_rules import TablesSyntaxRule
 from classification.syntax.figure_rules import FigureSyntaxRule
 from classification.syntax.list_rules import ListSyntaxRule
 
+from classification.structural.structural_classifier import (
+    StructuralClassifier
+)
+
 
 class PlaceholderClassifier:
 
     def __init__(self):
 
         self.registry = RuleRegistry()
+
+        self.structural_classifier = StructuralClassifier()
 
         self._register_rules()
 
@@ -31,7 +32,9 @@ class PlaceholderClassifier:
     def classify_occurrence(self, occurrence):
 
         matches = []
-
+        # -----------------------------------
+        # STEP 1 — RUN SYNTAX RULES
+        # -----------------------------------
         for rule in self.registry.get_rules():
 
             result = rule.match(occurrence)
@@ -39,21 +42,41 @@ class PlaceholderClassifier:
             if result:
                 matches.append(result)
 
+        # -----------------------------------
+        # STEP 2 — RESOLVE SYNTAX PRECEDENCE
+        # -----------------------------------
+
         final_result = resolve_precedence(matches)
 
-        if final_result is None:
+        # -----------------------------------
+        # STEP 3 — IF SYNTAX MATCHED,
+        #          RETURN IT IMMEDIATELY
+        # -----------------------------------
 
-            final_result = ClassificationResult(
-                placeholder=occurrence["placeholder"],
-                type=PlaceholderType.UNKNOWN,
-                classification_reason=["UNKNOWN_FALLBACK"],
-                classification_confidence=1.0,
-                matched_rule_ids=[]
+        if final_result is not None:
+
+            return build_output(
+                occurrence,
+                final_result
             )
+
+        # -----------------------------------
+        # STEP 4 — RUN STRUCTURAL CLASSIFIER
+        # -----------------------------------
+
+        structural_result = (
+            self.structural_classifier.classify(
+                occurrence
+            )
+        )
+
+        # -----------------------------------
+        # STEP 5 — RETURN STRUCTURAL RESULT
+        # -----------------------------------
 
         return build_output(
             occurrence,
-            final_result
+            structural_result
         )
 
     def classify_inventory(self, inventory):

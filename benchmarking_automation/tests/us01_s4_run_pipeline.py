@@ -1,4 +1,5 @@
 # tests/us01_s4_run_pipeline.py
+
 import sys
 from pathlib import Path
 
@@ -6,8 +7,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(PROJECT_ROOT))
-
 from app.pipeline import PlaceholderPipeline
+
 
 def main():
 
