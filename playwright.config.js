@@ -43,10 +43,21 @@ module.exports = defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
     },
+    // Diagnostic / investigative scripts — one-off debugging tools with no
+    // assertions. Excluded from normal runs and the UI dropdown. Run explicitly:
+    //   npx playwright test --project=diagnostics --headed
+    //   npx playwright test tests/diagnostics/diagnose_pdf.spec.ts --headed
+    {
+      name: 'diagnostics',
+      testDir: 'tests/diagnostics',
+      use: {
+        storageState: 'playwright/.auth/user.json',
+      },
+    },
     {
       name: 'smarter-tests',
       dependencies: ['setup'],
-      testIgnore: /health_.*\.spec\.ts/,
+      testIgnore: /(health_.*\.spec\.ts|diagnostics\/)/,
       use: {
         storageState: 'playwright/.auth/user.json',
       },

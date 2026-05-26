@@ -30,5 +30,5 @@ test('Find Ideaya Folder', async ({ page }) => {
   
   console.log('Found texts containing "Template":', [...new Set(allTexts)]);
   
-  await page.screenshot({ path: 'ideaya_folder_search.png', fullPage: true });
+  await page.screenshot({ path: 'diagnostics/ideaya_folder_search.png', fullPage: true });
 });
