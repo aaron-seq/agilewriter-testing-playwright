@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # Retry Policy Usage Audit
 
 | Source | File / Location | Value | Scope | Impact |
@@ -10,3 +14,4 @@
 
 ## Conclusion
 The repository has a fragmented retry topology. `AW_00_10` manually hardcodes `retries: 2`. Implementing a global `retries: process.env.CI ? 2 : 0` policy is highly dangerous unless heavy scripts (`health_M264`, `health_ICF_full`, `health_CSR`) are explicitly guarded with `test.describe.configure({ retries: 0 })`.
+

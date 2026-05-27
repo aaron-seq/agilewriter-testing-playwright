@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # DOCX Report Flow Audit
 
 ## Matrix: Generation vs Download Timing
@@ -19,3 +23,4 @@
 
 ## Conclusion
 The bug is a mix of Case B (Download race during synchronous write/disk flush) and Selection Logic (`/download-report` serving `files[0]`). The atomic rename will harden the write phase, but the endpoint MUST be updated to select the newest `.docx`.
+

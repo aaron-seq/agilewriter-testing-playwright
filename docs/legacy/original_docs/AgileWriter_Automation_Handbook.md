@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # What is This Document
 
 Welcome to the central hub for the AgileWriter Playwright Automation project.
@@ -335,3 +339,4 @@ NOT:
 ```js
 const testPath = path.join("tests", testFile);
 ```
+

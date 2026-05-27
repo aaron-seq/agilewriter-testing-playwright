@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # Test Automap Validation Handbook
 
 ## What this repo does
@@ -434,3 +438,4 @@ These are the most reusable ideas from this repo:
 ## Practical takeaway for the AgileWriter suite
 
 This Python repo is strongest as a reference implementation for DOCX structure extraction, placeholder repair, and second-pass alignment, especially when exact placeholder matching breaks down. Its main semantic comparison path is useful, but it is prompt-based LLM scoring rather than embedding similarity or Dice coefficient math. For our Playwright/Node stack, the most valuable borrowable pieces are the extraction and alignment heuristics, while the cleanest integration path is a subprocess job that hands off files and reads back final JSON/report artifacts.
+

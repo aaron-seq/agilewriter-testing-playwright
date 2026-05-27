@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 > cd benchmarking_automation
 
 > .\venv\Scripts\Activate.ps1
@@ -15,3 +19,4 @@
 > python tests/us01_s4_run_pipeline.py
 
 > pytest tests/test_us01_subtask4.py
+
