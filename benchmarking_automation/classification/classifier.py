@@ -81,7 +81,15 @@ class PlaceholderClassifier:
 
     def classify_inventory(self, inventory):
 
+        sorted_inventory = sorted(
+            inventory,
+            key=lambda x: x.get(
+                "occurrence_id",
+                x.get("placeholder", "")
+            )
+        )
+
         return [
             self.classify_occurrence(item)
-            for item in inventory
+            for item in sorted_inventory
         ]
