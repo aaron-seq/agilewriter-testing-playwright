@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 > cd benchmarking_automation
 
 > .\venv\Scripts\Activate.ps1

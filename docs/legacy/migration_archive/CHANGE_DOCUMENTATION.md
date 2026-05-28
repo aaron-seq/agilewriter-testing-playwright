@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # Agile Writer Test — Change Documentation (health_Ideaya Branch)
 
 ## AA-173 & AA-176: UI Test Dropdown Cleanup + SAFE_ENV_KEYS Config
@@ -150,3 +154,4 @@ A dual-layer fix was implemented. First, `generate-word-report.js` was updated t
 
 **Validation**
 Run a heavy DOCX report generation through the UI and immediately click download. The file will reliably open in Word without corruption errors, or the UI will gracefully handle a 503 retry.
+

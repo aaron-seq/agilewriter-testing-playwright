@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # Environment Variables Reference
 
 <!-- ADDED May 2026 -->
@@ -155,3 +159,4 @@ C:\Users\Aaron Sequeira\Agile Writer Test
 | HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED | ICF Trimmed health script | QA Testing                                         |
 | HEALTH_SOURCES_ICF_TRIMMED         | ICF Trimmed health script | Protocol Example (28Sep2023)_trimmed.docx          |
 | HEALTH_SOURCE_FOLDER_ICF_TRIMMED   | ICF Trimmed health script | Protocol                                           |
+

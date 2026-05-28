@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # What is This Document
 
 Welcome! If you are reading this, you want to understand how we automatically grade the AI's performance.
@@ -143,7 +147,7 @@ Not all placeholders are just a few words. The scorer uses different logic and d
 - **Logic:** Counts the rows and columns in the expected text. Counts the rows and columns in the AI's HTML output. If they match exactly, it's marked as "Aligned". It then calculates Dice similarity across all the cell data.
 - **Threshold:** Match ≥ `0.65`, Partial ≥ `0.40`
 
-# The ICF Walkthrough — A Real Example
+# The ICF Walkthrough: A Real Example
 
 Let's walk through what happens when we run the scorer on the ICF Full document. We feed the scorer two files:
 
@@ -166,21 +170,21 @@ Here is how the scorer handles 5 real examples from that run:
 - **Math:** The scorer finds the header sentence. The full text Dice score is `0.71`. Because `0.71` is greater than the `0.65` threshold for Paragraphs...
 - **Result:** **Match** ✓
 
-**Example 3 — List: `<list of study procedures>`**
+**Example 3: List: `<list of study procedures>`**
 
 - **Reference Expected:** 8 bullet points.
 - **AI Output:** 7 bullet points (the AI combined two of them into one sentence).
 - **Math:** The points match check fails (`8 ≠ 7`). The average text similarity is `0.62`. Because `0.62` is less than `0.65` but higher than `0.40`...
 - **Result:** **Partial Match**
 
-**Example 4 — Table: `<adverse events table>`**
+**Example 4: Table: `<adverse events table>`**
 
 - **Reference Expected:** 3 rows by 4 columns.
 - **AI Output:** An HTML table with `<tr>` and `<td>` tags resulting in 3 rows and 4 columns.
 - **Math:** The rows and columns match perfectly, so Alignment is `true`. The text inside the cells scores a `0.89`.
 - **Result:** **Match** ✓
 
-**Example 5 — Skipped: `<CRO Name>`**
+**Example 5: Skipped: `<CRO Name>`**
 
 - **Reference Expected:** "" (Completely blank).
 - **AI Output:** "" (Also blank).
@@ -467,3 +471,4 @@ This ensures the `.env` at the project root is always loaded regardless of which
 directory the server process is started from. The accuracy scorer routes themselves
 do not require any specific `.env` variables — they work as long as the server starts
 and the `reference_files/` and `raw_qa_files/` directories exist.
+

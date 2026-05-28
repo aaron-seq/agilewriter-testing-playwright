@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # What is This Document
 
 Welcome! If you are reading this, you are likely looking to understand how we automatically verify that AgileWriter is working correctly. 
@@ -421,3 +425,4 @@ Leave `SESSION_ID` blank to keep legacy `reports\` behavior for terminal runs.
 
 - Inayat Shaik Karaballa - `server\`, `generate-word-report.js`, session isolation, `global-setup.js`
 - Aaron Sequeira - health scripts, accuracy scorer, `reference-file-loader.ts`, `step-tracker.ts`, documentation
+

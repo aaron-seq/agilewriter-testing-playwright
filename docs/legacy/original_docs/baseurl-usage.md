@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # BASEURL Usage Audit
 
 | File | Pattern | Risk | Required Change |
@@ -10,3 +14,4 @@
 
 ## Conclusion
 Because multiple files explicitly concatenate `BASEURL + '/signin'`, the dynamic `BASEURL` **must absolutely not** contain a trailing slash. Normalize to the root host.
+

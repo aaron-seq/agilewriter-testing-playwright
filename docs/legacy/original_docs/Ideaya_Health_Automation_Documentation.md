@@ -1,3 +1,7 @@
+Document Status: Historical
+Superseded By: TBD
+Reason Preserved: Original implementation retained
+
 # Ideaya Health Automation: Complete Technical Documentation
 
 **Branch:** `health_Ideaya`
@@ -268,7 +272,7 @@ Engineers setting up Ideaya runs will see exactly which variables to configure. 
 
 ---
 
-## 6. New File Created — `health_Ideaya.spec.ts`
+## 6. New File Created: `health_Ideaya.spec.ts`
 
 This is the main deliverable of the branch. It is a Playwright test spec that runs the complete Ideaya health report pipeline end to end.
 
@@ -312,7 +316,7 @@ The test reads the computed CSS `background-color` of each `.doc-placeholder` el
 
 ---
 
-## 7. The Full Test Flow — Step by Step
+## 7. The Full Test Flow: Step by Step
 
 Here is the complete flow of what happens when `npx playwright test tests/health_Ideaya.spec.ts --headed` is run:
 
@@ -557,3 +561,4 @@ All three validation commands were run on the final branch state before pushing.
 | **`sourceFolder`**                  | The primary SharePoint folder name configured in `.env` for Ideaya                                   |
 | **`sourceParentFolder`**            | The fallback parent folder name if `sourceFolder` is not found directly                              |
 | **Merge base conflict**             | A conflict caused by two branches diverging from a common ancestor and making incompatible changes   |
+
