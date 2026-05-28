@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from classification.classifier import PlaceholderClassifier
 
 
-# Path to SCC-37 inventory output
+# Path to SCC-39 inventory output
 inventory_path = (
     PROJECT_ROOT
     / "tests"
