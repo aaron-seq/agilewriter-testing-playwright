@@ -12,6 +12,7 @@ const CONFIG_FILE = process.env.SESSION_ID
 type HealthConfig = {
   reportName: string;
   templateName: string;
+  templateSearchTerm?: string;
   templateFolder: string;
   sourceNames: string[];
   sourceFolder?: string;
@@ -21,7 +22,9 @@ type HealthConfig = {
   sourceSelectionMode?: 'file' | 'folder';
   sourceParentFolder?: string;
   sourceNestedFolders?: string[];
+  sourceFolders?: string[];
   allowMissingSourcesSoft?: boolean;
+  stopBeforeTraining?: boolean;
 };
 
 type HealthConfigs = {
@@ -30,6 +33,7 @@ type HealthConfigs = {
   icfFull: HealthConfig;
   icfTrimmed: HealthConfig;
   ideaya: HealthConfig;
+  ideayaPreflight: HealthConfig;
 };
 
 type Config = {
@@ -53,7 +57,12 @@ type Config = {
 };
 
 function csv(value: string): string[] {
-  return value.split(',').map((item) => item.trim());
+  return value.split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function bool(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  return /^(true|1|yes)$/i.test(value.trim());
 }
 
 function defaultHealthConfigs(): HealthConfigs {
@@ -121,6 +130,19 @@ function defaultHealthConfigs(): HealthConfigs {
       sourceNestedFolders: csv(process.env.HEALTH_SOURCE_NESTED_FOLDERS_IDEAYA || 'Efficacy Tables_Test_EP,Safety Tables_Test_EP,Test [From Synterex]'),
       allowMissingSourcesSoft: true,
     },
+    ideayaPreflight: {
+      reportName: 'Ideaya PRODTEST Preflight',
+      templateName: 'IDE196-009 Clinical Study Report_Template_27May_updated.docx',
+      templateSearchTerm: 'IDE196-009 Clinical Study Report_Template_27May_updated',
+      templateFolder: 'Template for SC',
+      sourceNames: [],
+      outputPrefix: 'TEST_Ideaya',
+      expectedTrainingMinutes: 30,
+      templateTab: 'Clinical',
+      sourceParentFolder: 'IDE196-009 TFLs',
+      sourceFolders: csv(process.env.HEALTH_SOURCE_FOLDERS_IDEAYA || 'Tables_Test_EP'),
+      stopBeforeTraining: bool(process.env.HEALTH_STOP_BEFORE_TRAINING_IDEAYA, true),
+    },
   };
 }
 
@@ -151,6 +173,7 @@ function mergeConfig(overrides: Partial<Config>): Config {
       icfFull: { ...defaults.health.icfFull, ...overrides.health?.icfFull },
       icfTrimmed: { ...defaults.health.icfTrimmed, ...overrides.health?.icfTrimmed },
       ideaya: { ...defaults.health.ideaya, ...overrides.health?.ideaya },
+      ideayaPreflight: { ...defaults.health.ideayaPreflight, ...overrides.health?.ideayaPreflight },
 },
   };
 }

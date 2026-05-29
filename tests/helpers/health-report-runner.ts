@@ -64,6 +64,8 @@ export type HealthReportConfig = {
   reportName: string;
   /** Template document filename (e.g., "ICF_SET0_TRIMMED.docx") */
   templateName: string;
+  /** Optional shorter search term for long PRODTEST template filenames. */
+  templateSearchTerm?: string;
   /** Folder name that appears after searching for the template (e.g., "QA Testing") */
   templateFolder: string;
   /** Source document filenames — comma-separated in .env, array here */
@@ -96,14 +98,26 @@ export type HealthReportConfig = {
   sourceParentFolder?: string;
   /** Nested folders to select inside the parent folder. */
   sourceNestedFolders?: string[];
+  /** Source folders selected in one picker session for preflight or multi-folder runs. */
+  sourceFolders?: string[];
   /** If true, missing nested folders will be tracked as a soft failure without stopping the test. */
   allowMissingSourcesSoft?: boolean;
+  /** Stops after source selection so training is never triggered during preflight validation. */
+  stopBeforeTraining?: boolean;
 };
 
 // ──────────────────────────────────────────────
 // HELPER FUNCTIONS
 // ──────────────────────────────────────────────
 
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function scopedFolderError(folderName: string, parentFolder: string): Error {
+  return new Error(`Could not find ${folderName} under ${parentFolder} — aborting to avoid selecting wrong folder.`);
+}
 
 /**
  * Select a template document using the search-based approach.
@@ -126,8 +140,10 @@ async function selectTemplateBySearch(
   page: Page,
   templateName: string,
   folderName: string,
-  templateTab?: 'Clinical' | 'Non-Clinical'
+  templateTab?: 'Clinical' | 'Non-Clinical',
+  templateSearchTerm?: string
 ): Promise<void> {
+  const searchTerm = templateSearchTerm || templateName;
   console.log(`[Template] Selecting "${templateName}" in folder "${folderName}" (${templateTab || 'Clinical'})`);
 
   // 1. Open the template picker
@@ -149,25 +165,28 @@ async function selectTemplateBySearch(
   const searchBox = page.getByRole('textbox', { name: 'Search files' });
   await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
   await searchBox.click();
-  await searchBox.fill(templateName);
-  console.log(`[Template] Searching for "${templateName}"...`);
+  await searchBox.fill(searchTerm);
+  console.log(`[Template] Searching for "${searchTerm}"...`);
 
-  // 3. Wait for the expand button and click the left side arrow (Expand)
-  const expandButton = page.getByRole('button', { name: `Expand ${folderName}` });
-  await expect(expandButton).toBeVisible({ timeout: 20_000 });
-  await expandButton.click();
-  console.log(`[Template] Clicked expand for folder "${folderName}"`);
-
-  // 4. Wait for Collapse confirmation before proceeding
-  const collapseButton = page.getByRole('button', { name: `Collapse ${folderName}` });
-  await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
-  console.log(`[Template] Expanded folder "${folderName}" confirmed`);
-
-  // 5. Select the file's checkbox
-  const safeName = templateName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  // 3. Prefer direct file rows. PRODTEST search can show the template without
+  // requiring Organization Templates folder expansion.
+  const safeName = escapeRegExp(templateName);
   const fileCheckbox = page
     .getByRole('checkbox', { name: new RegExp(`Select.*${safeName}`, 'i') })
     .first();
+
+  if (!(await fileCheckbox.isVisible({ timeout: 10_000 }).catch(() => false))) {
+    const expandButton = page.getByRole('button', { name: `Expand ${folderName}` });
+    await expect(expandButton).toBeVisible({ timeout: 20_000 });
+    await expandButton.click();
+    console.log(`[Template] Clicked expand for folder "${folderName}"`);
+
+    const collapseButton = page.getByRole('button', { name: `Collapse ${folderName}` });
+    await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+    console.log(`[Template] Expanded folder "${folderName}" confirmed`);
+  }
+
+  // 4. Select the file's checkbox
   await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
   await fileCheckbox.check();
   console.log(`[Template] ✓ Checked "${templateName}"`);
@@ -463,6 +482,133 @@ async function selectFolderSourcesBySearch(
   console.log(`[Sources] ✓ Folder-based sources selection finished`);
 }
 
+async function selectMultipleFolderSources(
+  page: Page,
+  config: HealthReportConfig
+): Promise<void> {
+  const folderNames = config.sourceFolders || [];
+  const templateTab = config.templateTab || 'Clinical';
+
+  console.log(`[Sources] Selecting ${folderNames.length} folder(s) in one picker session (${templateTab})...`);
+
+  await page.getByRole('button', { name: /Select source documents/i }).click();
+
+  if (templateTab !== 'Clinical') {
+    const tab = page.getByRole('tab', { name: templateTab });
+    if (await tab.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await tab.click();
+      await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: UI_TIMEOUT });
+      console.log(`[Sources] Switched to "${templateTab}" tab`);
+    }
+  }
+
+  const searchBox = page.getByRole('textbox', { name: 'Search files' });
+  await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
+
+  for (const folderName of folderNames) {
+    const trimmedFolderName = folderName.trim();
+    if (!trimmedFolderName) continue;
+
+    await searchBox.click();
+    await searchBox.fill(trimmedFolderName);
+    console.log(`[Sources] Searching for folder "${trimmedFolderName}"...`);
+
+    if (config.sourceParentFolder) {
+      const parentFolder = config.sourceParentFolder;
+      const parentExpand = page.getByRole('button', { name: `Expand ${parentFolder}` }).first();
+      const parentCollapse = page.getByRole('button', { name: `Collapse ${parentFolder}` }).first();
+
+      if (await parentExpand.isVisible({ timeout: 15_000 }).catch(() => false)) {
+        await parentExpand.click();
+      }
+
+      if (!(await parentCollapse.isVisible({ timeout: UI_TIMEOUT }).catch(() => false))) {
+        throw scopedFolderError(trimmedFolderName, parentFolder);
+      }
+      const parentBox = await parentCollapse.boundingBox();
+
+      const childExpand = page.getByRole('button', { name: `Expand ${trimmedFolderName}` }).first();
+      const childCollapse = page.getByRole('button', { name: `Collapse ${trimmedFolderName}` }).first();
+      if (await childExpand.isVisible({ timeout: 10_000 }).catch(() => false)) {
+        await childExpand.click();
+      }
+
+      const childExpanded = await childCollapse.isVisible({ timeout: 10_000 }).catch(() => false);
+      const exactFolderCheckboxes = page
+        .getByRole('checkbox', { name: new RegExp(`^Select\\s+${escapeRegExp(trimmedFolderName)}$`, 'i') });
+
+      let scopedFolderCheckbox: Locator | null = null;
+      const checkboxCount = await exactFolderCheckboxes.count();
+      for (let i = 0; i < checkboxCount; i++) {
+        const candidate = exactFolderCheckboxes.nth(i);
+        const candidateBox = await candidate.boundingBox().catch(() => null);
+        // The picker tree is rendered visually as nested rows. Confirm the
+        // selected folder appears below the confirmed parent before checking it.
+        if (parentBox && candidateBox && candidateBox.y > parentBox.y) {
+          scopedFolderCheckbox = candidate;
+          break;
+        }
+      }
+
+      if (!childExpanded || !scopedFolderCheckbox) {
+        throw scopedFolderError(trimmedFolderName, parentFolder);
+      }
+
+      await scopedFolderCheckbox.check();
+      console.log(`[Sources] ✓ Checked "${trimmedFolderName}" under "${parentFolder}"`);
+    } else {
+      const folderCheckbox = page
+        .getByRole('checkbox', { name: new RegExp(`^Select\\s+${escapeRegExp(trimmedFolderName)}$`, 'i') })
+        .first();
+      await expect(folderCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
+      await folderCheckbox.check();
+      console.log(`[Sources] ✓ Checked "${trimmedFolderName}"`);
+    }
+
+    // Clear between searches so stale filtered results cannot affect the next folder.
+    await searchBox.fill('');
+  }
+
+  const doneBtn = page.getByRole('button', { name: 'Done [ENTER]' });
+  await doneBtn.click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(async () => {
+    console.log('  ⚠ Dialog did not close, trying Enter key...');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT });
+  });
+
+  await expect(page.getByRole('button', { name: /\d+\s+files?:/i }).first()).toBeVisible({ timeout: UI_TIMEOUT });
+  console.log(`[Sources] ✓ Multi-folder source selection finished`);
+}
+
+async function stopBeforeTrainingGate(page: Page): Promise<void> {
+  const sourceDocumentsButton = page.getByRole('button', { name: /\d+\s+files?:/i }).first();
+  await expect(sourceDocumentsButton).toBeVisible({ timeout: UI_TIMEOUT });
+
+  const sourceButtonText = await sourceDocumentsButton.innerText();
+  const fileCountMatch = sourceButtonText.match(/(\d+)\s+files?/i);
+  const selectedFileCount = fileCountMatch ? Number(fileCountMatch[1]) : 0;
+  expect(selectedFileCount, `Expected selected source file count > 0, received "${sourceButtonText}"`).toBeGreaterThan(0);
+
+  await expect(page.getByRole('button', { name: /Start Training/i })).toBeVisible({ timeout: UI_TIMEOUT });
+
+  if (await page.getByText(/Connecting to SharePoint/i).first().isVisible({ timeout: 1_000 }).catch(() => false)) {
+    throw new Error('Preflight safety check failed: training appears to have started.');
+  }
+
+  const screenshotDir = path.join(process.cwd(), 'reports', 'screenshots');
+  if (!fs.existsSync(screenshotDir)) {
+    fs.mkdirSync(screenshotDir, { recursive: true });
+  }
+
+  await page.screenshot({
+    path: path.join(screenshotDir, 'ideaya-preflight.png'),
+    fullPage: true,
+  });
+}
+
 
 /**
  * Wait for all 3 training stages to complete.
@@ -544,22 +690,35 @@ export async function runHealthReport(
   // ─── Step 3: Select template ───
   await trackStep(page, testName, `Select template: ${config.templateName}`,
     'Template document is selected from file picker', async () => {
-      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.templateTab);
+      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.templateTab, config.templateSearchTerm);
     });
 
   // ─── Step 4: Select source documents ───
-  const sourceStepName = config.sourceSelectionMode === 'folder'
+  const sourceStepName = config.sourceFolders && config.sourceFolders.length > 0
+    ? `Select source folders: ${config.sourceFolders.join(', ')}`
+    : config.sourceSelectionMode === 'folder'
     ? 'Select folder-based sources'
     : `Select sources: ${config.sourceNames.join(', ')}`;
 
   await trackStep(page, testName, sourceStepName,
     'Source documents are selected from file picker', async () => {
-      if (config.sourceSelectionMode === 'folder') {
+      if (config.sourceFolders && config.sourceFolders.length > 0) {
+        await selectMultipleFolderSources(page, config);
+      } else if (config.sourceSelectionMode === 'folder') {
         await selectFolderSourcesBySearch(page, testName, config);
       } else {
         await selectSourcesBySearch(page, config.sourceNames, config.sourceFolder || '', config.templateTab);
       }
     });
+
+  if (config.stopBeforeTraining) {
+    await trackStep(page, testName, 'Pre-training stop gate',
+      'Source selection is confirmed and training is not started', async () => {
+        await stopBeforeTrainingGate(page);
+      });
+    console.log('[Preflight] stopBeforeTraining=true; returning before Start Training.');
+    return;
+  }
 
   // ─── Step 5: Start training ───
   await trackStep(page, testName, 'Start training',

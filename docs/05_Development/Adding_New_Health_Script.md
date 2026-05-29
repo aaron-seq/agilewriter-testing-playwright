@@ -123,6 +123,44 @@ Preserve
 
 **Confidence**: Observed
 
+## Multi-Folder Source Selection (Ideaya PRODTEST)
+
+Ideaya PRODTEST preflight is a safe validation flow for checking SharePoint picker
+selection before an expensive training run begins.
+
+Current confirmed scope:
+
+- Destination template: `IDE196-009 Clinical Study Report_Template_27May_updated.docx`
+- Template folder: `Template for SC`
+- Source parent folder: `IDE196-009 TFLs`
+- Source folder: `Tables_Test_EP`
+- Stop behavior: `stopBeforeTraining=true`
+
+The preflight script must select the source folder only after confirming it is
+under `IDE196-009 TFLs`. This avoids a false pass where a similarly named
+`Tables_Test_EP` folder from another study is selected by mistake.
+
+How to run the safe validation:
+
+```powershell
+npx playwright test tests/health_Ideaya_preflight.spec.ts --project=health --headed
+```
+
+Expected behavior:
+
+- the template is selected from PRODTEST
+- `Tables_Test_EP` is selected under `IDE196-009 TFLs`
+- the source document button shows a file count greater than zero
+- `Start Training` is visible
+- training is not started
+- screenshot is saved to `reports/screenshots/ideaya-preflight.png`
+
+To add another confirmed source folder later, update the comma-separated
+`HEALTH_SOURCE_FOLDERS_IDEAYA` value. The helper already loops through the
+array, so no code change should be needed after the folder is confirmed.
+
+**Confidence**: Observed
+
 ## Rollback Expectations
 
 If unexpected instability is observed:

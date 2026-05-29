@@ -81,6 +81,23 @@ Example parameters (using `CSR`):
 * `HEALTH_SOURCE_FOLDER_CSR`: The SharePoint folder containing the source files.
 * `HEALTH_OUTPUT_PREFIX_CSR`: The prefix for the generated document.
 * `HEALTH_EXPECTED_MINUTES_IDEAYA`: Training duration timeout overrides (specifically used in Ideaya runs).
+* `HEALTH_SOURCE_FOLDERS_IDEAYA`: Comma-separated source folders for the Ideaya PRODTEST preflight. Current confirmed value: `Tables_Test_EP`.
+* `HEALTH_STOP_BEFORE_TRAINING_IDEAYA`: Safety flag for the Ideaya preflight. Use `true` so the script validates picker selection and stops before training.
+
+#### Ideaya PRODTEST Preflight Variables
+
+The Ideaya preflight is used to validate the IDE196-009 picker setup without
+starting training.
+
+| Variable | Purpose | Example | Primary Consumer | Confidence |
+| :--- | :--- | :--- | :--- | :--- |
+| `HEALTH_SOURCE_FOLDERS_IDEAYA` | Source folders selected under the confirmed Ideaya parent folder. Add more folders only after they are confirmed in PRODTEST. | `Tables_Test_EP` | `tests/health_Ideaya_preflight.spec.ts` | Observed |
+| `HEALTH_STOP_BEFORE_TRAINING_IDEAYA` | Keeps the preflight from clicking `Start Training`. | `true` | `runHealthReport()` stop gate | Observed |
+
+If a second Ideaya source folder is confirmed later, add it as a comma-separated
+value, for example `Tables_Test_EP,test for summary of tables`. Do not add
+unconfirmed folders, because picker search may match a similarly named folder
+from another study.
 
 ## Derived Configuration Concepts
 
