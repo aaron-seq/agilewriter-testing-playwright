@@ -52,5 +52,6 @@ class StructuralClassifier:
             classification_confidence=0.0,
             classification_reason=[
                 "NO_STRUCTURAL_RULE_MATCH"
-            ]
+            ],
+            matched_rule_ids=[]
         )

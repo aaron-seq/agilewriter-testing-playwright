@@ -30,6 +30,16 @@ us02
 
 > python tests/classification/us02_s1_inv_usage.py
 
-> pytest tests/classification/test_structural_classifier.py  -v
+> pytest tests/classification/test_structural_classifier.py -v
 
 > python tests/classification/us02_s2_structural_validation.py
+
+us02_s3
+
+> pytest tests/classification/regression/test_deterministic_output.py
+
+> pytest tests/classification/integration/test_empty_inventory.py
+
+> pytest tests/classification/integration/test_schema_validator.py
+
+> pytest tests/classification/integration/test_contract_preservation.py
