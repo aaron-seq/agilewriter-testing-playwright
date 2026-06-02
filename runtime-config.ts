@@ -11,8 +11,10 @@ const CONFIG_FILE = process.env.SESSION_ID
 
 type HealthConfig = {
   reportName: string;
+  clientName?: string;
   templateName: string;
   templateSearchTerm?: string;
+  templateParentFolder?: string;
   templateFolder: string;
   sourceNames: string[];
   sourceFolder?: string;
@@ -66,6 +68,10 @@ function bool(value: string | undefined, fallback: boolean): boolean {
 }
 
 function defaultHealthConfigs(): HealthConfigs {
+  const ideayaPreflightTemplate =
+    process.env.HEALTH_TEMPLATE_IDEAYA_PREFLIGHT ||
+    'IDE196-009 Clinical Study Report_Template_27May_updated.docx';
+
   return {
     csr: {
       reportName: 'CSR',
@@ -132,9 +138,13 @@ function defaultHealthConfigs(): HealthConfigs {
     },
     ideayaPreflight: {
       reportName: 'Ideaya PRODTEST Preflight',
-      templateName: 'IDE196-009 Clinical Study Report_Template_27May_updated.docx',
-      templateSearchTerm: 'IDE196-009 Clinical Study Report_Template_27May_updated',
-      templateFolder: 'Template for SC',
+      clientName: process.env.HEALTH_CLIENT_IDEAYA_PREFLIGHT || 'PRODTEST',
+      templateName: ideayaPreflightTemplate,
+      templateSearchTerm: ideayaPreflightTemplate.replace(/\.docx$/i, ''),
+      templateParentFolder:
+        process.env.HEALTH_PARENT_FOLDER_IDEAYA_PREFLIGHT || 'IDE-196-009 CSR V1',
+      templateFolder:
+        process.env.HEALTH_TEMPLATE_FOLDER_IDEAYA_PREFLIGHT || 'Template for SC',
       sourceNames: [],
       outputPrefix: 'TEST_Ideaya',
       expectedTrainingMinutes: 30,

@@ -62,10 +62,14 @@ const TRAINING_TIMEOUT = 2_400_000;
 export type HealthReportConfig = {
   /** Human-readable name for this report (e.g., "ICF Trimmed") */
   reportName: string;
+  /** Optional client context to select before running this health flow. */
+  clientName?: string;
   /** Template document filename (e.g., "ICF_SET0_TRIMMED.docx") */
   templateName: string;
   /** Optional shorter search term for long PRODTEST template filenames. */
   templateSearchTerm?: string;
+  /** Optional parent folder used when a template is nested below a study folder. */
+  templateParentFolder?: string;
   /** Folder name that appears after searching for the template (e.g., "QA Testing") */
   templateFolder: string;
   /** Source document filenames — comma-separated in .env, array here */
@@ -115,6 +119,33 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+async function ensureClientContext(page: Page, clientName?: string): Promise<void> {
+  if (!clientName) {
+    return;
+  }
+
+  const safeClientName = escapeRegExp(clientName);
+  if (await page.getByRole('button', { name: new RegExp(`^${safeClientName}$`, 'i') }).first().isVisible({ timeout: 2_000 }).catch(() => false)) {
+    console.log(`[Client] Already in "${clientName}" context`);
+    return;
+  }
+
+  const currentClientButton = page.getByRole('button', { name: /^(ORG|PRODTEST)$/i }).first();
+  await expect(currentClientButton).toBeVisible({ timeout: UI_TIMEOUT });
+  await currentClientButton.click();
+
+  const dialog = page.getByRole('dialog', { name: /Select Client/i });
+  await expect(dialog).toBeVisible({ timeout: UI_TIMEOUT });
+
+  const targetClientButton = page
+    .getByRole('button', { name: new RegExp(safeClientName, 'i') })
+    .first();
+  await expect(targetClientButton).toBeVisible({ timeout: UI_TIMEOUT });
+  await targetClientButton.click();
+  await expect(dialog).toBeHidden({ timeout: UI_TIMEOUT }).catch(() => {});
+  console.log(`[Client] Switched to "${clientName}" context`);
+}
+
 function scopedFolderError(folderName: string, parentFolder: string): Error {
   return new Error(`Could not find ${folderName} under ${parentFolder} — aborting to avoid selecting wrong folder.`);
 }
@@ -136,15 +167,135 @@ function scopedFolderError(folderName: string, parentFolder: string): Error {
  *   - Faster and more reliable
  *   - Matches how a human user would find a specific file
  */
+// ⚠ COPY-DEPENDENT SELECTOR: The string "No files match" is a UI copy string
+// rendered by the AgileWriter template picker when search returns zero results.
+// This exact text is used in p:has-text("No files match") selectors throughout
+// this function (clearSearchForTree, searchForFolder, and the Phase 1 search
+// race). If the UI copy changes (localization, redesign, i18n), these selectors
+// will silently stop detecting zero-result states and the helper will fall
+// through to tree navigation without realizing search actually returned results.
+// Last verified: 2026-06-01 against PRODTEST environment.
+/*
+ * FIXED: 2026-06-01 - Ideaya template not found due to scroll/pagination
+ * Root cause: File in PRODTEST section below scroll boundary, search did not filter
+ * Fix: Two-phase approach - search first, tree navigation with scrollIntoViewIfNeeded fallback
+ * Tested against: ICF Trimmed (must still pass), Ideaya preflight (was failing)
+ */
 async function selectTemplateBySearch(
   page: Page,
   templateName: string,
   folderName: string,
   templateTab?: 'Clinical' | 'Non-Clinical',
-  templateSearchTerm?: string
+  templateSearchTerm?: string,
+  templateParentFolder?: string
 ): Promise<void> {
   const searchTerm = templateSearchTerm || templateName;
+  const safeName = escapeRegExp(templateName);
+  const safeSelectorName = templateName.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const ariaFileSelector = `[aria-label="${safeSelectorName}"]`;
+  let prodtestFound = false;
   console.log(`[Template] Selecting "${templateName}" in folder "${folderName}" (${templateTab || 'Clinical'})`);
+
+  const fileCheckbox = page
+    .getByRole('checkbox', { name: new RegExp(`Select.*${safeName}`, 'i') })
+    .first();
+
+  const isFileVisible = async (timeout = 5_000): Promise<boolean> =>
+    fileCheckbox.isVisible({ timeout }).catch(() => false);
+
+  const clearSearchForTree = async (searchBox: Locator): Promise<void> => {
+    await searchBox.click({ clickCount: 3 });
+    await searchBox.fill('');
+    await page
+      .locator('p:has-text("No files match")')
+      .waitFor({ state: 'hidden', timeout: 5000 })
+      .catch(() => {});
+  };
+
+  const ensureFolderExpanded = async (targetFolderName = folderName): Promise<void> => {
+    const safeFolderName = escapeRegExp(targetFolderName);
+    const folderTreeItem = page
+      .getByRole('treeitem', { name: new RegExp(`Folder:\\s*${safeFolderName}`, 'i') })
+      .first();
+    const folderButton = page
+      .getByRole('button', { name: new RegExp(`Folder:\\s*${safeFolderName}`, 'i') })
+      .first();
+
+    await folderTreeItem.scrollIntoViewIfNeeded({ timeout: 5_000 }).catch(() => {});
+
+    const expandedState = await folderTreeItem.getAttribute('aria-expanded').catch(() => null);
+    if (expandedState === 'true') {
+      console.log(`[Template] Folder "${targetFolderName}" already expanded`);
+      return;
+    }
+
+    const expandButton = page.getByRole('button', { name: `Expand ${targetFolderName}` });
+    if (await expandButton.isVisible({ timeout: 10_000 }).catch(() => false)) {
+      const collapseButton = page.getByRole('button', { name: `Collapse ${targetFolderName}` });
+      await expandButton.scrollIntoViewIfNeeded().catch(() => {});
+      await expandButton.click();
+      console.log(`[Template] Clicked expand for folder "${targetFolderName}"`);
+      await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+      console.log(`[Template] Expanded folder "${targetFolderName}" confirmed`);
+      return;
+    }
+
+    if (await folderButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await folderButton.click();
+      console.log(`[Template] Clicked folder row for "${targetFolderName}"`);
+    }
+  };
+
+  const searchForFolder = async (targetFolderName: string): Promise<boolean> => {
+    const safeFolderName = escapeRegExp(targetFolderName);
+    const folderTreeItem = page
+      .getByRole('treeitem', { name: new RegExp(`Folder:\\s*${safeFolderName}`, 'i') })
+      .first();
+
+    console.log(`[Template] Searching folder tree for "${targetFolderName}"...`);
+    await searchBox.click({ clickCount: 3 });
+    await searchBox.fill(targetFolderName);
+    await page.keyboard.press('Enter');
+
+    await Promise.race([
+      folderTreeItem.waitFor({ state: 'visible', timeout: 5_000 }).then(() => 'folder').catch(() => 'folder-timeout'),
+      page.waitForSelector('p:has-text("No files match")', { timeout: 5_000 }).then(() => 'no-results').catch(() => 'no-results-timeout'),
+    ]);
+
+    return await folderTreeItem.isVisible({ timeout: 1_000 }).catch(() => false);
+  };
+
+  const scanTreePagesForTarget = async (): Promise<boolean> => {
+    const folderLabel = page.getByText(folderName, { exact: true }).first();
+
+    for (let pageIndex = 1; pageIndex <= 6; pageIndex += 1) {
+      const expandAllButton = page.getByRole('button', { name: 'Expand all folders' });
+      if (await expandAllButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        console.log(`[Template] Scanning tree page ${pageIndex}; expanding visible folders`);
+        await expandAllButton.click();
+        await fileCheckbox.waitFor({ state: 'visible', timeout: 3_000 }).catch(() => undefined);
+      }
+
+      if (await isFileVisible(1_000) || await folderLabel.isVisible({ timeout: 1_000 }).catch(() => false)) {
+        return true;
+      }
+
+      const nextPageButton = page.getByRole('button', { name: 'Next page' }).first();
+      const canGoNext =
+        await nextPageButton.isVisible({ timeout: 1_000 }).catch(() => false) &&
+        await nextPageButton.isEnabled().catch(() => false);
+
+      if (!canGoNext) {
+        return false;
+      }
+
+      console.log(`[Template] Target not found on tree page ${pageIndex}; moving to next page`);
+      await nextPageButton.click();
+      await page.getByRole('tree', { name: /Clinical files/i }).waitFor({ state: 'visible', timeout: 5_000 });
+    }
+
+    return await isFileVisible(1_000);
+  };
 
   // 1. Open the template picker
   await page.getByRole('button', { name: /Select destination template/i }).click();
@@ -161,34 +312,96 @@ async function selectTemplateBySearch(
     console.log(`[Template] Switched to "${templateTab}" tab`);
   }
 
-  // 2. Search for file by name
+  // Phase 1: Search for file by name.
   const searchBox = page.getByRole('textbox', { name: 'Search files' });
   await expect(searchBox).toBeVisible({ timeout: UI_TIMEOUT });
-  await searchBox.click();
+  await searchBox.click({ clickCount: 3 });
   await searchBox.fill(searchTerm);
-  console.log(`[Template] Searching for "${searchTerm}"...`);
+  await page.keyboard.press('Enter');
+  console.log(`[Template] Searching for "${searchTerm}" in folder "${folderName}"...`);
 
-  // 3. Prefer direct file rows. PRODTEST search can show the template without
-  // requiring Organization Templates folder expansion.
-  const safeName = escapeRegExp(templateName);
-  const fileCheckbox = page
-    .getByRole('checkbox', { name: new RegExp(`Select.*${safeName}`, 'i') })
-    .first();
+  const noResults = page.locator('p:has-text("No files match")').first();
+  const searchOutcome = await Promise.race([
+    page.waitForSelector(ariaFileSelector, { timeout: 5_000 }).then(() => 'file').catch(() => 'file-timeout'),
+    page.waitForSelector('p:has-text("No files match")', { timeout: 5_000 }).then(() => 'no-results').catch(() => 'no-results-timeout'),
+  ]);
 
-  if (!(await fileCheckbox.isVisible({ timeout: 10_000 }).catch(() => false))) {
-    const expandButton = page.getByRole('button', { name: `Expand ${folderName}` });
-    await expect(expandButton).toBeVisible({ timeout: 20_000 });
-    await expandButton.click();
-    console.log(`[Template] Clicked expand for folder "${folderName}"`);
+  if (!(await isFileVisible(1_000))) {
+    console.log(`[Template] Search phase did not find file. Switching to tree navigation for folder: ${folderName}`);
 
-    const collapseButton = page.getByRole('button', { name: `Collapse ${folderName}` });
-    await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
-    console.log(`[Template] Expanded folder "${folderName}" confirmed`);
+    try {
+      if (searchOutcome === 'no-results' || (await noResults.isVisible({ timeout: 5_000 }).catch(() => false))) {
+        console.log('[Template] Search returned no results. Check env var / SharePoint file.');
+      }
+
+      await clearSearchForTree(searchBox);
+
+      if (templateParentFolder) {
+        const parentFolderFound = await searchForFolder(templateParentFolder);
+        if (parentFolderFound) {
+          await ensureFolderExpanded(templateParentFolder);
+          if (!(await isFileVisible(1_000))) {
+            await ensureFolderExpanded(folderName);
+          }
+        }
+      }
+
+      if (await isFileVisible(1_000)) {
+        await fileCheckbox.scrollIntoViewIfNeeded({ timeout: 10_000 }).catch(() => {});
+      } else {
+        await clearSearchForTree(searchBox);
+
+        const prodtestSection = page.getByText('PRODTEST', { exact: true }).first();
+        prodtestFound = await prodtestSection.isVisible({ timeout: 15_000 }).catch(() => false);
+        if (prodtestFound) {
+          await prodtestSection.scrollIntoViewIfNeeded({ timeout: 5_000 }).catch(() => {});
+        } else {
+          console.log('[Template] PRODTEST section not visible; scanning paginated tree for target folder/file.');
+        }
+
+        const targetFound = prodtestFound || await scanTreePagesForTarget();
+        if (!targetFound) {
+          throw new Error(
+            `[Template] PRODTEST section was not visible and target was not found in the paginated tree ` +
+            `for "${templateName}" in "${folderName}".`
+          );
+        }
+
+        if (!(await isFileVisible(1_000)) && templateParentFolder) {
+          await ensureFolderExpanded(templateParentFolder);
+        }
+
+        if (!(await isFileVisible(1_000))) {
+          await ensureFolderExpanded();
+        }
+      }
+
+      await page.getByText(templateName, { exact: true }).first()
+        .scrollIntoViewIfNeeded({ timeout: 5_000 })
+        .catch(() => {});
+      await fileCheckbox.scrollIntoViewIfNeeded({ timeout: 10_000 }).catch(() => {});
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `[Template] Tree navigation phase failed for "${templateName}" in "${folderName}" ` +
+        `(PRODTEST found: ${prodtestFound ? 'yes' : 'no'}). ${message}`
+      );
+    }
+  }
+
+  if (!(await isFileVisible(10_000))) {
+    throw new Error(
+      `[Template] Tree navigation phase failed for "${templateName}" in "${folderName}" ` +
+      `(PRODTEST found: ${prodtestFound ? 'yes' : 'no'}). ` +
+      'File checkbox was not visible after search and tree navigation.'
+    );
   }
 
   // 4. Select the file's checkbox
+  await fileCheckbox.scrollIntoViewIfNeeded({ timeout: 10_000 }).catch(() => {});
   await expect(fileCheckbox).toBeVisible({ timeout: UI_TIMEOUT });
   await fileCheckbox.check();
+  await expect(fileCheckbox).toBeChecked({ timeout: UI_TIMEOUT });
   console.log(`[Template] ✓ Checked "${templateName}"`);
 
   // 6. Assert "file selected" text visible
@@ -489,6 +702,23 @@ async function selectMultipleFolderSources(
   const folderNames = config.sourceFolders || [];
   const templateTab = config.templateTab || 'Clinical';
 
+  const expandFolderByName = async (folderName: string): Promise<boolean> => {
+    const collapseButton = page.getByRole('button', { name: `Collapse ${folderName}` }).first();
+    if (await collapseButton.isVisible({ timeout: 1_000 }).catch(() => false)) {
+      return true;
+    }
+
+    const expandButton = page.getByRole('button', { name: `Expand ${folderName}` }).first();
+    if (await expandButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await expandButton.click();
+      await expect(collapseButton).toBeVisible({ timeout: UI_TIMEOUT });
+      console.log(`[Sources] Expanded folder "${folderName}"`);
+      return true;
+    }
+
+    return false;
+  };
+
   console.log(`[Sources] Selecting ${folderNames.length} folder(s) in one picker session (${templateTab})...`);
 
   await page.getByRole('button', { name: /Select source documents/i }).click();
@@ -509,14 +739,32 @@ async function selectMultipleFolderSources(
     const trimmedFolderName = folderName.trim();
     if (!trimmedFolderName) continue;
 
-    await searchBox.click();
+    await searchBox.click({ clickCount: 3 });
     await searchBox.fill(trimmedFolderName);
+    await page.keyboard.press('Enter');
     console.log(`[Sources] Searching for folder "${trimmedFolderName}"...`);
+    await page.getByRole('status', { name: /Loading content/i })
+      .waitFor({ state: 'hidden', timeout: UI_TIMEOUT })
+      .catch(() => {});
 
     if (config.sourceParentFolder) {
       const parentFolder = config.sourceParentFolder;
+      if (config.templateParentFolder && await expandFolderByName(config.templateParentFolder)) {
+        await expandFolderByName('Sources');
+      }
+
       const parentExpand = page.getByRole('button', { name: `Expand ${parentFolder}` }).first();
       const parentCollapse = page.getByRole('button', { name: `Collapse ${parentFolder}` }).first();
+
+      if (!(await parentCollapse.isVisible({ timeout: 1_000 }).catch(() => false)) &&
+          !(await parentExpand.isVisible({ timeout: 5_000 }).catch(() => false))) {
+        await searchBox.click({ clickCount: 3 });
+        await searchBox.fill(parentFolder);
+        await page.keyboard.press('Enter');
+        await page.getByRole('status', { name: /Loading content/i })
+          .waitFor({ state: 'hidden', timeout: UI_TIMEOUT })
+          .catch(() => {});
+      }
 
       if (await parentExpand.isVisible({ timeout: 15_000 }).catch(() => false)) {
         await parentExpand.click();
@@ -675,6 +923,10 @@ export async function runHealthReport(
   await trackStep(page, testName, 'Navigate to AgileMapping',
     'User lands on Train Document screen', async () => {
       await openAgileMapping(page);
+      if (config.clientName) {
+        await ensureClientContext(page, config.clientName);
+        await openAgileMapping(page);
+      }
       await expect(page.getByRole('heading', { name: /Train Document/i })).toBeVisible({
         timeout: UI_TIMEOUT,
       });
@@ -690,7 +942,14 @@ export async function runHealthReport(
   // ─── Step 3: Select template ───
   await trackStep(page, testName, `Select template: ${config.templateName}`,
     'Template document is selected from file picker', async () => {
-      await selectTemplateBySearch(page, config.templateName, config.templateFolder, config.templateTab, config.templateSearchTerm);
+      await selectTemplateBySearch(
+        page,
+        config.templateName,
+        config.templateFolder,
+        config.templateTab,
+        config.templateSearchTerm,
+        config.templateParentFolder
+      );
     });
 
   // ─── Step 4: Select source documents ───
