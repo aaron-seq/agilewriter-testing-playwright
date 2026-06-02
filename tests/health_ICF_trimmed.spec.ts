@@ -28,12 +28,14 @@ import { test } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
+import { validateHealthEnv } from './helpers/validateHealthEnv';
 
 test.describe('Health Report: ICF Trimmed', () => {
   // Generous timeout: 5 min training x 2 buffer + overhead = ~15 min
   test.describe.configure({ timeout: 900_000 });
 
   test.beforeAll(() => {
+    validateHealthEnv('icfTrimmed');
     initTracker();
   });
 

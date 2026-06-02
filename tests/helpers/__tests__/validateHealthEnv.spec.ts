@@ -1,5 +1,5 @@
 /**
- * validateHealthEnv.test.ts — Red Phase Tests for SCC-177
+ * validateHealthEnv.spec.ts — Red Phase Tests for SCC-177
  *
  * These tests validate the validateHealthEnv() function contract:
  * - Throws with missing var names when env vars are absent
@@ -9,10 +9,9 @@
  * RED PHASE: All tests MUST FAIL because the stub throws 'Not implemented'.
  * SCC-178 (Green Phase) will implement the logic to make these pass.
  *
- * RUN: npx playwright test tests/helpers/__tests__/validateHealthEnv.test.ts --project=health
- *
- * NOTE: This file name does NOT match /health_.*\.spec\.ts/ so it won't run
- * in the health project by default. Run it explicitly by path.
+ * ⚠️  ALWAYS run with --no-deps to prevent triggering E2E setup chain:
+ *   npx playwright test tests/helpers/__tests__/validateHealthEnv.spec.ts --no-deps
+ * Running WITHOUT --no-deps will trigger AW_00_10 full E2E flow (18 tests)
  */
 
 import { test, expect } from '@playwright/test';
@@ -46,12 +45,20 @@ const REQUIRED_VARS: Record<HealthConfigKey, string[]> = {
     'HEALTH_TEMPLATE_FOLDER_IDEAYA',
     'HEALTH_SOURCE_FILE_IDEAYA',
     'HEALTH_SOURCE_PARENT_FOLDER_IDEAYA',
+    'HEALTH_SOURCE_NESTED_FOLDERS_IDEAYA',
   ],
   ideayaPreflight: [
     'HEALTH_TEMPLATE_IDEAYA_PREFLIGHT',
     'HEALTH_TEMPLATE_FOLDER_IDEAYA_PREFLIGHT',
     'HEALTH_PARENT_FOLDER_IDEAYA_PREFLIGHT',
     'HEALTH_CLIENT_IDEAYA_PREFLIGHT',
+  ],
+  ideayaProdtestCsr: [
+    'HEALTH_TEMPLATE_IDEAYA_PRODTEST_CSR',
+    'HEALTH_TEMPLATE_FOLDER_IDEAYA_PRODTEST_CSR',
+    'HEALTH_TEMPLATE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR',
+    'HEALTH_SOURCES_IDEAYA_PRODTEST_CSR',
+    'HEALTH_SOURCE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR',
   ],
   m264: [
     'HEALTH_TEMPLATE_M264',
@@ -98,6 +105,15 @@ test.describe('validateHealthEnv()', () => {
     }
 
     expect(() => validateHealthEnv('icfTrimmed')).not.toThrow();
+  });
+
+  test('does NOT throw when all required ideayaProdtestCsr vars are present', () => {
+    process.env.HEALTH_TEMPLATE_IDEAYA_PRODTEST_CSR = 'test-template.docx';
+    process.env.HEALTH_TEMPLATE_FOLDER_IDEAYA_PRODTEST_CSR = 'Template for SC';
+    process.env.HEALTH_TEMPLATE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR = 'IDE-196-009 CSR V1';
+    process.env.HEALTH_SOURCES_IDEAYA_PRODTEST_CSR = 'Tables_Test_EP';
+    process.env.HEALTH_SOURCE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR = 'IDE196-009 TFLs';
+    expect(() => validateHealthEnv('ideayaProdtestCsr')).not.toThrow();
   });
 
   // ─── Missing Vars ───
@@ -160,9 +176,9 @@ test.describe('validateHealthEnv()', () => {
 
   // ─── All Config Keys ───
 
-  test('validates all 6 config keys without crashing', () => {
+  test('validates all currently defined config keys without crashing (currently 7)', () => {
     const keys: HealthConfigKey[] = [
-      'csr', 'icfFull', 'icfTrimmed', 'ideaya', 'ideayaPreflight', 'm264',
+      'csr', 'icfFull', 'icfTrimmed', 'ideaya', 'ideayaPreflight', 'ideayaProdtestCsr', 'm264',
     ];
 
     for (const key of keys) {

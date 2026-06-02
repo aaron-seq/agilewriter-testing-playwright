@@ -21,12 +21,14 @@ import { test } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
+import { validateHealthEnv } from './helpers/validateHealthEnv';
 
 test.describe('Health Report: ICF Full', () => {
   // 15 min training x 2 buffer + overhead = ~35 min
   test.describe.configure({ timeout: 2_100_000 });
 
   test.beforeAll(() => {
+    validateHealthEnv('icfFull');
     initTracker();
   });
 
