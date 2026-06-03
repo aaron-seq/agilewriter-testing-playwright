@@ -11,8 +11,10 @@ const CONFIG_FILE = process.env.SESSION_ID
 
 type HealthConfig = {
   reportName: string;
+  clientName?: string;
   templateName: string;
   templateSearchTerm?: string;
+  templateParentFolder?: string;
   templateFolder: string;
   sourceNames: string[];
   sourceFolder?: string;
@@ -34,6 +36,7 @@ type HealthConfigs = {
   icfTrimmed: HealthConfig;
   ideaya: HealthConfig;
   ideayaPreflight: HealthConfig;
+  ideayaProdtestCsr: HealthConfig;
 };
 
 type Config = {
@@ -66,6 +69,10 @@ function bool(value: string | undefined, fallback: boolean): boolean {
 }
 
 function defaultHealthConfigs(): HealthConfigs {
+  const ideayaPreflightTemplate =
+    process.env.HEALTH_TEMPLATE_IDEAYA_PREFLIGHT ||
+    'IDE196-009 Clinical Study Report_Template_27May_updated.docx';
+
   return {
     csr: {
       reportName: 'CSR',
@@ -132,9 +139,13 @@ function defaultHealthConfigs(): HealthConfigs {
     },
     ideayaPreflight: {
       reportName: 'Ideaya PRODTEST Preflight',
-      templateName: 'IDE196-009 Clinical Study Report_Template_27May_updated.docx',
-      templateSearchTerm: 'IDE196-009 Clinical Study Report_Template_27May_updated',
-      templateFolder: 'Template for SC',
+      clientName: process.env.HEALTH_CLIENT_IDEAYA_PREFLIGHT || 'PRODTEST',
+      templateName: ideayaPreflightTemplate,
+      templateSearchTerm: ideayaPreflightTemplate.replace(/\.docx$/i, ''),
+      templateParentFolder:
+        process.env.HEALTH_PARENT_FOLDER_IDEAYA_PREFLIGHT || 'IDE-196-009 CSR V1',
+      templateFolder:
+        process.env.HEALTH_TEMPLATE_FOLDER_IDEAYA_PREFLIGHT || 'Template for SC',
       sourceNames: [],
       outputPrefix: 'TEST_Ideaya',
       expectedTrainingMinutes: 30,
@@ -142,6 +153,26 @@ function defaultHealthConfigs(): HealthConfigs {
       sourceParentFolder: 'IDE196-009 TFLs',
       sourceFolders: csv(process.env.HEALTH_SOURCE_FOLDERS_IDEAYA || 'Tables_Test_EP'),
       stopBeforeTraining: bool(process.env.HEALTH_STOP_BEFORE_TRAINING_IDEAYA, true),
+    },
+    ideayaProdtestCsr: {
+      reportName: 'Ideaya PRODTEST CSR',
+      clientName: process.env.HEALTH_CLIENT_IDEAYA_PRODTEST_CSR || 'PRODTEST',
+      templateName: process.env.HEALTH_TEMPLATE_IDEAYA_PRODTEST_CSR
+        || 'IDE196-009 Clinical Study Report_Template_27May_updated.docx',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_IDEAYA_PRODTEST_CSR
+        || 'Template for SC',
+      templateParentFolder: process.env.HEALTH_TEMPLATE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR
+        || 'IDE-196-009 CSR V1',
+      sourceSelectionMode: 'folder',
+      sourceNames: [],
+      sourceFolders: csv(process.env.HEALTH_SOURCES_IDEAYA_PRODTEST_CSR || 'Tables_Test_EP'),
+      sourceParentFolder: process.env.HEALTH_SOURCE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR
+        || 'IDE196-009 TFLs',
+      outputPrefix: process.env.HEALTH_OUTPUT_PREFIX_IDEAYA_PRODTEST_CSR || 'Ideaya_PRODTEST_CSR',
+      expectedTrainingMinutes: parseInt(
+        process.env.HEALTH_EXPECTED_MINUTES_IDEAYA_PRODTEST_CSR || '30', 10
+      ),
+      templateTab: 'Clinical',
     },
   };
 }
@@ -174,7 +205,8 @@ function mergeConfig(overrides: Partial<Config>): Config {
       icfTrimmed: { ...defaults.health.icfTrimmed, ...overrides.health?.icfTrimmed },
       ideaya: { ...defaults.health.ideaya, ...overrides.health?.ideaya },
       ideayaPreflight: { ...defaults.health.ideayaPreflight, ...overrides.health?.ideayaPreflight },
-},
+      ideayaProdtestCsr: { ...defaults.health.ideayaProdtestCsr, ...overrides.health?.ideayaProdtestCsr },
+    },
   };
 }
 

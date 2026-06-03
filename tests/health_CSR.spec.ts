@@ -26,12 +26,14 @@ import { test } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
+import { validateHealthEnv } from './helpers/validateHealthEnv';
 
 test.describe('Health Report: CSR', () => {
   // 20 min training x 2 buffer + overhead = ~45 min
   test.describe.configure({ timeout: 2_700_000 });
 
   test.beforeAll(() => {
+    validateHealthEnv('csr');
     initTracker();
   });
 
