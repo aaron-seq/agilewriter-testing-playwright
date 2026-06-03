@@ -1,86 +1,397 @@
 # Automation Validation Tests
 
-This repository contains Playwright end-to-end automation tests for the Agile Writer application.
+Automation Validation Tests is a repository used to validate document generation workflows and reporting behavior in Agile Writer.
 
-## Prerequisites
+This guide helps you:
 
-Before getting started, make sure you have the following installed on your machine:
-- [Node.js](https://nodejs.org/en/download/) (v18 or higher recommended)
-- [Git](https://git-scm.com/downloads)
+* Set up the project
+* Configure your environment
+* Run health validation workflows
+* View results
+* Troubleshoot common issues
 
-## Setup Instructions
+---
 
-1. **Clone the repository:**
-   Open your terminal or command prompt and run the following command to clone the project:
-   ```bash
-   git clone https://bitbucket.org/smartercodes-repo/automation-validation-tests.git
-   ```
+# Before You Start
 
-2. **Navigate into the project directory:**
-   ```bash
-   cd automation-validation-tests
-   ```
+Install the following:
 
-3. **Install dependencies:**
-   Install required internal NPM packages (including Playwright core packages):
-   ```bash
-   npm install
-   ```
+* Node.js (Version 18 or higher)
+* Git
 
-4. **Install Playwright Browsers:**
-   Playwright requires specific browser binaries (Chromium, Firefox, WebKit) to run the tests. Install them using:
-   ```bash
-   npx playwright install
-   ```
+Check installation:
 
-5. **Set up Environment Variables:**
-   You will need to set up the environment variables to run the tests locally. 
-   Create a new file named `.env` in the root directory (at the same level as `package.json`).
-   Copy the following contents into the `.env` file and update the credentials as needed:
-   ```env
-   MS_EMAIL=your-microsoft-email
-   MS_PASSWORD=your-microsoft-password
-   BASE_URL=https://app-v2-rc1-aw.smarter.codes
+```bash
+node -v
+git --version
+```
 
-   # Matches a placeholder like <some_TEXT>
-   PLACEHOLDER_REGEX=<\s*([^<>]+?)\s*>
-   ```
+---
 
-## Running Tests
+# Clone the Repository
 
-Once the setup is complete, you can run the tests using Playwright. 
-Tests are configured to run in **headed** mode (you will see the browser interacting with the UI). 
+```bash
+git clone https://bitbucket.org/smartercodes-repo/automation-validation-tests.git
+cd automation-validation-tests
+```
 
-- **Run all tests:**
-  ```bash
-  npx playwright test
-  ```
+---
 
-- **Run a specific test file:**
-  ```bash
-  npx playwright test tests/AW_06_destination_template.spec.ts
-  ```
+# Install Dependencies
 
-- **Run tests in Playwright UI Mode (Interactive & Recommended):**
-  This opens an interactive graphical UI where you can explore, click to run, and visually debug tests step-by-step.
-  ```bash
-  npx playwright test --ui
-  ```
+Install all required packages:
 
-## Viewing HTML Reports and Traces
+```bash
+npm install
+```
 
-Playwright is configured to automatically generate an **HTML Report** and capture **Traces** (which include logs, DOM snapshots, screenshots, and network requests) for analysis.
+Install Playwright browsers:
 
-1. **View the HTML Report:**
-   After tests finish running, view the fully detailed HTML report using:
-   ```bash
-   npx playwright show-report
-   ```
-   *The report will automatically start a local server and open in your default browser.*
+```bash
+npx playwright install
+```
 
-2. **View test Traces:**
-   Traces are embedded directly inside the HTML report. 
-   - Open the HTML Report using the command above.
-   - Click on any specific test case (passed or failed).
-   - Scroll down to the **Traces** section at the bottom.
-   - Click the trace image link to open the full **Playwright Trace Viewer**. This allows you to visually step back and forth in time through the exact test execution timeline.
+---
+
+# Configure Environment Variables
+
+Create a file named:
+
+```text
+.env
+```
+
+in the repository root.
+
+Copy values from:
+
+```text
+.env.example
+```
+
+and update them with your environment credentials.
+
+Example:
+
+```env
+MS_EMAIL=your-email
+MS_PASSWORD=your-password
+BASE_URL=https://your-environment-url
+
+PLACEHOLDER_REGEX=<\s*([^<>]+?)\s*>
+```
+
+## Important
+
+Environment variables control:
+
+* Login credentials
+* Target environment
+* Health workflow configuration
+* Validation settings
+
+Environment configuration should always be managed through:
+
+```text
+.env
+```
+
+and
+
+```text
+.env.example
+```
+
+---
+
+# Verify Configuration
+
+Before running any health workflow:
+
+Confirm:
+
+* `.env` exists
+* Required variables are populated
+* Credentials are valid
+* Target environment is accessible
+
+---
+
+# Running Health Workflows
+
+## Discover Available Health Suites
+
+List available health workflows:
+
+```bash
+npx playwright test --project=health --list
+```
+
+This command shows all available health validation suites.
+
+### What is a Suite?
+
+A suite is a group of related automated validation steps.
+
+---
+
+## Run All Health Workflows
+
+```bash
+npx playwright test --project=health
+```
+
+---
+
+## Run a Specific Health Workflow
+
+Example:
+
+```bash
+npx playwright test tests/health_CSR.spec.ts
+```
+
+Replace the filename with the workflow you want to execute.
+
+---
+
+## Run Playwright UI Mode
+
+UI Mode provides a visual interface for running tests.
+
+```bash
+npx playwright test --ui
+```
+
+### What is UI Mode?
+
+UI Mode is a visual dashboard that lets you:
+
+* Start tests
+* Stop tests
+* View results
+* Debug failures
+
+without using command-line commands repeatedly.
+
+---
+
+# Running Other Validation Tests
+
+Run all tests:
+
+```bash
+npx playwright test
+```
+
+Run a specific test:
+
+```bash
+npx playwright test tests/example.spec.ts
+```
+
+---
+
+# Viewing Results
+
+## HTML Report
+
+Generate and open the report:
+
+```bash
+npx playwright show-report
+```
+
+The report opens in your browser.
+
+The report contains:
+
+* Passed tests
+* Failed tests
+* Execution duration
+* Screenshots
+* Traces
+
+---
+
+## What is a Trace?
+
+A trace is a recording of test activity.
+
+It may include:
+
+* Screenshots
+* Page activity
+* Network requests
+* User actions
+
+Traces help investigate failures.
+
+---
+
+# Common Workflow
+
+Typical execution sequence:
+
+```text
+1. Pull latest code
+2. Update .env
+3. Install dependencies
+4. Verify configuration
+5. Run health workflow
+6. Review report
+7. Investigate failures if needed
+```
+
+---
+
+# Troubleshooting Guide
+
+## Problem: Login Fails
+
+Check:
+
+* MS_EMAIL
+* MS_PASSWORD
+* Environment URL
+* Account access
+
+Try:
+
+```bash
+npm install
+```
+
+and rerun the workflow.
+
+---
+
+## Problem: Environment Variables Not Found
+
+Check:
+
+```text
+.env
+```
+
+exists in the repository root.
+
+Verify required values are populated.
+
+Compare against:
+
+```text
+.env.example
+```
+
+---
+
+## Problem: No Health Workflows Found
+
+Run:
+
+```bash
+npx playwright test --project=health --list
+```
+
+If no suites appear:
+
+* Pull latest code
+* Verify dependencies installed
+* Verify repository setup completed successfully
+
+---
+
+## Problem: Browser Does Not Launch
+
+Reinstall Playwright browsers:
+
+```bash
+npx playwright install
+```
+
+---
+
+## Problem: Tests Stop Unexpectedly
+
+Collect:
+
+* Error message
+* Screenshot
+* HTML report
+* Trace file
+
+Review the report before retrying.
+
+---
+
+## Problem: Report Is Empty
+
+Verify:
+
+* Workflow completed
+* Test execution finished successfully
+* Output artifacts were generated
+
+Run the workflow again and review logs.
+
+---
+
+# Useful Commands
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Install browsers:
+
+```bash
+npx playwright install
+```
+
+List health suites:
+
+```bash
+npx playwright test --project=health --list
+```
+
+Run health workflows:
+
+```bash
+npx playwright test --project=health
+```
+
+Run all tests:
+
+```bash
+npx playwright test
+```
+
+Open UI Mode:
+
+```bash
+npx playwright test --ui
+```
+
+Open report:
+
+```bash
+npx playwright show-report
+```
+
+---
+
+# Need Help?
+
+When reporting an issue, include:
+
+* Workflow name
+* Environment used
+* Error message
+* Screenshot (if available)
+* HTML report
+* Trace information
+
+This helps investigation and recovery.
