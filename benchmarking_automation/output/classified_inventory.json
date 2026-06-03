@@ -1922,12 +1922,14 @@
       "before": "Study Assessments and Procedures",
       "after": "Informed Consent"
     },
-    "type": "keyvalue",
+    "type": "table",
     "classification_reason": [
-      "INLINE_CONTEXT_PRESENT"
+      "TABLE_SYNTAX_MATCH"
     ],
-    "classification_confidence": 0.75,
-    "matched_rule_ids": []
+    "classification_confidence": 1.0,
+    "matched_rule_ids": [
+      "TABLE_SYNTAX_RULE"
+    ]
   },
   {
     "occurrence_id": "PH_0065",
