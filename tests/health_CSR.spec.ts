@@ -33,8 +33,8 @@ test.describe('Health Report: CSR', () => {
   test.describe.configure({ timeout: 2_700_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('csr');
     initTracker();
+    validateHealthEnv('csr');
   });
 
   test.afterAll(() => {

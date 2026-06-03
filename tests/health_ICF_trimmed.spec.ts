@@ -35,8 +35,8 @@ test.describe('Health Report: ICF Trimmed', () => {
   test.describe.configure({ timeout: 900_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('icfTrimmed');
     initTracker();
+    validateHealthEnv('icfTrimmed');
   });
 
   test.afterAll(() => {

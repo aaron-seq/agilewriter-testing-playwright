@@ -20,8 +20,8 @@ test.describe('Health Report: Ideaya PRODTEST CSR', () => {
   test.describe.configure({ timeout: 3_900_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('ideayaProdtestCsr');
     initTracker();
+    validateHealthEnv('ideayaProdtestCsr');
   });
 
   test.afterAll(() => {

@@ -17,8 +17,8 @@ test.describe('Health Report: Ideaya PRODTEST Preflight', () => {
   test.describe.configure({ timeout: 900_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('ideayaPreflight');
     initTracker();
+    validateHealthEnv('ideayaPreflight');
   });
 
   test.afterAll(() => {

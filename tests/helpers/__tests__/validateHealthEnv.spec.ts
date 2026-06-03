@@ -190,3 +190,43 @@ test.describe('validateHealthEnv()', () => {
     }
   });
 });
+
+// ──────────────────────────────────────────────
+// ISSUE 2 — summarizeSteps PASS/FAIL contract tests
+// ──────────────────────────────────────────────
+// These tests validate that generate-word-report.js correctly determines
+// the overall status of a test run from the step results array.
+//
+// ROOT CAUSE: summarizeSteps([]) currently returns 'PASS' because
+// failed.length === 0 — but zero steps means the test crashed before
+// recording anything (e.g., beforeAll threw). This is a FAIL, not a PASS.
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { summarizeSteps } = require('../../../generate-word-report');
+
+test.describe('summarizeSteps() — DOCX PASS/FAIL contract', () => {
+
+  test('returns FAIL when steps array is empty (zero steps = crashed before starting)', () => {
+    const result = summarizeSteps([]);
+    expect(result.overallStatus).toBe('FAIL');
+    expect(result.totalSteps).toBe(0);
+  });
+
+  test('returns FAIL when at least one step has status FAIL', () => {
+    const result = summarizeSteps([
+      { stepName: 'Login', status: 'FAIL', critical: true, duration: 100 },
+    ]);
+    expect(result.overallStatus).toBe('FAIL');
+    expect(result.failedSteps).toBe(1);
+  });
+
+  test('returns PASS only when steps exist and none are FAIL', () => {
+    const result = summarizeSteps([
+      { stepName: 'Login', status: 'PASS', critical: true, duration: 200 },
+      { stepName: 'Navigate', status: 'PASS', critical: true, duration: 300 },
+    ]);
+    expect(result.overallStatus).toBe('PASS');
+    expect(result.passedSteps).toBe(2);
+    expect(result.failedSteps).toBe(0);
+  });
+});
