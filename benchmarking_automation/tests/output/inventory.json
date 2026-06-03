@@ -265,6 +265,30 @@
     },
     {
         "occurrence_id": "PH_0012",
+        "placeholder": "<Insert Applicable Restriction(s)>",
+        "node_id": "P_0122",
+        "node_type": "paragraph",
+        "section": "document",
+        "paragraph_index": 53,
+        "table_index": null,
+        "matched_text_span": {
+            "start": 7,
+            "end": 41
+        },
+        "row_index": null,
+        "cell_index": null,
+        "table_path": null,
+        "inline_context": {
+            "before": "9.4.9.1",
+            "after": "20"
+        },
+        "neighbor_context": {
+            "before": "9.4.9Specific Restrictions and Requirements20",
+            "after": "9.5Study Assessments and Procedures20"
+        }
+    },
+    {
+        "occurrence_id": "PH_0013",
         "placeholder": "<xx study centers by xx investigators>",
         "node_id": "P_0238",
         "node_type": "paragraph",
@@ -288,7 +312,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0013",
+        "occurrence_id": "PH_0014",
         "placeholder": "<Company Name>",
         "node_id": "P_0246",
         "node_type": "paragraph",
@@ -312,7 +336,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0014",
+        "occurrence_id": "PH_0015",
         "placeholder": "<Company Address>",
         "node_id": "P_0247",
         "node_type": "paragraph",
@@ -336,7 +360,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0015",
+        "occurrence_id": "PH_0016",
         "placeholder": "<Medical Monitor Name>",
         "node_id": "P_0258",
         "node_type": "paragraph",
@@ -360,7 +384,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0016",
+        "occurrence_id": "PH_0017",
         "placeholder": "<X>",
         "node_id": "P_0317",
         "node_type": "list_item",
@@ -384,7 +408,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0017",
+        "occurrence_id": "PH_0018",
         "placeholder": "<Introduction>",
         "node_id": "P_0319",
         "node_type": "paragraph",
@@ -408,7 +432,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0018",
+        "occurrence_id": "PH_0019",
         "placeholder": "<Background Information>",
         "node_id": "P_0324",
         "node_type": "paragraph",
@@ -432,7 +456,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0019",
+        "occurrence_id": "PH_0020",
         "placeholder": "<Rationale for the study>",
         "node_id": "P_0329",
         "node_type": "paragraph",
@@ -456,7 +480,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0020",
+        "occurrence_id": "PH_0021",
         "placeholder": "<Benefit and Risk assessment>",
         "node_id": "P_0334",
         "node_type": "paragraph",
@@ -480,7 +504,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0021",
+        "occurrence_id": "PH_0022",
         "placeholder": "<Risk assessment>",
         "node_id": "P_0338",
         "node_type": "paragraph",
@@ -504,7 +528,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0022",
+        "occurrence_id": "PH_0023",
         "placeholder": "<investigational drug>",
         "node_id": "P_0341",
         "node_type": "paragraph",
@@ -528,7 +552,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0023",
+        "occurrence_id": "PH_0024",
         "placeholder": "<Benefit assessment>",
         "node_id": "P_0343",
         "node_type": "paragraph",
@@ -552,7 +576,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0024",
+        "occurrence_id": "PH_0025",
         "placeholder": "<investigational drug>",
         "node_id": "P_0346",
         "node_type": "paragraph",
@@ -576,7 +600,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0025",
+        "occurrence_id": "PH_0026",
         "placeholder": "<Overall Benefit: Risk Conclusion>",
         "node_id": "P_0348",
         "node_type": "paragraph",
@@ -600,7 +624,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0026",
+        "occurrence_id": "PH_0027",
         "placeholder": "<Abbreviations>",
         "node_id": "P_0389",
         "node_type": "paragraph",
@@ -624,7 +648,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0027",
+        "occurrence_id": "PH_0028",
         "placeholder": "<Protocol Number>",
         "node_id": "P_0390",
         "node_type": "paragraph",
@@ -648,7 +672,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0028",
+        "occurrence_id": "PH_0029",
         "placeholder": "<Version X.0>",
         "node_id": "P_0390",
         "node_type": "paragraph",
@@ -672,7 +696,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0029",
+        "occurrence_id": "PH_0030",
         "placeholder": "<Table Objectives and Endpoints>",
         "node_id": "P_0392",
         "node_type": "paragraph",
@@ -696,7 +720,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0030",
+        "occurrence_id": "PH_0031",
         "placeholder": "<Insert Study Parts>",
         "node_id": "P_0396",
         "node_type": "paragraph",
@@ -720,7 +744,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0031",
+        "occurrence_id": "PH_0032",
         "placeholder": "<Figure X>",
         "node_id": "P_0397",
         "node_type": "paragraph",
@@ -744,7 +768,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0032",
+        "occurrence_id": "PH_0033",
         "placeholder": "<Table Schedule of Activities \u2013 Single Ascending Dose>",
         "node_id": "P_0399",
         "node_type": "paragraph",
@@ -768,7 +792,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0033",
+        "occurrence_id": "PH_0034",
         "placeholder": "<Study Design Justification>",
         "node_id": "P_0403",
         "node_type": "paragraph",
@@ -792,7 +816,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0034",
+        "occurrence_id": "PH_0035",
         "placeholder": "<Dose Justification>",
         "node_id": "P_0405",
         "node_type": "paragraph",
@@ -816,7 +840,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0035",
+        "occurrence_id": "PH_0036",
         "placeholder": "<Number list of inclusion criteria>",
         "node_id": "P_0409",
         "node_type": "paragraph",
@@ -840,7 +864,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0036",
+        "occurrence_id": "PH_0037",
         "placeholder": "<Number list of exclusion criteria>",
         "node_id": "P_0412",
         "node_type": "paragraph",
@@ -864,7 +888,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0037",
+        "occurrence_id": "PH_0038",
         "placeholder": "<Removal of Patients from Therapy or Assessment>",
         "node_id": "P_0414",
         "node_type": "paragraph",
@@ -888,7 +912,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0038",
+        "occurrence_id": "PH_0039",
         "placeholder": "<Criteria for Discontinuation/Withdrawal From the Study>",
         "node_id": "P_0416",
         "node_type": "paragraph",
@@ -912,7 +936,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0039",
+        "occurrence_id": "PH_0040",
         "placeholder": "<Lost to Follow-Up>",
         "node_id": "P_0418",
         "node_type": "paragraph",
@@ -936,7 +960,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0040",
+        "occurrence_id": "PH_0041",
         "placeholder": "<Treatments Administered>",
         "node_id": "P_0421",
         "node_type": "paragraph",
@@ -960,7 +984,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0041",
+        "occurrence_id": "PH_0042",
         "placeholder": "<Investigational drug Name>",
         "node_id": "P_0423",
         "node_type": "paragraph",
@@ -984,7 +1008,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0042",
+        "occurrence_id": "PH_0043",
         "placeholder": "<Name >",
         "node_id": "P_0430",
         "node_type": "paragraph",
@@ -1008,7 +1032,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0043",
+        "occurrence_id": "PH_0044",
         "placeholder": "<Dosage Formulation>",
         "node_id": "P_0435",
         "node_type": "paragraph",
@@ -1032,7 +1056,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0044",
+        "occurrence_id": "PH_0045",
         "placeholder": "<Unit Dose strength (s)>",
         "node_id": "P_0440",
         "node_type": "paragraph",
@@ -1056,7 +1080,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0045",
+        "occurrence_id": "PH_0046",
         "placeholder": "<Dose level>",
         "node_id": "P_0445",
         "node_type": "paragraph",
@@ -1080,7 +1104,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0046",
+        "occurrence_id": "PH_0047",
         "placeholder": "<Route of Administration >",
         "node_id": "P_0450",
         "node_type": "paragraph",
@@ -1104,7 +1128,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0047",
+        "occurrence_id": "PH_0048",
         "placeholder": "<Number of injections and volume >",
         "node_id": "P_0455",
         "node_type": "paragraph",
@@ -1128,7 +1152,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0048",
+        "occurrence_id": "PH_0049",
         "placeholder": "<Packaging and Labelling>",
         "node_id": "P_0460",
         "node_type": "paragraph",
@@ -1152,7 +1176,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0049",
+        "occurrence_id": "PH_0050",
         "placeholder": "<Lot Number>",
         "node_id": "P_0465",
         "node_type": "paragraph",
@@ -1176,7 +1200,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0050",
+        "occurrence_id": "PH_0051",
         "placeholder": "<Manufacturer>",
         "node_id": "P_0470",
         "node_type": "paragraph",
@@ -1200,7 +1224,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0051",
+        "occurrence_id": "PH_0052",
         "placeholder": "<Storage>",
         "node_id": "P_0475",
         "node_type": "paragraph",
@@ -1224,7 +1248,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0052",
+        "occurrence_id": "PH_0053",
         "placeholder": "<Abbreviations>",
         "node_id": "P_0476",
         "node_type": "paragraph",
@@ -1248,7 +1272,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0053",
+        "occurrence_id": "PH_0054",
         "placeholder": "<Protocol Number>",
         "node_id": "P_0477",
         "node_type": "paragraph",
@@ -1272,7 +1296,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0054",
+        "occurrence_id": "PH_0055",
         "placeholder": "<Version X.0>",
         "node_id": "P_0477",
         "node_type": "paragraph",
@@ -1296,7 +1320,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0055",
+        "occurrence_id": "PH_0056",
         "placeholder": "<Method of Assigning Patients to Treatment Groups>",
         "node_id": "P_0480",
         "node_type": "paragraph",
@@ -1320,7 +1344,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0056",
+        "occurrence_id": "PH_0057",
         "placeholder": "<Selection of Doses in the Study>",
         "node_id": "P_0482",
         "node_type": "paragraph",
@@ -1344,7 +1368,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0057",
+        "occurrence_id": "PH_0058",
         "placeholder": "<Selection and Timing of Dose for Each Participant>",
         "node_id": "P_0484",
         "node_type": "paragraph",
@@ -1368,7 +1392,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0058",
+        "occurrence_id": "PH_0059",
         "placeholder": "<Blinding>",
         "node_id": "P_0486",
         "node_type": "paragraph",
@@ -1392,7 +1416,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0059",
+        "occurrence_id": "PH_0060",
         "placeholder": "<Prohibited Medication>",
         "node_id": "P_0489",
         "node_type": "paragraph",
@@ -1416,7 +1440,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0060",
+        "occurrence_id": "PH_0061",
         "placeholder": "<Concomitant Medication>",
         "node_id": "P_0491",
         "node_type": "paragraph",
@@ -1440,7 +1464,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0061",
+        "occurrence_id": "PH_0062",
         "placeholder": "<Rescue Medication>",
         "node_id": "P_0493",
         "node_type": "paragraph",
@@ -1464,7 +1488,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0062",
+        "occurrence_id": "PH_0063",
         "placeholder": "<Treatment Compliance>",
         "node_id": "P_0495",
         "node_type": "paragraph",
@@ -1488,7 +1512,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0063",
+        "occurrence_id": "PH_0064",
         "placeholder": "<Insert Applicable Restriction(s)>",
         "node_id": "P_0497",
         "node_type": "paragraph",
@@ -1512,7 +1536,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0064",
+        "occurrence_id": "PH_0065",
         "placeholder": "<Table X>",
         "node_id": "P_0499",
         "node_type": "paragraph",
@@ -1536,7 +1560,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0065",
+        "occurrence_id": "PH_0066",
         "placeholder": "<Informed Consent>",
         "node_id": "P_0501",
         "node_type": "paragraph",
@@ -1560,7 +1584,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0066",
+        "occurrence_id": "PH_0067",
         "placeholder": "<Demographics>",
         "node_id": "P_0503",
         "node_type": "paragraph",
@@ -1584,7 +1608,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0067",
+        "occurrence_id": "PH_0068",
         "placeholder": "<Medical and Medication History>",
         "node_id": "P_0506",
         "node_type": "paragraph",
@@ -1608,7 +1632,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0068",
+        "occurrence_id": "PH_0069",
         "placeholder": "<Sampling Collection and Processing>",
         "node_id": "P_0509",
         "node_type": "paragraph",
@@ -1632,7 +1656,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0069",
+        "occurrence_id": "PH_0070",
         "placeholder": "<Analytical Methodology>",
         "node_id": "P_0511",
         "node_type": "paragraph",
@@ -1656,7 +1680,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0070",
+        "occurrence_id": "PH_0071",
         "placeholder": "<Pharmacodynamic Assessments>",
         "node_id": "P_0513",
         "node_type": "paragraph",
@@ -1680,7 +1704,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0071",
+        "occurrence_id": "PH_0072",
         "placeholder": "<Exploratory Biomarkers>",
         "node_id": "P_0515",
         "node_type": "paragraph",
@@ -1704,7 +1728,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0072",
+        "occurrence_id": "PH_0073",
         "placeholder": "<Immunogenicity Assessment>",
         "node_id": "P_0517",
         "node_type": "paragraph",
@@ -1728,7 +1752,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0073",
+        "occurrence_id": "PH_0074",
         "placeholder": "<Pharmacogenomics>",
         "node_id": "P_0519",
         "node_type": "paragraph",
@@ -1752,7 +1776,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0074",
+        "occurrence_id": "PH_0075",
         "placeholder": "<Safety Assessments>",
         "node_id": "P_0521",
         "node_type": "paragraph",
@@ -1776,7 +1800,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0075",
+        "occurrence_id": "PH_0076",
         "placeholder": "<Appropriateness of Measurements>",
         "node_id": "P_0523",
         "node_type": "paragraph",
@@ -1800,7 +1824,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0076",
+        "occurrence_id": "PH_0077",
         "placeholder": "<Data Quality Assurance>",
         "node_id": "P_0525",
         "node_type": "paragraph",
@@ -1824,7 +1848,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0077",
+        "occurrence_id": "PH_0078",
         "placeholder": "<Statistical and Analytical Plans>",
         "node_id": "P_0528",
         "node_type": "paragraph",
@@ -1848,7 +1872,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0078",
+        "occurrence_id": "PH_0079",
         "placeholder": "<Analysis Population>",
         "node_id": "P_0530",
         "node_type": "paragraph",
@@ -1872,7 +1896,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0079",
+        "occurrence_id": "PH_0080",
         "placeholder": "<Determination of Sample Size>",
         "node_id": "P_0532",
         "node_type": "paragraph",
@@ -1896,7 +1920,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0080",
+        "occurrence_id": "PH_0081",
         "placeholder": "<Details of Statistical Estimations>",
         "node_id": "P_0534",
         "node_type": "paragraph",
@@ -1920,7 +1944,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0081",
+        "occurrence_id": "PH_0082",
         "placeholder": "<IND Number>",
         "node_id": "P_0537",
         "node_type": "paragraph",
@@ -1944,7 +1968,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0082",
+        "occurrence_id": "PH_0083",
         "placeholder": "<Protocol Identification (Code or Number)>",
         "node_id": "P_0537",
         "node_type": "paragraph",
@@ -1968,7 +1992,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0083",
+        "occurrence_id": "PH_0084",
         "placeholder": "<DD Month YYYY>",
         "node_id": "P_0537",
         "node_type": "paragraph",
@@ -1992,7 +2016,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0084",
+        "occurrence_id": "PH_0085",
         "placeholder": "<Summary of Table Disposition of Participants>",
         "node_id": "P_0544",
         "node_type": "paragraph",
@@ -2016,7 +2040,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0085",
+        "occurrence_id": "PH_0086",
         "placeholder": "<Table Summary of Participant Disposition>",
         "node_id": "P_0546",
         "node_type": "paragraph",
@@ -2040,7 +2064,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0086",
+        "occurrence_id": "PH_0087",
         "placeholder": "<Table of Analysis Sets >",
         "node_id": "P_0553",
         "node_type": "paragraph",
@@ -2064,7 +2088,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0087",
+        "occurrence_id": "PH_0088",
         "placeholder": "<Summary of Table of Analysis Sets >",
         "node_id": "P_0556",
         "node_type": "paragraph",
@@ -2088,7 +2112,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0088",
+        "occurrence_id": "PH_0089",
         "placeholder": "<Summary of  Demographics>",
         "node_id": "P_0561",
         "node_type": "paragraph",
@@ -2112,7 +2136,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0089",
+        "occurrence_id": "PH_0090",
         "placeholder": "<Table Demographics>",
         "node_id": "P_0563",
         "node_type": "paragraph",
@@ -2136,7 +2160,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0090",
+        "occurrence_id": "PH_0091",
         "placeholder": "<Summary of Table Demographics>",
         "node_id": "P_0566",
         "node_type": "paragraph",
@@ -2160,7 +2184,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0091",
+        "occurrence_id": "PH_0092",
         "placeholder": "<Summary of Pharmacokinetic data>",
         "node_id": "P_0570",
         "node_type": "paragraph",
@@ -2184,7 +2208,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0092",
+        "occurrence_id": "PH_0093",
         "placeholder": "<Table Pharmacokinetic Parameters Following Single Ascending Doses>",
         "node_id": "P_0573",
         "node_type": "paragraph",
@@ -2208,7 +2232,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0093",
+        "occurrence_id": "PH_0094",
         "placeholder": "<Table Pharmacokinetic Parameters of ABC-123 Following Repeated-Dose  Administration >",
         "node_id": "P_0574",
         "node_type": "paragraph",
@@ -2232,7 +2256,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0094",
+        "occurrence_id": "PH_0095",
         "placeholder": "<Conclusion Pharmacokinetic >",
         "node_id": "P_0576",
         "node_type": "paragraph",
@@ -2256,7 +2280,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0095",
+        "occurrence_id": "PH_0096",
         "placeholder": "<Summary of Pharmacodynamics data>",
         "node_id": "P_0579",
         "node_type": "paragraph",
@@ -2280,7 +2304,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0096",
+        "occurrence_id": "PH_0097",
         "placeholder": "<Table PD Biomarker Changes Following Single Ascending Dose (SAD)>",
         "node_id": "P_0581",
         "node_type": "paragraph",
@@ -2304,7 +2328,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0097",
+        "occurrence_id": "PH_0098",
         "placeholder": "<Table PD Biomarker Changes Following Repeated Dose of ABC-123>",
         "node_id": "P_0582",
         "node_type": "paragraph",
@@ -2328,7 +2352,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0098",
+        "occurrence_id": "PH_0099",
         "placeholder": "<PD Conclusion>",
         "node_id": "P_0584",
         "node_type": "paragraph",
@@ -2352,7 +2376,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0099",
+        "occurrence_id": "PH_0100",
         "placeholder": "<summary of  Table Study Drug Exposure (Safety Analysis Set)>",
         "node_id": "P_0589",
         "node_type": "paragraph",
@@ -2376,7 +2400,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0100",
+        "occurrence_id": "PH_0101",
         "placeholder": "<Table Study Drug Exposure (Safety Analysis Set)>",
         "node_id": "P_0590",
         "node_type": "paragraph",
@@ -2400,7 +2424,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0101",
+        "occurrence_id": "PH_0102",
         "placeholder": "<Adverse Events>",
         "node_id": "P_0592",
         "node_type": "paragraph",
@@ -2424,7 +2448,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0102",
+        "occurrence_id": "PH_0103",
         "placeholder": "<summary of  Overall Summary of Adverse Events (Safety Analysis Set)>",
         "node_id": "P_0595",
         "node_type": "paragraph",
@@ -2448,7 +2472,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0103",
+        "occurrence_id": "PH_0104",
         "placeholder": "<Table summary of Adverse Events>",
         "node_id": "P_0596",
         "node_type": "paragraph",
@@ -2472,7 +2496,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0104",
+        "occurrence_id": "PH_0105",
         "placeholder": "<Safety Conclusions>",
         "node_id": "P_0615",
         "node_type": "paragraph",
@@ -2496,7 +2520,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0105",
+        "occurrence_id": "PH_0106",
         "placeholder": "<Insert discussion>",
         "node_id": "P_0618",
         "node_type": "paragraph",
@@ -2520,7 +2544,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0106",
+        "occurrence_id": "PH_0107",
         "placeholder": "<Insert conclusion in bullets>",
         "node_id": "P_0620",
         "node_type": "paragraph",
@@ -2544,7 +2568,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0107",
+        "occurrence_id": "PH_0108",
         "placeholder": "<Internal Table citation of Demographics and other Baseline Characteristics>",
         "node_id": "P_0623",
         "node_type": "paragraph",
@@ -2568,7 +2592,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0108",
+        "occurrence_id": "PH_0109",
         "placeholder": "<Internal Table citation of  Pharmacokinetics and Pharmacodynamics Data>",
         "node_id": "P_0637",
         "node_type": "paragraph",
@@ -2592,7 +2616,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0109",
+        "occurrence_id": "PH_0110",
         "placeholder": "<Internal Table citation of  Safety Data Summary>",
         "node_id": "P_0651",
         "node_type": "paragraph",
@@ -2616,7 +2640,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0110",
+        "occurrence_id": "PH_0111",
         "placeholder": "<Internal Table citation of  Adverse Events>",
         "node_id": "P_0665",
         "node_type": "paragraph",
@@ -2640,7 +2664,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0111",
+        "occurrence_id": "PH_0112",
         "placeholder": "<Insert Reference List>",
         "node_id": "P_0695",
         "node_type": "paragraph",
@@ -2664,7 +2688,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0112",
+        "occurrence_id": "PH_0113",
         "placeholder": "<Sponsor's Name>",
         "node_id": "P_0724",
         "node_type": "paragraph",
@@ -2688,7 +2712,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0113",
+        "occurrence_id": "PH_0114",
         "placeholder": "<Sponsor\u2019s Name>",
         "node_id": "P_0727",
         "node_type": "paragraph",
@@ -2712,7 +2736,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0114",
+        "occurrence_id": "PH_0115",
         "placeholder": "<Sponsor\u2019s Name>",
         "node_id": "P_0728",
         "node_type": "paragraph",
@@ -2736,7 +2760,7 @@
         }
     },
     {
-        "occurrence_id": "PH_0115",
+        "occurrence_id": "PH_0116",
         "placeholder": "<Date of Report>",
         "node_id": "P_0731",
         "node_type": "paragraph",

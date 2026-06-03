@@ -104,11 +104,15 @@ def test_formatting_blocks_preserved():
 
     assert result["text"] == "Hello World"
 
-    assert len(result["formatting_blocks"]) == 2
+    assert len(result["rich_runs"]) == 2
 
-    assert result["formatting_blocks"][0]["text"] == "Hello "
+    assert result["rich_runs"][0].text == "Hello "
 
-    assert result["formatting_blocks"][1]["text"] == "World"
+    assert result["rich_runs"][1].text == "World"
+
+    assert result["rich_runs"][0].bold is False
+
+    assert result["rich_runs"][1].bold is True
 
 
 # =========================================================
@@ -276,7 +280,9 @@ def test_paragraph_node_structure():
 
     assert node.location.paragraph_index == 1
 
-    assert "runs" in node.formatting
+    assert len(node.rich_runs) == 1
+
+    assert node.rich_runs[0].text == "<Patient_Name>"
 
 
 # =========================================================
