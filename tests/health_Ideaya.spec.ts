@@ -30,8 +30,8 @@ test.describe('Health Report: Ideaya', () => {
   test.describe.configure({ timeout: 3_900_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('ideaya');
     initTracker();
+    validateHealthEnv('ideaya');
   });
 
   test.afterAll(() => {

@@ -24,6 +24,24 @@ The pipeline supports confidence-building activities around document generation 
 
 **Confidence**: Observed
 
+## Pre-Execution Validation
+
+Execution Context Validation
+→ Input: environment configuration mapping
+→ Transformation: validation framework gateway (e.g. `validateHealthEnv`)
+→ Output: validated state or hard abort
+
+**Confidence**: Observed
+
+## Discovery Framework
+
+Available Validation Suites
+→ Input: runner configuration query
+→ Output: discovered execution list
+→ Interpretation: The health framework dynamically consumes configured suites rather than statically mapping them. Pipeline discovery relies on runtime interrogation (`npx playwright test --project=health --list`) to determine available workflow boundaries.
+
+**Confidence**: Observed
+
 ## Pipeline Inputs
 
 Execution Context

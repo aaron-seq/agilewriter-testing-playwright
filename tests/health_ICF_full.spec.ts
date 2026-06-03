@@ -28,8 +28,8 @@ test.describe('Health Report: ICF Full', () => {
   test.describe.configure({ timeout: 2_100_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('icfFull');
     initTracker();
+    validateHealthEnv('icfFull');
   });
 
   test.afterAll(() => {

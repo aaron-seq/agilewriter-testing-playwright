@@ -125,6 +125,28 @@ function readSteps() {
 }
 
 function summarizeSteps(steps) {
+  // Issue 2 fix: zero steps means the test crashed before recording anything
+  // (e.g., beforeAll threw due to missing env vars). This is a FAIL, not a PASS.
+  if (steps.length === 0) {
+    return {
+      totalSteps: 0,
+      passedSteps: 0,
+      failedSteps: 1,
+      criticalFailures: [{
+        stepName: 'Environment or Setup Failure',
+        status: 'FAIL',
+        critical: true,
+        duration: 0,
+        timestamp: new Date().toISOString(),
+        screenshot: '',
+        error: 'No steps were recorded. The test failed before execution began — likely a beforeAll error or missing env vars.',
+      }],
+      softFailures: [],
+      totalDuration: 0,
+      overallStatus: 'FAIL',
+    };
+  }
+
   const totalDuration = steps.reduce(
     (sum, s) => sum + Number(s.duration || 0),
     0
@@ -143,7 +165,7 @@ function summarizeSteps(steps) {
     criticalFailures,
     softFailures,
     totalDuration,
-    overallStatus: failed.length ? 'FAIL' : 'PASS',
+    overallStatus: failed.length > 0 ? 'FAIL' : 'PASS',
   };
 }
 
@@ -466,10 +488,16 @@ async function generateWordReport() {
   );
 }
 
-generateWordReport().catch((err) => {
-  console.error(
-    'Failed to generate report:',
-    err
-  );
-  process.exitCode = 1;
-});
+// Export for testing — summarizeSteps is the core logic that decides PASS/FAIL
+module.exports = { summarizeSteps };
+
+// Auto-execute only when run directly (not when imported by tests)
+if (require.main === module) {
+  generateWordReport().catch((err) => {
+    console.error(
+      'Failed to generate report:',
+      err
+    );
+    process.exitCode = 1;
+  });
+}

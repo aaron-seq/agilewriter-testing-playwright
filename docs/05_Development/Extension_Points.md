@@ -41,6 +41,12 @@ Isolated Validation Expansion
 Configuration Growth
 → expected adaptation
 
+### Extending the Environment Validator
+When a new health configuration is added to `runtime-config.ts`, the environment validator MUST be extended to cover the new required variables:
+1. Update the `HealthConfigKey` union type in `tests/helpers/validateHealthEnv.ts` to include the new key.
+2. Add the exact required environment variables to the `REQUIRED_VARS` mapping in the same file.
+3. Update the config key count guard and add a happy-path test in `tests/helpers/__tests__/validateHealthEnv.spec.ts`.
+
 Documentation Expansion
 → expected preservation
 

@@ -30,8 +30,8 @@ test.describe('Health Report: M264', () => {
   test.describe.configure({ timeout: 3_300_000 });
 
   test.beforeAll(() => {
-    validateHealthEnv('m264');
     initTracker();
+    validateHealthEnv('m264');
   });
 
   test.afterAll(() => {

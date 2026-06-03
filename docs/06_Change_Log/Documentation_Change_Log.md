@@ -91,6 +91,16 @@ Rationale
 
 *Record entries only after change acceptance.*
 
+### 2026-06-03
+**Category**: Governance Change / Documentation Change
+**Affected Scope**: `Environment_Configuration.md`, `Health_Pipeline_Deep_Dive.md`, `Adding_New_Health_Script.md`, `Extension_Points.md`, `Repository_Change_Checklist.md`
+**Modification**:
+- Centralized environment configuration documentation into a reusable validation pattern.
+- Updated Health Pipeline architecture to describe dynamic suite discovery.
+- Enforced environment validation guards as a mandatory step in health script authoring.
+- Expanded PR checklist to require environment validation mapping and contract testing.
+**Rationale**: Clarify governance and framework rules for environment validation without coupling canonical architecture to specific implementation workflows, ensuring repository onboarding remains scalable and isolated.
+
 **Confidence**: Observed
 
 ## Change Confidence Model
