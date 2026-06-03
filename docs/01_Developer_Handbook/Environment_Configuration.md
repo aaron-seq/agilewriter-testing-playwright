@@ -68,36 +68,16 @@ These variables configure metadata or override health check targets. If omitted,
 | `TEST_ENV` | Environment tag for the generated reports. | `<ENVIRONMENT_TAG>` | Reporting | Verified |
 | `APP_URL` | Specific sign-in URL for AgileWriter frontend. | `<APP_URL>` | Playwright authentication | Verified |
 
-#### Health Script Overrides
+#### Configuration Validation Pattern
 
-Health scripts may define namespaced environment variables.
+Health configuration variables are strictly governed by a centralized pattern to prevent silent runtime failures and configuration drift:
 
-Examples below are representative and not exhaustive.
+1. **Configuration Key**: A specific suite key is defined in `runtime-config.ts` (e.g., `configKeyName`).
+2. **Validation Mapping**: The `tests/helpers/validateHealthEnv.ts` file maps the key to its exact required environment variables.
+3. **Environment Variables**: The required variables are stubbed in `.env.example` to ensure all developers understand the requirements, and set in the local `.env`.
+4. **Runtime Consumption**: The health spec invokes `validateHealthEnv('configKeyName')` as its very first action. If any mapped variables are missing, execution aborts immediately with a clear error listing the missing variables.
 
-Example parameters (using `CSR`):
-* `HEALTH_TEMPLATE_CSR`: The expected output template name (e.g., `<CSR_TEMPLATE_NAME>.docx`).
-* `HEALTH_TEMPLATE_FOLDER_CSR`: The SharePoint folder containing the template.
-* `HEALTH_SOURCES_CSR`: Comma-separated list of source files to upload.
-* `HEALTH_SOURCE_FOLDER_CSR`: The SharePoint folder containing the source files.
-* `HEALTH_OUTPUT_PREFIX_CSR`: The prefix for the generated document.
-* `HEALTH_EXPECTED_MINUTES_IDEAYA`: Training duration timeout overrides (specifically used in Ideaya runs).
-* `HEALTH_SOURCE_FOLDERS_IDEAYA`: Comma-separated source folders for the Ideaya PRODTEST preflight. Current confirmed value: `Tables_Test_EP`.
-* `HEALTH_STOP_BEFORE_TRAINING_IDEAYA`: Safety flag for the Ideaya preflight. Use `true` so the script validates picker selection and stops before training.
-
-#### Ideaya PRODTEST Preflight Variables
-
-The Ideaya preflight is used to validate the IDE196-009 picker setup without
-starting training.
-
-| Variable | Purpose | Example | Primary Consumer | Confidence |
-| :--- | :--- | :--- | :--- | :--- |
-| `HEALTH_SOURCE_FOLDERS_IDEAYA` | Source folders selected under the confirmed Ideaya parent folder. Add more folders only after they are confirmed in PRODTEST. | `Tables_Test_EP` | `tests/health_Ideaya_preflight.spec.ts` | Observed |
-| `HEALTH_STOP_BEFORE_TRAINING_IDEAYA` | Keeps the preflight from clicking `Start Training`. | `true` | `runHealthReport()` stop gate | Observed |
-
-If a second Ideaya source folder is confirmed later, add it as a comma-separated
-value, for example `Tables_Test_EP,test for summary of tables`. Do not add
-unconfirmed folders, because picker search may match a similarly named folder
-from another study.
+**MANDATORY**: Any variables whose absence causes a *functional silent failure* (such as incorrect source selection resulting in an empty report) MUST be classified as required in the validation mapping, rather than remaining optional.
 
 ## Derived Configuration Concepts
 

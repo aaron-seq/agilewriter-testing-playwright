@@ -56,6 +56,11 @@ Review Local Stability
 Review Regression Stability
 → Confirm existing workflows remain stable.
 
+Review Environment Validation (If applicable)
+→ Confirm new configurations require validation mapping.
+→ Confirm new health workflows invoke validation coverage guards.
+→ Confirm new extension keys are covered by contract tests.
+
 Review Unexpected Signals
 → Confirm no unresolved observations remain.
 
