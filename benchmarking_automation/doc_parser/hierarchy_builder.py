@@ -17,6 +17,12 @@ class HierarchyBuilder:
 
     def __init__(self):
         self.node_counter = 0
+        self.node_order = 0
+
+    def next_order(self):
+
+        self.node_order += 1
+        return self.node_order
 
     def next_id(self, prefix):
         self.node_counter += 1
@@ -48,9 +54,7 @@ class HierarchyBuilder:
             id=self.next_id("P"),
             type=node_type,
             text=normalized["text"],
-            formatting={
-                "runs": normalized["formatting_blocks"]
-            },
+            rich_runs=normalized["rich_runs"],
             location=Location(
                 section=section,
                 paragraph_index=paragraph_index,
@@ -62,6 +66,10 @@ class HierarchyBuilder:
                 before_text=context_data["before_text"],
                 after_text=context_data["after_text"]
             ),
+            metadata={
+                "section": section
+            },
+            node_order=self.next_order(),
         )
 
     def build_table_node(
@@ -77,7 +85,11 @@ class HierarchyBuilder:
             location=Location(
                 section=section,
                 table_index=table_index
-            )
+            ),
+            metadata={
+                "section": section
+            },
+            node_order=self.next_order()
         )
 
         rows = table.xpath("./w:tr", namespaces=NS)
@@ -86,6 +98,8 @@ class HierarchyBuilder:
 
             row_node = DocumentNode(
                 id=self.next_id("R"),
+                parent_id=table_node.id,
+                node_order=self.next_order(),
                 type="row",
                 location=Location(
                     section=section,
@@ -100,6 +114,8 @@ class HierarchyBuilder:
 
                 cell_node = DocumentNode(
                     id=self.next_id("C"),
+                    parent_id=row_node.id,
+                    node_order=self.next_order(),
                     type="cell",
                     location=Location(
                         section=section,
@@ -122,7 +138,7 @@ class HierarchyBuilder:
                         row_index=row_idx,
                         cell_index=cell_idx
                     )
-
+                    p_node.parent_id = cell_node.id
                     cell_node.add_child(p_node)
 
                 row_node.add_child(cell_node)
