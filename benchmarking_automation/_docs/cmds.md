@@ -1,7 +1,3 @@
-Document Status: Historical
-Superseded By: TBD
-Reason Preserved: Original implementation retained
-
 > cd benchmarking_automation
 
 > .\venv\Scripts\Activate.ps1
@@ -16,9 +12,9 @@ Reason Preserved: Original implementation retained
 
 > python tests/us01_s3_op_debug_dump.py
 
-> python tests/us01_s4_run_pipeline.py
-
 > pytest tests/test_us01_subtask4.py
+
+> python tests/us01_s4_run_pipeline.py
 
 us02
 
@@ -43,3 +39,13 @@ us02_s3
 > pytest tests/classification/integration/test_schema_validator.py
 
 > pytest tests/classification/integration/test_contract_preservation.py
+
+> pytest tests/classification/regression/test_generic_table_placeholders.py -v
+
+scc-242
+
+> pytest tests/doc_parser\test_rich_run_extraction.py -v
+
+> pytest tests/doc_parser/test_canonical_document_builder.py -v
+
+> python tests/doc_parser/generate_document_tree_json.py

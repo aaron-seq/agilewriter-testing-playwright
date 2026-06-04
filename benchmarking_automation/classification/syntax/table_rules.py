@@ -15,9 +15,13 @@ TABLE_PATTERNS = [
     # <Insert Table Table Name>
     r"^<\s*Insert\s+Table\s+.+>$",
 
+    # <Table X>
+    # <Table 1>
+    # <Table AE>
     # <Table Demographics>
-    # <Table Summary of Participant Disposition>
-    r"^<\s*Table\s+[A-Za-z0-9].+>$",
+    # <Table-Summary>
+    # <Table_1>>
+    r"^<\s*Table\b[^>]*>$",
 ]
 
 
