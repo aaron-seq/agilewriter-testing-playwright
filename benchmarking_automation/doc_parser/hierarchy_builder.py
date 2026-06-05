@@ -13,6 +13,7 @@ NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 }
 
+
 class HierarchyBuilder:
 
     def __init__(self):
@@ -50,6 +51,19 @@ class HierarchyBuilder:
             all_paragraphs,
             paragraph_index
         )
+
+        table_path = None
+
+        if (
+            table_index is not None
+            and row_index is not None
+            and cell_index is not None
+        ):
+            table_path = (
+                f"T{table_index + 1}"
+                f"/R{row_index + 1}"
+                f"/C{cell_index + 1}"
+            )
         return DocumentNode(
             id=self.next_id("P"),
             type=node_type,
@@ -60,7 +74,8 @@ class HierarchyBuilder:
                 paragraph_index=paragraph_index,
                 table_index=table_index,
                 row_index=row_index,
-                cell_index=cell_index
+                cell_index=cell_index,
+                table_path=table_path
             ),
             context=ContextWindow(
                 before_text=context_data["before_text"],
@@ -148,7 +163,7 @@ class HierarchyBuilder:
         return table_node
 
 
-# Helper Function 
+# Helper Function
 def build_context_window(
     paragraphs,
     current_index

@@ -11,8 +11,12 @@ class Location:
     row_index: Optional[int] = None
     cell_index: Optional[int] = None
 
+    table_path: Optional[str] = None
+
     header_index: Optional[int] = None
     footer_index: Optional[int] = None
+
+    
 
 
 @dataclass
