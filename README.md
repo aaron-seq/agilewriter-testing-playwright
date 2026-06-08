@@ -176,6 +176,97 @@ without using command-line commands repeatedly.
 
 ---
 
+## Required Environment Variables per Health Suite
+
+Each health suite requires specific environment variables to be set in `.env`
+before it can run. If any required variable is missing or empty, the server
+will return a `400` error immediately — no test will be spawned.
+
+Use `.env.example` as the reference for all variable names and groupings.
+
+| Suite | Required Variables |
+|---|---|
+| CSR | `HEALTH_TEMPLATE_CSR`, `HEALTH_TEMPLATE_FOLDER_CSR`, `HEALTH_SOURCES_CSR`, `HEALTH_SOURCE_FOLDER_CSR` |
+| ICF Full | `HEALTH_TEMPLATE_ICF_FULL`, `HEALTH_TEMPLATE_FOLDER_ICF_FULL`, `HEALTH_SOURCES_ICF_FULL`, `HEALTH_SOURCE_FOLDER_ICF_FULL` |
+| ICF Trimmed | `HEALTH_TEMPLATE_ICF_TRIMMED`, `HEALTH_TEMPLATE_FOLDER_ICF_TRIMMED`, `HEALTH_SOURCES_ICF_TRIMMED`, `HEALTH_SOURCE_FOLDER_ICF_TRIMMED` |
+| Ideaya (ORG) | `HEALTH_TEMPLATE_IDEAYA`, `HEALTH_TEMPLATE_FOLDER_IDEAYA`, `HEALTH_SOURCE_FILE_IDEAYA`, `HEALTH_SOURCE_PARENT_FOLDER_IDEAYA`, `HEALTH_SOURCE_NESTED_FOLDERS_IDEAYA` |
+| Ideaya Preflight | `HEALTH_TEMPLATE_IDEAYA_PREFLIGHT`, `HEALTH_TEMPLATE_FOLDER_IDEAYA_PREFLIGHT`, `HEALTH_PARENT_FOLDER_IDEAYA_PREFLIGHT`, `HEALTH_CLIENT_IDEAYA_PREFLIGHT` |
+| Ideaya PRODTEST CSR | `HEALTH_TEMPLATE_IDEAYA_PRODTEST_CSR`, `HEALTH_TEMPLATE_FOLDER_IDEAYA_PRODTEST_CSR`, `HEALTH_TEMPLATE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR`, `HEALTH_SOURCES_IDEAYA_PRODTEST_CSR`, `HEALTH_SOURCE_PARENT_FOLDER_IDEAYA_PRODTEST_CSR` |
+| M264 | `HEALTH_TEMPLATE_M264`, `HEALTH_TEMPLATE_FOLDER_M264`, `HEALTH_SOURCES_M264`, `HEALTH_SOURCE_FOLDER_M264` |
+
+---
+
+## How to Run Health Checks via the Web UI
+
+The test runner includes a local web interface for running health checks
+without using the command line.
+
+**Local:**
+1. Start the server: `npm run server`
+2. Open: `http://localhost:3000/ui`
+3. Select a health suite from the dropdown
+4. Click **Execute**
+5. Wait for the run to complete
+6. Download the generated DOCX report from the session output
+
+**Cloud (hosted instance):**
+Access the shared hosted URL provided by your team lead.
+No local setup required — all configuration is managed server-side.
+Contact Aaron Sequeira or check the SCC-224 Jira ticket for the current URL.
+
+---
+
+## Reading the DOCX Health Report
+
+Every health run generates a DOCX report saved to `sessions/<sessionId>/`.
+The report contains a step-by-step timeline of the run.
+
+**Overall Status values:**
+| Status | Meaning |
+|---|---|
+| `PASS` | All critical steps completed successfully |
+| `FAIL` | One or more critical steps failed |
+
+**Placeholder color meanings (training workspace):**
+| Color | Meaning |
+|---|---|
+| 🟢 Green | Replacement done — placeholder was successfully populated |
+| ⬜ Grey | Not matched — no matching content found in sources |
+| 🔵 Blue | Match found — content matched but not yet applied |
+| 🔴 Red | Replacement not found — matching failed |
+| 🟡 Yellow | Matching in progress — still processing |
+
+---
+
+## Troubleshooting Health Check Failures
+
+**Error: `[validateHealthEnv] Missing required env vars for 'csr': HEALTH_TEMPLATE_CSR`**
+The server returned a 400 before spawning any test.
+Fix: Open `.env` and add the missing variable. Use `.env.example` as a reference.
+
+**Error: `Health spec not found in validation map`**
+A new health spec was added but not registered in `utils/validateHealthEnv.js`.
+Fix: Add the spec filename and its config key to `HEALTH_SPEC_CONFIG_MAP`
+in both `utils/validateHealthEnv.js` and `utils/validateHealthEnv.ts`.
+
+**DOCX shows `Overall Status: FAIL` with `No steps were recorded`**
+The test failed before execution began — likely a `beforeAll` error.
+Fix: Check the server log for the error message. Most likely a missing env var.
+
+**DOCX shows `Overall Status: PASS` but the suite ran with 0 placeholders**
+The training ran but found no matching content.
+Fix: Verify the source documents configured in `.env` contain content
+that matches the template placeholders.
+
+**Health suite count changed unexpectedly**
+Run the isolation validation script:
+```bash
+npx playwright test tests/helpers/__tests__/healthIsolation.spec.ts --no-deps
+```
+This will identify which spec is missing or which unexpected spec was added.
+
+---
+
 # Running Other Validation Tests
 
 Run all tests:
