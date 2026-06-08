@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const XLSX = require('xlsx');
 const { normalizeBaseUrl } = require('./normalizeBaseUrl');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { getMissingHealthEnvVars, HEALTH_SPEC_CONFIG_MAP } = require('../utils/validateHealthEnv');
 
 const app = express();
 app.use(cors());
@@ -457,6 +458,32 @@ app.post('/run-test', (req, res) => {
   if (!testFile) {
     return res.status(400).json({ error: 'testFile is required.' });
   }
+
+  // ── Health spec env var validation gate ──────────────────────────────
+  // Fires only for health_*.spec.ts — all other specs pass through.
+  // Returns 400 synchronously before any session, directory, or
+  // Playwright process is created. Zero side effects on failure.
+  const isHealthSpec = /^health_.*\.spec\.ts$/.test(testFile);
+  if (isHealthSpec) {
+    const configKey = HEALTH_SPEC_CONFIG_MAP[testFile];
+    if (!configKey) {
+      return res.status(400).json({
+        error: 'Health spec not found in validation map.',
+        testFile,
+        hint: 'Add this spec to HEALTH_SPEC_CONFIG_MAP in utils/validateHealthEnv.js',
+      });
+    }
+    const missingVars = getMissingHealthEnvVars(configKey);
+    if (missingVars && missingVars.length > 0) {
+      return res.status(400).json({
+        error: 'Health check cannot run — missing required env vars',
+        missing: missingVars,
+        configKey,
+        hint: 'Check .env and .env.example for the required variables.',
+      });
+    }
+  }
+  // ── End health gate ──────────────────────────────────────────────────
 
   const sessionId = crypto.randomUUID();
   const dirPath = ensureSessionDir(sessionId);

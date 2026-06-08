@@ -314,7 +314,22 @@ async function runTest() {
     });
 
     if (!startResponse.ok) {
-      statusEl.innerText = 'Failed to start test run';
+      let errorMessage = 'Failed to start test run';
+      try {
+        const errorBody = await startResponse.json();
+        if (errorBody.error) {
+          errorMessage = errorBody.error;
+          if (errorBody.missing && errorBody.missing.length > 0) {
+            errorMessage += `\nMissing vars: ${errorBody.missing.join(', ')}`;
+          }
+          if (errorBody.hint) {
+            errorMessage += `\nHint: ${errorBody.hint}`;
+          }
+        }
+      } catch (_) {
+        // If response body is not JSON, fall back to generic message
+      }
+      statusEl.innerText = errorMessage;
       runStatusEl.innerText = 'Failed';
       clearInterval(timerInterval);
       runBtn.disabled = false;
