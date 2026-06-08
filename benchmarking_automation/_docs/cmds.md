@@ -49,3 +49,11 @@ scc-242
 > pytest tests/doc_parser/test_canonical_document_builder.py -v
 
 > python tests/doc_parser/generate_document_tree_json.py
+
+scc-243
+
+> pytest tests/replacement_resolution/test_placeholder_resolver.py -v
+
+> pytest tests/replacement_resolution/test_resolution_pipeline.py -v
+
+> python tests/replacement_resolution/scc_243_run_resolution_pipeline.py
