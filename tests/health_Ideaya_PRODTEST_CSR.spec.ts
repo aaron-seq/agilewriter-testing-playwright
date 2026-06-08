@@ -13,7 +13,7 @@ import { test } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-import { validateHealthEnv } from './helpers/validateHealthEnv';
+import { validateHealthEnv } from '../utils/validateHealthEnv';
 
 test.describe('Health Report: Ideaya PRODTEST CSR', () => {
   // Timeout: 30 min training x 2 buffer + 5 min overhead = 65 min = 3,900,000 ms

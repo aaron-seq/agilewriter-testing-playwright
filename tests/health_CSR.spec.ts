@@ -26,7 +26,7 @@ import { test } from '@playwright/test';
 import { runtimeConfig } from '../runtime-config';
 import { initTracker, saveResults } from './helpers/step-tracker';
 import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-import { validateHealthEnv } from './helpers/validateHealthEnv';
+import { validateHealthEnv } from '../utils/validateHealthEnv';
 
 test.describe('Health Report: CSR', () => {
   // 20 min training x 2 buffer + overhead = ~45 min
