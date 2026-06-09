@@ -76,14 +76,14 @@ Owner: Documentation Team
 **Goal**: Verify end-to-end acceptance conditions for SCC-141 documentation restructure.
 
 ### AC-1: Health Script Execution
-**Validate**: GIVEN repository cloned WHEN only documentation followed THEN `health_CSR.spec.ts` executable.
+**Validate**: GIVEN repository cloned WHEN only documentation followed THEN a dynamically discovered health script is executable.
 **Evidence**: 
-* **Required documents used**: `00_Getting_Started/Setup.md` (Node.js/Playwright setup) and `00_Getting_Started/Quick_Start.md` (Orchestration Server execution).
-* **Missing steps**: CLI execution of individual scripts is not explicitly mapped for onboarding users.
-* **Assumptions detected**: Assumes executing `health_CSR` from UI dropdown fulfills the requirement of executing `tests/health_CSR.spec.ts`.
-* **Blocker count**: 0 (Execution succeeds via UI path).
+* **Required documents used**: `00_Getting_Started/Setup.md` (Node.js/Playwright or Docker setup) and `00_Getting_Started/Quick_Start.md` (Orchestration Server execution).
+* **Missing steps**: None. CLI execution discovery (`--list`) is mapped for onboarding users.
+* **Assumptions detected**: Assumes executing a dynamically discovered health suite via CLI or UI fulfills the execution requirement.
+* **Blocker count**: 0 (Execution succeeds via UI or CLI path).
 
-**Validation Note**: Current acceptance is satisfied through the documented operational execution path (UI), not necessarily direct CLI invocation of `health_CSR.spec.ts`.
+**Validation Note**: Current acceptance is satisfied through the documented operational execution paths (Docker CLI and UI).
 
 **Result**: Pass
 
@@ -200,6 +200,25 @@ Owner: Documentation Team
 
 ---
 
+## Validation Stage 6: SCC-227 Architecture & Purity Validation
+
+**Goal**: Verify architecture boundaries and dynamic discovery migration are structurally sound.
+
+### Architecture and Discovery Integrity
+
+**Coverage**: Complete
+**Confidence**: Verified
+**Risk**: Low
+**Evidence**: Cross-reference inspection
+
+1. **Static health suite references migrated**: Dynamic CLI discovery commands replacing static names.
+2. **Environment variable ownership maintained**: Config tables remain exclusively in Developer Handbook.
+3. **Container boundaries documented**: `System_Architecture_Deep_Dive.md` explicitly documents persistence locations (`sessions/`, `reports/`).
+
+**Result**: Pass
+
+---
+
 ## Validation Summary
 
 Stage 1 → Complete ✅
@@ -207,6 +226,7 @@ Stage 2 → Complete ✅
 Stage 3 → Complete ✅
 Stage 4 → Complete ✅
 Stage 5 → Complete ✅
+Stage 6 → Complete ✅
 
 Final Status:
 Documentation Validation Passed

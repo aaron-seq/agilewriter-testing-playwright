@@ -53,6 +53,25 @@ Responsibilities should remain owned by a single domain whenever possible.
 
 **Confidence**: Observed
 
+## Container Boundaries and Persistence
+
+With the introduction of Docker, the system architecture includes strict container boundaries.
+
+Container Execution Boundary
+→ isolated runtime environment
+→ independent of local ecosystem
+
+Persistence Boundary
+→ state is ephemeral by default
+→ artifacts require explicit volume mounts
+
+Ownership of Mounted Outputs:
+* `sessions/` → owned by Execution Domain (Playwright traces/states)
+* `reports/` → owned by Reporting Domain (aggregated run reports)
+* `Generated DOCX Artifacts` → owned by Validation Domain (raw output for accuracy scoring)
+
+**Confidence**: Verified
+
 ## Node Execution Layer
 
 Responsibility

@@ -62,8 +62,9 @@ Output Evaluation
 Health tests (`health_*.spec.ts`) verify that core document paths execute successfully end-to-end. 
 
 * **Focus**: Assess operational stability (e.g., successful upload, training, and generation).
-* **Environment**: Local Node/Playwright.
-* **Targeting**: Isolated by document type (e.g., ICF, CSR).
+* **Environment**: Local Node/Playwright or Docker Container.
+* **Targeting**: Isolated by document type.
+* **Discovery**: Available suites are discovered dynamically via CLI (`npx playwright test --project=health --list`).
 
 **Confidence**: Observed
 

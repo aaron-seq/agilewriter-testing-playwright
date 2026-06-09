@@ -82,6 +82,21 @@ Preserved Context
 
 *Record entries only after release acceptance.*
 
+### Milestone: SCC-227 Architecture & Dynamic Discovery
+Date
+→ 2026-06-09
+
+Intent
+→ Migrate static documentation to dynamic execution references and document Docker architecture.
+
+Observed Repository Evolution
+→ Removed static suite references in favor of CLI discovery.
+→ Defined Docker boundary persistence in Architecture documents.
+→ Clarified validation framework constraints.
+
+Preserved Context
+→ Legacy documentation containing static suites retained in `docs/legacy/`.
+
 **Confidence**: Observed
 
 ## Release Signals

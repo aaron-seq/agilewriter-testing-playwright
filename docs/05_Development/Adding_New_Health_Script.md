@@ -127,15 +127,25 @@ Preserve
 
 Every health spec MUST invoke the centralized environment validator as the very first operation inside its `beforeAll` block, prior to `initTracker()` or any client interactions.
 
+### Step 1: Map Required Variables (`HealthConfigKey`)
+
+When adding a new script, you must first extend the validation framework by defining its required environment variables.
+
+1. Open the environment validation map (e.g., `tests/helpers/validateHealthEnv.ts`).
+2. Add a new `HealthConfigKey` literal for your script.
+3. Map this key to its corresponding `REQUIRED_VARS` array to enforce strict presence checks at startup.
+
+### Step 2: Invoke the Guard
+
 ```typescript
 import { validateHealthEnv } from './helpers/validateHealthEnv';
 
 test.beforeAll(async () => {
-  validateHealthEnv('configKey'); // <-- MUST BE FIRST LINE
+  validateHealthEnv('yourNewConfigKey'); // <-- MUST BE FIRST LINE
   // ...
 });
 ```
-This ensures execution aborts immediately with a clear error format if the `.env` is incomplete, protecting SharePoint credits and preventing dangling workspace sessions.
+This ensures execution aborts immediately with a clear error format if the `.env` is incomplete, protecting against silent failures or dangling execution states.
 
 **Confidence**: Verified
 

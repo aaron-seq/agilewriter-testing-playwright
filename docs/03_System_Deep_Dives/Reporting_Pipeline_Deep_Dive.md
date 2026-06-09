@@ -86,6 +86,16 @@ Presentation Outcomes
 
 **Confidence**: Observed
 
+## Reporting Artifact Ownership
+
+The Reporting Pipeline owns the final presentation of execution outcomes, but explicitly delegates ownership of specific artifacts across domains:
+
+* `reports/` Location Ownership: The Reporting domain strictly owns the location and generation of aggregated DOCX reports.
+* `sessions/` Location Ownership: Delegated to the Execution Domain (Playwright).
+* `Generated DOCX Artifacts`: Delegated to the Validation Domain for accuracy analysis.
+
+**Confidence**: Verified
+
 ## Constraints
 
 Available inputs

@@ -29,6 +29,7 @@ Failures are grouped by the first observable symptom rather than underlying caus
 * **Execution Failures**: A validation workflow stalls or errors during the run.
 * **Environment Failures**: Missing or invalid configuration prevents workflows from succeeding.
 * **Report Failures**: Aggregation scripts fail to produce expected artifacts.
+* **Container Failures**: Docker lifecycle or volume mounting issues.
 
 **Confidence**: Observed
 
@@ -78,6 +79,26 @@ Missing Report
 
 **Confidence**: Observed
 
+## Containerization Issues
+
+Docker Lifecycle Failure
+→ Observable Signal: container exits prematurely or fails to start
+→ First Validation Step: check `docker-compose logs`
+→ Candidate Recovery Path: execute a full restart procedure (`docker-compose down -v` followed by `docker-compose up --build`)
+
+Orphaned Volumes / State Corruption
+→ Observable Signal: stale reports or old session data persist across fresh runs
+→ First Validation Step: inspect mounted host directories
+→ Candidate Recovery Path: manually clear local volume directories (`sessions/`, `reports/`)
+
+Artifact Troubleshooting Locations
+→ When troubleshooting generated artifacts or session states from a container, retrieve data from the local host directories mounted by Docker:
+* **Session Traces**: Check local `sessions/`
+* **Run Summaries**: Check local `reports/`
+* **Raw DOCX Files**: Check local `reports/` (or designated validation output dir)
+
+**Confidence**: Verified
+
 ## Recovery Playbooks
 
 Standard Recovery Scenario
@@ -121,6 +142,10 @@ Long-running workflows
 
 Historical visibility
 → limited availability
+
+Headed Browser Execution in Containers
+→ Headed execution fails because no display server exists in the container.
+→ Resolution: Set `PLAYWRIGHT_HEADLESS=true`. Do not classify this as a defect.
 
 **Confidence**: Observed
 

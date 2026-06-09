@@ -32,6 +32,20 @@ Evaluation Context
 Reference Context
 → support comparison
 
+Evaluation Startup Dependencies
+→ external module resolution
+→ environment preparation
+
+**Confidence**: Observed
+
+## Artifact Interpretation and Evaluation Readiness
+
+Artifact Interpretation Responsibilities
+→ The Accuracy Pipeline owns the interpretation of generated DOCX/XML artifacts and extracting structured insights. It does not own execution or environment orchestration.
+
+Observable Evaluation Readiness
+→ Evaluation readiness is observed when the required interpretation dependencies resolve successfully, and the pipeline signals it is ready to consume inputs.
+
 **Confidence**: Observed
 
 ## Pipeline Stages

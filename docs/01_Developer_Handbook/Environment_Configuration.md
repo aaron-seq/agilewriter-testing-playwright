@@ -18,7 +18,9 @@ Source Documents:
 
 ## Environment Philosophy
 
-The AgileWriter Automation Suite relies heavily on environment variables to control execution targets, supply credentials, and define the expected documents for health checks. The `.env` file isolates state from the repository and provides runtime flexibility without requiring code modifications.
+The AgileWriter Automation Suite relies heavily on environment variables to control execution targets, supply credentials, and define expected outputs. The `.env` file isolates state from the repository and provides runtime flexibility.
+
+In containerized environments (Docker), the `.env` file is injected directly into the container at runtime.
 
 ## Source of Truth Rules
 
