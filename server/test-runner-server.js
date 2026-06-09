@@ -114,6 +114,8 @@ function sanitizeLogMessage(message) {
     .toString()
     .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '[EMAIL]')
     .replace(/https?:\/\/[^\s]+/gi, '[URL]')
+    // Note: This regex masks Windows-style paths in logs. On Linux containers,
+    // paths will appear unmasked — cosmetic difference only, not a security issue.
     .replace(/[a-zA-Z]:\\[^\s)]+/gi, '[PATH]')
     .replace(/(?:\/[a-zA-Z0-9._-]+){2,}/g, '[PATH]');
 

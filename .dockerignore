@@ -1,0 +1,19 @@
+# Dependencies (will be installed fresh in container)
+node_modules/
+# Secrets — NEVER bake into image
+.env
+# Auth state — machine-specific, must be regenerated on cloud
+playwright/.auth/
+# Generated output — mount as volumes instead
+sessions/
+reports/
+# Git history
+.git/
+# Dev tooling
+.vscode/
+*.log
+# Python benchmarking — not needed in container
+benchmarking-automation/
+# OS files
+.DS_Store
+Thumbs.db
