@@ -17,7 +17,7 @@ Source Documents:
 
 If you are new, understand this path first:
 
-`Start Orchestration Server → Open Execution Dashboard → Select Health Script → Execute → Success Signal`
+`Execute via Docker → OR → Start Local Server → Discover Suites → Execute → Success Signal`
 
 Then come back and read details.
 
@@ -39,12 +39,27 @@ Then come back and read details.
 > Consequence:
 > New contributors should start with execution dashboard validation runs before moving to direct Playwright execution.
 
-### 1. Start the Orchestration Server
+### 1. Start the Validation Environment
 
 Ensure you are in the root directory of the repository (`Agile-Writer-Playwright-testing`).
 
+You can choose either the **Containerized** (Recommended) or **Local Node.js** execution path.
+
+#### Path A: Containerized Execution (Recommended)
+
 WHY:
-The orchestration server acts as an execution broker, loading runtime configuration and orchestrating execution for the Playwright tests.
+Docker isolates all dependencies, provides a pre-configured Playwright environment, and ensures consistent volume mounts for reports.
+
+HOW:
+
+```bash
+docker-compose up --build
+```
+
+#### Path B: Local Orchestration Server
+
+WHY:
+For local development or environments without Docker, the Node.js server acts as an execution broker.
 
 WHEN:
 Every time you want to execute health scripts against AgileWriter via the execution dashboard.
@@ -124,7 +139,7 @@ Immediately after setup to prove your environment configuration is correct.
 HOW:
 
 1. Scroll to the **Run Health Scripts** section in the execution dashboard.
-2. Select a target document from the dropdown (e.g., `health_CSR` or `health_Ideaya`).
+2. Select a target document from the dynamically populated dropdown. To see the full list of available suites from the CLI, run: `npx playwright test --project=health --list`
 3. Click **Run Selected Script**.
 
 Observable Signals:
@@ -203,4 +218,4 @@ You can now:
 
 Continue:
 
-[../01_Developer_Handbook/Codebase_Map.md](../01_Developer_Handbook/Codebase_Map.md)
+[User_Execution_Guide.md](../02_User_Guides/User_Execution_Guide.md)

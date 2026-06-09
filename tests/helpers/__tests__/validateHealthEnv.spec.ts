@@ -15,7 +15,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { validateHealthEnv, HealthConfigKey } from '../validateHealthEnv';
+import { validateHealthEnv, HealthConfigKey } from '../../../utils/validateHealthEnv';
 
 // ──────────────────────────────────────────────
 // ENV VAR CONTRACTS — source of truth for required vars per config
@@ -228,5 +228,17 @@ test.describe('summarizeSteps() — DOCX PASS/FAIL contract', () => {
     expect(result.overallStatus).toBe('PASS');
     expect(result.passedSteps).toBe(2);
     expect(result.failedSteps).toBe(0);
+  });
+});
+
+// ──────────────────────────────────────────────
+// SCC-180 — utils/ path import contract test
+// ──────────────────────────────────────────────
+
+test.describe('SCC-180 — validateHealthEnv utils/ path', () => {
+  test('validateHealthEnv can be imported from utils/ path', () => {
+    // This will fail until the file is moved to utils/validateHealthEnv.ts
+    const { validateHealthEnv: v } = require('../../../utils/validateHealthEnv');
+    expect(typeof v).toBe('function');
   });
 });

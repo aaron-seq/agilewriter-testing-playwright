@@ -57,7 +57,7 @@ Use this matrix before changing code to understand dependencies, testing require
 | **Modify training synchronization** | `tests/*.spec.ts` | Execute script and ensure Playwright correctly waits for AI generation. | High | Medium | Revert spec modifications |
 | **Add dashboard action** | `ui/index.html`, `ui/script.js`, `server/test-runner-server.js` | Click UI action and verify backend routes request without errors. | Medium | Medium | Revert dashboard assets and server routes |
 | **Add environment variable** | `.env`, `.env.example`, `Environment_Configuration.md` | Start server and execute script to ensure variable resolves. | High | Repository-wide | Revert `.env.example` and documentation |
-| **Add health script** | `tests/health_*.spec.ts`, `ui/index.html` | Trigger script via dashboard for end-to-end success. | Medium | Medium | Remove spec file and UI dropdown entry |
+| **Add health script** | `tests/`, `.env` | Discover script via CLI and trigger for end-to-end success. | Medium | Medium | Remove spec file |
 | **Add Python benchmark** | `benchmarking_automation/models/`, `benchmarking_automation/main.py` | Run benchmark script against known test documents. | Low | Low | Remove benchmark schema and logic |
 
 ## Safe Extension Points

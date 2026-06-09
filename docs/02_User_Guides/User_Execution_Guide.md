@@ -61,9 +61,15 @@ output available
 
 **Confidence**: Observed
 
-## Running Health Scripts
+## Discovering and Running Health Scripts
 
-Select validation scenario
+Available health suites are discovered dynamically at runtime. The UI dashboard provides a populated dropdown, but the canonical CLI discovery mechanism is:
+
+```bash
+npx playwright test --project=health --list
+```
+
+Select validation scenario (via CLI or UI)
 → selected state visible
 
 Start execution

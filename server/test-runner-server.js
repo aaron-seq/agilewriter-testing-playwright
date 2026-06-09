@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const XLSX = require('xlsx');
 const { normalizeBaseUrl } = require('./normalizeBaseUrl');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { getMissingHealthEnvVars, HEALTH_SPEC_CONFIG_MAP } = require('../utils/validateHealthEnv');
 
 const app = express();
 app.use(cors());
@@ -113,6 +114,8 @@ function sanitizeLogMessage(message) {
     .toString()
     .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, '[EMAIL]')
     .replace(/https?:\/\/[^\s]+/gi, '[URL]')
+    // Note: This regex masks Windows-style paths in logs. On Linux containers,
+    // paths will appear unmasked — cosmetic difference only, not a security issue.
     .replace(/[a-zA-Z]:\\[^\s)]+/gi, '[PATH]')
     .replace(/(?:\/[a-zA-Z0-9._-]+){2,}/g, '[PATH]');
 
@@ -457,6 +460,32 @@ app.post('/run-test', (req, res) => {
   if (!testFile) {
     return res.status(400).json({ error: 'testFile is required.' });
   }
+
+  // ── Health spec env var validation gate ──────────────────────────────
+  // Fires only for health_*.spec.ts — all other specs pass through.
+  // Returns 400 synchronously before any session, directory, or
+  // Playwright process is created. Zero side effects on failure.
+  const isHealthSpec = /^health_.*\.spec\.ts$/.test(testFile);
+  if (isHealthSpec) {
+    const configKey = HEALTH_SPEC_CONFIG_MAP[testFile];
+    if (!configKey) {
+      return res.status(400).json({
+        error: 'Health spec not found in validation map.',
+        testFile,
+        hint: 'Add this spec to HEALTH_SPEC_CONFIG_MAP in utils/validateHealthEnv.js',
+      });
+    }
+    const missingVars = getMissingHealthEnvVars(configKey);
+    if (missingVars && missingVars.length > 0) {
+      return res.status(400).json({
+        error: 'Health check cannot run — missing required env vars',
+        missing: missingVars,
+        configKey,
+        hint: 'Check .env and .env.example for the required variables.',
+      });
+    }
+  }
+  // ── End health gate ──────────────────────────────────────────────────
 
   const sessionId = crypto.randomUUID();
   const dirPath = ensureSessionDir(sessionId);

@@ -26,10 +26,12 @@ The pipeline supports confidence-building activities around document generation 
 
 ## Pre-Execution Validation
 
-Execution Context Validation
+The pipeline is protected by a strict Validation Framework that executes before any workflow begins.
+
+Validation Gate
 → Input: environment configuration mapping
-→ Transformation: validation framework gateway (e.g. `validateHealthEnv`)
-→ Output: validated state or hard abort
+→ Transformation: precondition evaluation
+→ Observable Outcome: pipeline continues to initialization OR hard aborts with missing prerequisites
 
 **Confidence**: Observed
 

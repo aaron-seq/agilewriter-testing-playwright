@@ -1,0 +1,20 @@
+# docker-compose.yml — AgileWriter Health Check Test Runner
+# Usage: docker-compose up
+# Requires: .env file in project root with all health config vars set
+version: '3.8'
+services:
+  test-runner:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist generated session output outside the container
+      - ./sessions:/app/sessions
+      # Persist downloaded reports outside the container
+      - ./reports:/app/reports
+      # Mount auth state — must exist locally before docker-compose up
+      # Generate with: npx playwright test --project=setup
+      - ./playwright/.auth:/app/playwright/.auth
+    env_file:
+      - .env
+    restart: unless-stopped
