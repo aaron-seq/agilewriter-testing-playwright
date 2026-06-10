@@ -90,6 +90,7 @@ class ReplacementExtractionEngine:
                         "replacement_found": False,
                         "status": "UNRESOLVED",
                         "fragment_id": None,
+                        "replacement_content": None,
                         "confidence": resolution.get(
                             "match_confidence"
                         )
@@ -134,6 +135,7 @@ class ReplacementExtractionEngine:
                 "replacement_found": True,
                 "status": "RESOLVED",
                 "fragment_id": fragment["fragment_id"],
+                "replacement_content":extracted.get("content"),
                 "confidence": resolution.get(
                     "match_confidence"
                 )

@@ -8,9 +8,9 @@ class ResolutionScorer:
     TYPE_WEIGHT = 0.15
     CONTEXT_WEIGHT = 0.25
     FORMAT_WEIGHT = 0.05
-    NODE_DISTANCE_WEIGHT = 0.15
+    NODE_DISTANCE_WEIGHT = 0.05
 
-    RESOLVED_THRESHOLD = 0.70
+    RESOLVED_THRESHOLD = 0.60
 
     @staticmethod
     def similarity(a: str | None, b: str | None) -> float:
