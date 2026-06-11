@@ -57,3 +57,7 @@ scc-243
 > pytest tests/replacement_resolution/test_resolution_pipeline.py -v
 
 > python tests/replacement_resolution/scc_243_run_resolution_pipeline.py
+
+scc-244
+
+> pytest tests/replacement_extraction/test_replacement_extractor.py -v
