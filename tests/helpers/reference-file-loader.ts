@@ -10,7 +10,11 @@ export interface PlaceholderRef {
 }
 
 export function normalizePlaceholderName(name: string): string {
-  return name.replace(/\s+/g, ' ').trim().toLowerCase();
+  return name
+    .replace(/^<|>$/g, '')   // strip leading < and trailing > (Agile Writer format)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 function cellText(value: unknown): string {
