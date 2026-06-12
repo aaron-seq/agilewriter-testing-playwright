@@ -16,10 +16,11 @@ pipeline = (
 
 pipeline.run(
     template_docx=(
-        "tests/CSR_Template_20FEB2026.docx"
+        "tests\ICF_docx\ICF_SET0 (1).docx"
+        
     ),
     generated_docx=(
-        "tests/CSR_1133_19_SB_raw.docx"
+        "tests\ICF_docx\ICF_Full_output_01.docx"
     ),
     output_dir="final_outputs"
 )

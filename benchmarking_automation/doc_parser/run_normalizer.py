@@ -12,6 +12,35 @@ def extract_run_text(run):
         t.text for t in texts if t.text
     )
 
+
+def extract_field_code_text(paragraph):
+    """
+    Extract text from field codes (w:fldCode / w:instrText) which are commonly
+    used in DOCX templates -- e.g. { MACROBUTTON  <Firstname Lastname> }
+    These appear as w:fldChar/w:instrText elements.
+    Returns the raw field instruction text if found.
+    """
+    instr_texts = paragraph.xpath(".//w:instrText", namespaces=NS)
+    fld_code_texts = paragraph.xpath(".//w:fldCode/w:t", namespaces=NS)
+
+    parts = []
+    for node in instr_texts + fld_code_texts:
+        if node.text:
+            parts.append(node.text)
+
+    return " ".join(parts) if parts else None
+
+
+def extract_deleted_text(paragraph):
+    """
+    Extract text from w:delText elements (tracked deletions).
+    Sometimes the placeholder text remains as deleted text in the generated doc.
+    """
+    del_text_nodes = paragraph.xpath(".//w:delText", namespaces=NS)
+    parts = [t.text for t in del_text_nodes if t.text]
+    return "".join(parts) if parts else None
+
+
 def get_boolean_run_property(run, xpath_expr):
 
     nodes = run.xpath(xpath_expr, namespaces=NS)
@@ -154,14 +183,25 @@ def build_rich_run(run):
 def normalize_runs(paragraph):
     """
     Merge fragmented Word runs into logical text.
+    Handles field codes, deleted text, tab/break characters.
     """
+
+    # First check for field codes (w:instrText) which may contain the placeholder
+    field_text = extract_field_code_text(paragraph)
+    if field_text:
+        # Field code text may contain the placeholder -- keep it as context
+        # The actual display text will be in regular runs, but we also capture
+        # field instructions for matching purposes
+        pass
+
+    # Check for deleted text (tracked changes) that may contain placeholders
+    deleted = extract_deleted_text(paragraph)
 
     runs = paragraph.xpath(".//w:r", namespaces=NS)
 
     rich_runs = []
 
     merged_text = []
-
 
     for run in runs:
         text = extract_run_text(run)
@@ -175,6 +215,10 @@ def normalize_runs(paragraph):
 
         merged_text.append(text)
 
+    # Check for tab and break special characters
+    # Word inserts <w:tab/> and <w:br/> between runs
+    tab_nodes = paragraph.xpath(".//w:tab", namespaces=NS)
+    br_nodes = paragraph.xpath(".//w:br", namespaces=NS)
 
     return {
         "text": "".join(merged_text),

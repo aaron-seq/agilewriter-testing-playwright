@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 from lxml import etree
 import pytest
 from doc_parser.run_normalizer import normalize_runs

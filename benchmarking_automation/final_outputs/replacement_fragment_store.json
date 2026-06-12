@@ -1,94 +1,662 @@
 [
   {
-    "fragment_id": "FRAG_55c15f4b",
+    "fragment_id": "FRAG_b1e1ef9c",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Stendarr, Inc.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_91bcac09",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_d1312138",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_f42895db",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "(Study Doctor)Medical Investigator",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_27015d34",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "(where possible, 3 telephone calls and, if necessary, a certified letter to the participant’s last known mailing address or local equivalent methods)",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_1586c68c",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "123 Fake Street, Anytown, CO, USA 80002",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_d319bf8b",
+    "node_type": "LIST",
+    "content": {
+      "content": "This study drug is intended to treat patients with boneitis (a disease that causes bones to change shape or disappear).",
+      "items": [
+        "This study drug is intended to treat patients with boneitis (a disease that causes bones to change shape or disappear)."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_5e0d188f",
+    "node_type": "LIST",
+    "content": {
+      "content": "The study drug is “investigational”. This means that it has not been approved by the United States Food and Drug Administration (FDA).",
+      "items": [
+        "The study drug is “investigational”. This means that it has not been approved by the United States Food and Drug Administration (FDA)."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_a78495e9",
+    "node_type": "LIST",
+    "content": {
+      "content": "This is a first-in-human, Phase 1 study. This means the study drug has never been given to humans before. The list of known risks/discomforts is listed later in this informed consent.",
+      "items": [
+        "This is a first-in-human, Phase 1 study. This means the study drug has never been given to humans before. The list of known risks/discomforts is listed later in this informed consent."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_7a803b16",
+    "node_type": "LIST",
+    "content": {
+      "content": "There will be up to 28 participants total in this study.",
+      "items": [
+        "There will be up to 28 participants total in this study."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_f1c866b2",
+    "node_type": "LIST",
+    "content": {
+      "content": "Safety measurements, such as ECG, vital signs, laboratory tests, and physical examinations, will be conducted at specific intervals according to the Schedule of Activities (SoA).",
+      "items": [
+        "Safety measurements, such as ECG, vital signs, laboratory tests, and physical examinations, will be conducted at specific intervals according to the Schedule of Activities (SoA)."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_e123487f",
+    "node_type": "LIST",
+    "content": {
+      "content": "If you participate in the single ascending dose (SAD) portion of the study, the study should take about 2 to 4 weeks of your time and you will be given a subcutaneous injection of ABC-123 or placebo (contains no active ingredient) on Day 1. ",
+      "items": [
+        "If you participate in the single ascending dose (SAD) portion of the study, the study should take about 2 to 4 weeks of your time and you will be given a subcutaneous injection of ABC-123 or placebo (contains no active ingredient) on Day 1. "
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_33771465",
+    "node_type": "LIST",
+    "content": {
+      "content": "The study aims to evaluate the safety, pharmacodynamics, and pharmacokinetics of the investigational medicinal product ABC-123.",
+      "items": [
+        "The study aims to evaluate the safety, pharmacodynamics, and pharmacokinetics of the investigational medicinal product ABC-123."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_e58d6d8a",
+    "node_type": "LIST",
+    "content": {
+      "content": "Participants may benefit from medical evaluations and assessments associated with the study procedures.",
+      "items": [
+        "Participants may benefit from medical evaluations and assessments associated with the study procedures."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_daea0307",
+    "node_type": "LIST",
+    "content": {
+      "content": "The study design includes a single ascending dose (SAD) component, which is double-blind, randomized, and placebo-controlled, involving up to six cohorts of healthy participants.",
+      "items": [
+        "The study design includes a single ascending dose (SAD) component, which is double-blind, randomized, and placebo-controlled, involving up to six cohorts of healthy participants."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_58414e61",
+    "node_type": "LIST",
+    "content": {
+      "content": "If you participate in the repeat-dose portion of the study, the study should take about 1 week of your time and you will be given a subcutaneous injection of ABC-123 or placebo every other week for 3 doses.",
+      "items": [
+        "If you participate in the repeat-dose portion of the study, the study should take about 1 week of your time and you will be given a subcutaneous injection of ABC-123 or placebo every other week for 3 doses."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_21d1b10c",
+    "node_type": "LIST",
+    "content": {
+      "content": " Be able to follow the study directions and procedures.",
+      "items": [
+        " Be able to follow the study directions and procedures."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_f050481e",
+    "node_type": "LIST",
+    "content": {
+      "content": "or by email:contact@trialstudy.com",
+      "items": [
+        "or by email:contact@trialstudy.com"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_b024dbea",
+    "node_type": "LIST",
+    "content": {
+      "content": "No serious adverse effects were observed in blorp knockout mice, supporting the general safety of blorp inductors.",
+      "items": [
+        "No serious adverse effects were observed in blorp knockout mice, supporting the general safety of blorp inductors."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_c5dbca23",
+    "node_type": "LIST",
+    "content": {
+      "content": "Participants must abstain from caffeine- or xanthine-containing products (e.g., coffee, tea, cola drinks, and chocolate) from 24 hours before Check-in until Check-out from the CRU.",
+      "items": [
+        "Participants must abstain from caffeine- or xanthine-containing products (e.g., coffee, tea, cola drinks, and chocolate) from 24 hours before Check-in until Check-out from the CRU."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_d74b2cd6",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "selected contract research organizations (CRO) is being paid by the Sponsor (the company paying for this study) to conduct this research study.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_2f7703a5",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "This study drug is an investigational drug intended to treat patients with boneitis (a disease that causes bones to change shape or disappear). The study drug is \"investigational\", which means the study drug being tested is not approved by the United States Food and Drug Administration (FDA). In this document, you may see the terms “study drug”, “study treatment”, and “study treatment period”; these are terms used in research studies. This does not mean that you will be receiving medical treatment for any condition. These terms apply to the investigational study drug and parts of the study where you will be receiving this investigational product. ",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_a538a94f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are enrolled in the single ascending dose (SAD) portion of the study you will get no medical benefit from this study, other than the benefit of free medical tests. You may receive a chance to be in a research study that may help others.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7b0014e9",
     "node_type": "PARAGRAPH",
     "content": {
-      "content": "A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+      "content": "Data from each cohort will be reviewed after Day 7 and a decision will be made if the study will proceed to the next dose level. The dose level will not be known until that time. It is possible that a dose level may be repeated, or the dose reduced.",
       "formatting": [
         {
-          "text": "A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+          "text": "Data from each cohort will be reviewed after ",
           "bold": false,
           "italic": false,
           "underline": false,
           "strike": false,
-          "font_name": "Times",
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        },
+        {
+          "text": "Day 7",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
           "font_size": null,
           "color": null,
+          "highlight": null
+        },
+        {
+          "text": " and a decision will be made if the study will proceed to the next dose level. The dose level will not be known until that time. It is possible that a dose level may be repeated, or the dose reduced.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
           "highlight": null
         }
       ]
     },
     "formatting": [
       {
-        "text": "A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+        "text": "Data from each cohort will be reviewed after ",
         "bold": false,
         "italic": false,
         "underline": false,
         "strike": false,
-        "font_name": "Times",
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      },
+      {
+        "text": "Day 7",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
         "font_size": null,
         "color": null,
+        "highlight": null
+      },
+      {
+        "text": " and a decision will be made if the study will proceed to the next dose level. The dose level will not be known until that time. It is possible that a dose level may be repeated, or the dose reduced.",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
         "highlight": null
       }
     ]
   },
   {
-    "fragment_id": "FRAG_9a18de7e",
-    "node_type": "TABLE_CELL",
-    "content": {
-      "content": "ABC-123",
-      "rows": [],
-      "formatting": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_1faf3564",
-    "node_type": "TABLE_CELL",
-    "content": {
-      "content": "SKY-2000-101",
-      "rows": [],
-      "formatting": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_ecc37d7a",
-    "node_type": "TABLE_CELL",
-    "content": {
-      "content": "SKY-2000-101",
-      "rows": [],
-      "formatting": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_a1281dab",
-    "node_type": "TABLE_CELL",
-    "content": {
-      "content": "Sponsor",
-      "rows": [],
-      "formatting": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_70efd8e3",
+    "fragment_id": "FRAG_53f64f57",
     "node_type": "KEYVALUE",
     "content": {
-      "content": "The information contained in this document is confidential and proprietary to Stendarr, Inc.. Any distribution, copying, or disclosure is strictly prohibited unless such disclosure is required by federal regulations or state law. Persons to whom the information is disclosed must be made aware that it is confidential and that it may not be further disclosed by them. ",
+      "content": "During the repeat-dose phase:",
       "formatting": []
     },
     "formatting": []
   },
   {
-    "fragment_id": "FRAG_eef20abc",
+    "fragment_id": "FRAG_42bfae49",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Up to 6 cohorts (or groups) of 6 participants will be given a subcutaneous administration of ABC-123 or placebo. The first cohort will receive the starting dose, and later cohorts will be given higher and higher dose levels until a safe limit is found. The starting dose will begin at 5 mg. This is 318-fold lower than the highest dose tested in animals. ",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_af89137a",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Healthy men and women, ages 18 to 55 years old, are expected to be in a single ascending dose (SAD) design involving healthy participants of this study. During the single ascending dose (SAD) component the study will last for the following number of weeks:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_e8ac381e",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "HOW LONG THE STUDY WILL LAST AND WHO WILL BE IN THE STUDY",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_cb3d10af",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Participant Responsibilities:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7664e309",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "single ascending dose phase:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7ac902ac",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Men and women with known heart disease or clinically significant abnormalities identified in the 12-lead ECG at Screening, ages 18 to 65 years, are expected to be in repeat-dose study of this study. During the repeat-dose portion, the study will last about 15 weeks, including up to 5 weeks for Screening, followed by 3 doses administered every other week, and concluding with a Follow-up period..",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_02736d4e",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Participants will return for their second Check-in, scheduled for Day X, where evaluations and procedures as outlined in the Schedule of Assessments (SoA) will be conducted. This includes follow-up assessments to monitor the effects of the study intervention and ensure participant safety.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_c94dd81f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "You cannot be in this study if you meet any of the following criteria:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_cea370d8",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "While participating in this research study, you will need to follow these conditions:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_172fc82d",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Screening",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_89156f47",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Study Procedures Check-in/Day 1",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_65b96082",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "In-Patient Period",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_3560279a",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Pro00050709.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_d91513f0",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Follow-Up Visits",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_358c8709",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Follow-Up Visits",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_67cb220b",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Blood Samples:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_8cbd33e3",
+    "node_type": "LIST",
+    "content": {
+      "content": " Tell the study doctor or the study staff if you change your mind about staying in the study.",
+      "items": [
+        " Tell the study doctor or the study staff if you change your mind about staying in the study."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_15b3dc60",
+    "node_type": "LIST",
+    "content": {
+      "content": "Physical examination and vital sign measurement.",
+      "items": [
+        "Physical examination and vital sign measurement."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_5e8d627f",
+    "node_type": "LIST",
+    "content": {
+      "content": "Alcohol consumption is prohibited from 48 hours before Check-in until Check-out from the CRU.",
+      "items": [
+        "Alcohol consumption is prohibited from 48 hours before Check-in until Check-out from the CRU."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_aaf302c1",
+    "node_type": "LIST",
+    "content": {
+      "content": "Amphibious jocularity.",
+      "items": [
+        "Amphibious jocularity."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_476c6276",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Early Discontinuation",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_6237c2bc",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "double-blind, randomized, placebo-controlled study design in participants with boneitis.:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7b5ae91a",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Screening",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_ba926c0f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "KEY INFORMATION",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_b12179e5",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "YOU SHOULD NOT SIGN AND DATE THIS CONSENT FORM.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_6b642bcb",
+    "node_type": "LIST",
+    "content": {
+      "content": "Vaccinations must be completed at least 14 days before Screening.",
+      "items": [
+        "Vaccinations must be completed at least 14 days before Screening."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_7a53acdb",
+    "node_type": "LIST",
+    "content": {
+      "content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
+      "items": [
+        "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_d6edd01f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The SAD portion of the study is a single ascending dose design involving healthy participants in up to six cohorts.:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_dc59426a",
+    "node_type": "LIST",
+    "content": {
+      "content": "Daily assessments tailored to the study protocol, including additional biomarker sampling where applicable.",
+      "items": [
+        "Daily assessments tailored to the study protocol, including additional biomarker sampling where applicable."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_6a818950",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you qualify for the study, you will return to the clinic within 35 days for the Study Period.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_e9080f10",
+    "node_type": "LIST",
+    "content": {
+      "content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
+      "items": [
+        "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_02636011",
+    "node_type": "LIST",
+    "content": {
+      "content": "You will be asked questions to be sure that you still qualify for this study.",
+      "items": [
+        "You will be asked questions to be sure that you still qualify for this study."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_79ce36c0",
     "node_type": "PARAGRAPH",
     "content": {
-      "content": "Protocol Title: A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 BoneitisShort Title: Phase 1 RCT of ABC-123 in healthy participants (SAD) and participants with boneitis (repeat-dose)ABC-123 is intended for use in patients with boneitis, a disease that causes bones to change shape or disappear. This Phase 1 study aims to establish safety, tolerability, and pharmacokinetics (PK) for up to 28 days of exposure in a single ascending dose (SAD) study in healthy volunteers, supporting a subsequent repeat-dose exploratory efficacy study in participants with boneitis. The study will also obtain PK, safety, and tolerability data in participants with boneitis and explore phenotypic, genotypic, and biochemical approaches to identify patients most likely to respond to ABC-123.This double-blind, randomized, placebo-controlled study includes a SAD escalation component in healthy volunteers and a repeat-dose component in participants with boneitis to confirm repeat-dose safety, tolerability, pharmacokinetics, and immunogenicity. Up to 56 participants will be randomized in the SAD component (targeting 48 evaluable), and up to 10 in the repeat-dose component (targeting 8 evaluable). Screening may last up to 5 weeks, with total study duration up to 15 weeks (SAD) or 18 weeks (repeat-dose).",
+      "content": "Study Procedures Check-in/Day 1",
       "formatting": [
         {
-          "text": "Protocol Title:",
+          "text": "Study Procedures Check-in/Day 1",
           "bold": true,
           "italic": false,
           "underline": false,
@@ -97,9 +665,711 @@
           "font_size": null,
           "color": null,
           "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "Study Procedures Check-in/Day 1",
+        "bold": true,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_c9f33373",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "You will be given a signed and dated copy of this consent form to keep.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_0ffffc32",
+    "node_type": "LIST",
+    "content": {
+      "content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
+      "items": [
+        "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_4fe3a620",
+    "node_type": "LIST",
+    "content": {
+      "content": "Routine physical examinations and vital sign monitoring, including blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG to assess heart function.Clinical laboratory tests, such as blood chemistry, hematology, lipid profile, and cytokine assessments.Mental health evaluations to monitor psychological well-being.Adverse event tracking and recording concomitant medication use.Specific assessments tailored to the day of in-residence, with additional focus on pharmacokinetic and pharmacodynamic sampling as required..",
+      "items": [
+        "Routine physical examinations and vital sign monitoring, including blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG to assess heart function.Clinical laboratory tests, such as blood chemistry, hematology, lipid profile, and cytokine assessments.Mental health evaluations to monitor psychological well-being.Adverse event tracking and recording concomitant medication use.Specific assessments tailored to the day of in-residence, with additional focus on pharmacokinetic and pharmacodynamic sampling as required.."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_bd16dcdd",
+    "node_type": "LIST",
+    "content": {
+      "content": "12-lead ECGVital sign monitoring including blood pressure, pulse rate, respiratory rate, and body temperatureClinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments)Physical examinationsMental health assessmentMonitoring of adverse events and concomitant medication use.",
+      "items": [
+        "12-lead ECGVital sign monitoring including blood pressure, pulse rate, respiratory rate, and body temperatureClinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments)Physical examinationsMental health assessmentMonitoring of adverse events and concomitant medication use."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_694c13b1",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "the single ascending dose (SAD) portion of the study, involving cohorts of healthy participants:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_eaf48ffd",
+    "node_type": "LIST",
+    "content": {
+      "content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
+      "items": [
+        "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_7d3eb69d",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you qualify for the study, you will return to the clinic within 35 days for the Study Period.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_01a34ca7",
+    "node_type": "LIST",
+    "content": {
+      "content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
+      "items": [
+        "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_b9210e8e",
+    "node_type": "LIST",
+    "content": {
+      "content": "Blood sampling for exploratory PD and safety biomarkers, including up to 3 additional samples per treatment period.Monitoring of liver enzyme levels (ALT, AST) and other hepatic indicators as per the Schedule of Assessments.Physical examinations and detailed history taking for participants with elevated liver enzymes (>3 × ULN).Laboratory tests including ALT, AST, bilirubin levels, alkaline phosphatase, and gamma glutamyltransferase.Liver ultrasound and tests for acetaminophen toxicity and viral hepatitis causes if indicated..",
+      "items": [
+        "Blood sampling for exploratory PD and safety biomarkers, including up to 3 additional samples per treatment period.Monitoring of liver enzyme levels (ALT, AST) and other hepatic indicators as per the Schedule of Assessments.Physical examinations and detailed history taking for participants with elevated liver enzymes (>3 × ULN).Laboratory tests including ALT, AST, bilirubin levels, alkaline phosphatase, and gamma glutamyltransferase.Liver ultrasound and tests for acetaminophen toxicity and viral hepatitis causes if indicated.."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_fbda1df2",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "The following will be done if you leave the study early:",
+      "formatting": [
+        {
+          "text": "The following will be done if you leave the study early:",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "The following will be done if you leave the study early:",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_11076250",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Blood samples will be taken by single needle-sticks or by a tube that is left in your arm. You cannot choose how the blood is taken.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7a8d595e",
+    "node_type": "LIST",
+    "content": {
+      "content": "Vital sign monitoring: Includes measurements of blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG: Used to assess heart function.Clinical laboratory tests: Evaluations of chemistry, hematology, lipid profile, and cytokine levels.Physical examinations: Comprehensive health check-ups.Mental health assessments: Evaluations to ensure psychological well-being.Adverse events monitoring: Observations to identify any negative health impacts.Concomitant medication tracking: Documentation of other medications taken during the study..",
+      "items": [
+        "Vital sign monitoring: Includes measurements of blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG: Used to assess heart function.Clinical laboratory tests: Evaluations of chemistry, hematology, lipid profile, and cytokine levels.Physical examinations: Comprehensive health check-ups.Mental health assessments: Evaluations to ensure psychological well-being.Adverse events monitoring: Observations to identify any negative health impacts.Concomitant medication tracking: Documentation of other medications taken during the study.."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_119fdf33",
+    "node_type": "LIST",
+    "content": {
+      "content": "Physical risks: you may have a sore arm from where the blood sample is taken.",
+      "items": [
+        "Physical risks: you may have a sore arm from where the blood sample is taken."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_482d4d29",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "You must have your blood tested for the hepatitis viruses and for HIV. HIV is the virus that causes AIDS. If you have a positive HIV or hepatitis test you cannot be in the study.",
+      "formatting": [
+        {
+          "text": "You must have your blood tested for the hepatitis viruses and for HIV. HIV is the virus that causes AIDS. If you have a positive HIV or hepatitis test you cannot be in the study.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "You must have your blood tested for the hepatitis viruses and for HIV. HIV is the virus that causes AIDS. If you have a positive HIV or hepatitis test you cannot be in the study.",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_088a725e",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "It may take weeks or months after being infected with HIV for the test to be positive. The HIV test is not always right.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_d5355a9a",
+    "node_type": "LIST",
+    "content": {
+      "content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
+      "items": [
+        "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_a3915628",
+    "node_type": "LIST",
+    "content": {
+      "content": "Nonphysical risks: Your sample and data will be kept in a secure location, and every effort will be made to protect any information about you. While it is unlikely, it is possible that information about your DNA could be made known.",
+      "items": [
+        "Nonphysical risks: Your sample and data will be kept in a secure location, and every effort will be made to protect any information about you. While it is unlikely, it is possible that information about your DNA could be made known."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_06148590",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "Address Line 2",
+      "formatting": [
+        {
+          "text": "Address Line 2",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "Address Line 2",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_2090af36",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The results of this genetic research will not be returned to you or provided to your study doctor; it will be kept in a secure location to protect your privacy. We will not sell your sample or data, but we may work with other companies to do research on your sample and data.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_4f073a26",
+    "node_type": "LIST",
+    "content": {
+      "content": "Levitation.",
+      "items": [
+        "Levitation."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_bbc3c07a",
+    "node_type": "LIST",
+    "content": {
+      "content": "The crunge.",
+      "items": [
+        "The crunge."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_dacb6177",
+    "node_type": "LIST",
+    "content": {
+      "content": "General safety and tolerability outside CNS effects, with primary adverse effects being gastrointestinal.",
+      "items": [
+        "General safety and tolerability outside CNS effects, with primary adverse effects being gastrointestinal."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_2a7af867",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Other drugs similar to ABC-123 have been studied in humans. The most common side effects seen in people given similar drugs include:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_da5567f7",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Although the study drug, ABC-123, has not been shown to get into the brain, you will be closely monitored for the following side effects that have been seen when taking a similar type of drug that do get into the brain:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_fe9fa2d3",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "You must be of non-childbearing potential (not able to have children) to be in this study. This includes:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_3bc1ff64",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "We are required to report positive HIV test results to the local regulatory authority. We may also be required to report positive hepatitis test results to the local regulatory authority. Positive HIV test results may be required to be reported to the local regulatory authority. If you have any questions about what information is required to be reported, please ask the study doctor or study staff.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_499a71d2",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Risks:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_8ef08779",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Blood Samples (taken by single needle-sticks or by a tube that is left in your arm):",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_8b0fd109",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Additionally, in the unlikely event that a contract research organization (CRO) employee has been exposed to your blood or other body fluid either through a needle stick injury, splash incident or contact with broken skin (for example, cut, bite), additional samples may be collected to determine and confirm whether or not you have a certain infection. Your de-identified results will be released to the injured employee, and to the health care provider evaluating and treating that employee, to aid the injured employee and the medical provider make decisions regarding his/her medical treatment and follow-up care as a result of this on-the- job exposure.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_d6d5913f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Researchers would like to study your DNA to help them understand why medicines like the one being used in this study work in some people and not in others. The researchers may also look at your DNA to help them understand what is causing boneitis. This information may help researchers make better medicines in the future.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_a17e2ce1",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Your DNA sample will be labeled with a code and not with your name or birthday to protect your identity and will be stored in a secure location until it is all used up or 30 years, whichever is sooner. You can ask for your DNA sample to be destroyed at any time and your sample will not be used for any new research, but any research data that has already been generated will not be destroyed.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_e17e82de",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "The contract research organization (CRO) personnel, along with the Sponsor's clinical and biomarker scientists, may access unblinded data for purposes such as exploratory biomarker evaluation and PK/PD response model development during the study.",
+      "formatting": [
+        {
+          "text": "The contract research organization (CRO) personnel, along with the Sponsor's clinical and biomarker scientists, may access unblinded data for purposes such as exploratory biomarker evaluation and PK/PD response model development during the study.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": null,
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "The contract research organization (CRO) personnel, along with the Sponsor's clinical and biomarker scientists, may access unblinded data for purposes such as exploratory biomarker evaluation and PK/PD response model development during the study.",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_3b1e7160",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Address Line 1",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_222696da",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The sponsor would like to keep the blood samples collected in the course of the study for future research to continue analyzing it for genes involved in the safety, pharmacokinetics (what the body does to a drug) and pharmacodynamics (how a medicine acts in the body) of the study drug, ABC-123. This information may be useful in increasing the knowledge of differences among individuals in the way they metabolize the investigational product as well as helping in the development of new drugs or improvement of existing drugs. You will not have any right to any such products or inventions or be entitled to any financial benefits from any such products. The information may be published or used for regulatory filings, but your identity will never be disclosed.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_44ecd6c4",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The sample will be retained in a secure location until the deoxyribonucleic acid (DNA - the material that determines your unique characteristics such as eye and hair color, and also influences the way your body responds to certain drugs and hereditary disease factors) has been exhausted, until the sponsor instructs the genotyping contractor to destroy the sample in accordance with laboratory procedures, or for 2 years. During this time, the DNA sample will not be immortalized or sold to anyone.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_073707b0",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "The contract research organization (CRO) personnel, along with the Sponsor's PK, ADME, biomarker, and clinical scientists, may be unblinded for exploratory biomarker evaluation and development of PK and PD response models during the study.",
+      "formatting": [
+        {
+          "text": "The contract research organization (CRO) personnel, along with the Sponsor's PK, ADME, biomarker, and clinical scientists, may be unblinded for exploratory biomarker evaluation and development of PK and PD response models during the study.",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": null,
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "The contract research organization (CRO) personnel, along with the Sponsor's PK, ADME, biomarker, and clinical scientists, may be unblinded for exploratory biomarker evaluation and development of PK and PD response models during the study.",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_eef220d4",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Address Line 1",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7f25d726",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "ABC-123 has not been given to humans, so no information about side effects are available.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_1fe5f32c",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "In animal studies, there were no side effects observed at doses approximately 318-fold larger than the highest dose you could receive in this study.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_43f9b48c",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Non-Physical Risks Associated with the Planned Genetic Analysis and Future Research of Biomarker Samples:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_4800451e",
+    "node_type": "LIST",
+    "content": {
+      "content": "A rare but possible side effect of lidocaine is an extreme allergic reaction. These symptoms may include:",
+      "items": [
+        "A rare but possible side effect of lidocaine is an extreme allergic reaction. These symptoms may include:"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_cd174f7d",
+    "node_type": "LIST",
+    "content": {
+      "content": "There may be side effects of having blood drawn such as:",
+      "items": [
+        "There may be side effects of having blood drawn such as:"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_05b6020f",
+    "node_type": "LIST",
+    "content": {
+      "content": " Tell the study staff about any side effects or problems.",
+      "items": [
+        " Tell the study staff about any side effects or problems."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_7ecfe899",
+    "node_type": "LIST",
+    "content": {
+      "content": "If you do not understand what any of these side effects mean, please ask the study doctor or study staff to explain these terms to you.",
+      "items": [
+        "If you do not understand what any of these side effects mean, please ask the study doctor or study staff to explain these terms to you."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_fa47045d",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Be aware that this Federal law does not protect you against genetic discrimination by companies that sell life insurance, disability insurance, or long term-care insurance, nor does it prohibit discrimination based on a genetic disease or disorder that you already know about.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_c33204c6",
+    "node_type": "LIST",
+    "content": {
+      "content": "You must tell the study doctor or study staff about all side effects that you have. If you are not honest about your side effects, you may harm yourself by staying in this study. The study staff will continue to follow up if you have side effects that are still present at the end of the study.",
+      "items": [
+        "You must tell the study doctor or study staff about all side effects that you have. If you are not honest about your side effects, you may harm yourself by staying in this study. The study staff will continue to follow up if you have side effects that are still present at the end of the study."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_0be7a1f7",
+    "node_type": "LIST",
+    "content": {
+      "content": "If you have a side effect of the study drug, such as a skin rash or other visible injury, it might be useful to take a digital picture of the affected area to send to the sponsor. By signing and dating this consent, you authorize the study doctor or study staff to take such a picture and provide it to the sponsor. Every effort will be made to protect your identity if a photograph is necessary.",
+      "items": [
+        "If you have a side effect of the study drug, such as a skin rash or other visible injury, it might be useful to take a digital picture of the affected area to send to the sponsor. By signing and dating this consent, you authorize the study doctor or study staff to take such a picture and provide it to the sponsor. Every effort will be made to protect your identity if a photograph is necessary."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_bd1b9806",
+    "node_type": "LIST",
+    "content": {
+      "content": "POSSIBLE SIDE EFFECTS AND RISKS",
+      "items": [
+        "POSSIBLE SIDE EFFECTS AND RISKS"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_abf2a217",
+    "node_type": "LIST",
+    "content": {
+      "content": "Because this drug is investigational, all of its side effects may not be known. There may be rare and unknown side effects. Some of these may be life threatening.",
+      "items": [
+        "Because this drug is investigational, all of its side effects may not be known. There may be rare and unknown side effects. Some of these may be life threatening."
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_a0626e2e",
+    "node_type": "LIST",
+    "content": {
+      "content": "or call toll free:XXX-XXX-XXXX",
+      "items": [
+        "or call toll free:XXX-XXX-XXXX"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_b1d64b0a",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "VOLUNTEERING TO BE IN THE STUDY",
+      "formatting": [
+        {
+          "text": "VOLUNTEERING TO BE IN THE STUDY",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": null,
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "VOLUNTEERING TO BE IN THE STUDY",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_e7b6d479",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "The study doctor, the sponsor company, appropriate IRB/IEC members, or the FDA may take you out of the study without your permission, at any time, for the following reasons:",
+      "formatting": [
+        {
+          "text": "The study doctor, the sponsor company, ",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
         },
         {
-          "text": " A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+          "text": "appropriate IRB/IEC members",
           "bold": false,
           "italic": false,
           "underline": false,
@@ -110,1746 +1380,570 @@
           "highlight": null
         },
         {
-          "text": "Short Title:",
+          "text": ", or the FDA may take you out of the study without your permission, at any time, for the following reasons:",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "The study doctor, the sponsor company, ",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      },
+      {
+        "text": "appropriate IRB/IEC members",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      },
+      {
+        "text": ", or the FDA may take you out of the study without your permission, at any time, for the following reasons:",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_955a6594",
+    "node_type": "LIST",
+    "content": {
+      "content": "If it becomes harmful to your health",
+      "items": [
+        "If it becomes harmful to your health"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_400afe46",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "NEW FINDINGS",
+      "formatting": [
+        {
+          "text": "NEW FINDINGS",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": null,
+          "highlight": null
+        }
+      ]
+    },
+    "formatting": [
+      {
+        "text": "NEW FINDINGS",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": null,
+        "highlight": null
+      }
+    ]
+  },
+  {
+    "fragment_id": "FRAG_75912e21",
+    "node_type": "PARAGRAPH",
+    "content": {
+      "content": "Please answer YES or NO to the following questions:",
+      "formatting": [
+        {
+          "text": "Please answer ",
+          "bold": false,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        },
+        {
+          "text": "YES ",
           "bold": true,
           "italic": false,
           "underline": false,
           "strike": false,
           "font_name": null,
           "font_size": null,
-          "color": null,
+          "color": "000000",
           "highlight": null
         },
         {
-          "text": " Phase 1 RCT of ABC-123 in healthy participants (SAD) and participants with boneitis (repeat-dose)",
+          "text": "or ",
           "bold": false,
           "italic": false,
           "underline": false,
           "strike": false,
           "font_name": null,
           "font_size": null,
-          "color": null,
+          "color": "000000",
           "highlight": null
         },
         {
-          "text": "ABC-123 is intended for use in patients with boneitis, a disease that causes bones to change shape or disappear. This Phase 1 study aims to establish safety, tolerability, and pharmacokinetics (PK) for up to 28 days of exposure in a single ascending dose (SAD) study in healthy volunteers, supporting a subsequent repeat-dose exploratory efficacy study in participants with boneitis. The study will also obtain PK, safety, and tolerability data in participants with boneitis and explore phenotypic, genotypic, and biochemical approaches to identify patients most likely to respond to ABC-123.",
+          "text": "NO ",
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "strike": false,
+          "font_name": null,
+          "font_size": null,
+          "color": "000000",
+          "highlight": null
+        },
+        {
+          "text": "to the following questions:",
           "bold": false,
           "italic": false,
           "underline": false,
           "strike": false,
           "font_name": null,
           "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": "This double-blind, randomized, placebo-controlled study includes a SAD escalation component in healthy volunteers and a repeat-dose component in participants with boneitis to confirm repeat-dose safety, tolerability, pharmacokinetics, and immunogenicity. Up to 56 participants will be randomized in the SAD component (targeting 48 evaluable), and up to 10 in the repeat-dose component (targeting 8 evaluable). Screening may last up to 5 weeks, with total study duration up to 15 weeks (SAD) or 18 weeks (repeat-dose).",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
+          "color": "000000",
           "highlight": null
         }
       ]
     },
     "formatting": [
       {
-        "text": "Protocol Title:",
+        "text": "Please answer ",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "strike": false,
+        "font_name": null,
+        "font_size": null,
+        "color": "000000",
+        "highlight": null
+      },
+      {
+        "text": "YES ",
         "bold": true,
         "italic": false,
         "underline": false,
         "strike": false,
         "font_name": null,
         "font_size": null,
-        "color": null,
+        "color": "000000",
         "highlight": null
       },
       {
-        "text": " A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+        "text": "or ",
         "bold": false,
         "italic": false,
         "underline": false,
         "strike": false,
         "font_name": null,
         "font_size": null,
-        "color": null,
+        "color": "000000",
         "highlight": null
       },
       {
-        "text": "Short Title:",
+        "text": "NO ",
         "bold": true,
         "italic": false,
         "underline": false,
         "strike": false,
         "font_name": null,
         "font_size": null,
-        "color": null,
+        "color": "000000",
         "highlight": null
       },
       {
-        "text": " Phase 1 RCT of ABC-123 in healthy participants (SAD) and participants with boneitis (repeat-dose)",
+        "text": "to the following questions:",
         "bold": false,
         "italic": false,
         "underline": false,
         "strike": false,
         "font_name": null,
         "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": "ABC-123 is intended for use in patients with boneitis, a disease that causes bones to change shape or disappear. This Phase 1 study aims to establish safety, tolerability, and pharmacokinetics (PK) for up to 28 days of exposure in a single ascending dose (SAD) study in healthy volunteers, supporting a subsequent repeat-dose exploratory efficacy study in participants with boneitis. The study will also obtain PK, safety, and tolerability data in participants with boneitis and explore phenotypic, genotypic, and biochemical approaches to identify patients most likely to respond to ABC-123.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": "This double-blind, randomized, placebo-controlled study includes a SAD escalation component in healthy volunteers and a repeat-dose component in participants with boneitis to confirm repeat-dose safety, tolerability, pharmacokinetics, and immunogenicity. Up to 56 participants will be randomized in the SAD component (targeting 48 evaluable), and up to 10 in the repeat-dose component (targeting 8 evaluable). Screening may last up to 5 weeks, with total study duration up to 15 weeks (SAD) or 18 weeks (repeat-dose).",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
+        "color": "000000",
         "highlight": null
       }
     ]
   },
   {
-    "fragment_id": "FRAG_a2ba82fc",
+    "fragment_id": "FRAG_d8bc41fc",
     "node_type": "KEYVALUE",
     "content": {
-      "content": "Applicable Laws, Regulations, and Guidelines",
+      "content": "If you are enrolled in the repeat-dose portion of the study your study doctor will discuss other potential treatment options for your boneitis. ",
       "formatting": []
     },
     "formatting": []
   },
   {
-    "fragment_id": "FRAG_8b6d338d",
+    "fragment_id": "FRAG_5477e3e7",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are enrolled in the repeat-dose portion of the study you may benefit from ABC-123 for your boneitis. ",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_11e491d1",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Risks of Subcutaneous (SC) Injection:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_f9550025",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "This consent form contains important information to help you decide if you want to be in the study. If you have any questions that are not answered in this consent form, ask one of the study staff.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_59c06d32",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Since this study is for research only, if you are enrolled in single ascending dose study the only other choice would be not to be in the study.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_387844da",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "IF YOU ANSWERED “NO” TO ANY OF THE ABOVE QUESTIONS, OR YOU ARE UNABLE TO ANSWER ANY OF THE ABOVE QUESTIONS,",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_acebf086",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you leave the study or if you are taken out of the study, you may be asked to remain at the research site for observation or completion of additional safety procedures (such as ECGs, vital signs, safety labs, etc.). If you leave the study early or if you are taken out of the study, you will be asked to complete a final visit to have some end of study evaluations or tests performed. If information generated from this study is published or presented, your identity will not be revealed. If you leave the study, no more information about you will be collected for this study. However, all of the information you gave us before you left the study will still be used.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_6330f02f",
+    "node_type": "LIST",
+    "content": {
+      "content": "Stendarr, Inc. IRB",
+      "items": [
+        "Stendarr, Inc. IRB"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_50a40a9f",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The Institutional Review Board (IRB), appropriate IRB/IEC members, and accrediting agencies may inspect and copy your records, which may have your name on them. Therefore, total confidentiality cannot be guaranteed. If the study results are presented at meetings or printed in publications, your name will not be used.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_8561a2a3",
+    "node_type": "LIST",
+    "content": {
+      "content": "Warmth or drainage",
+      "items": [
+        "Warmth or drainage"
+      ],
+      "list_type": "bullet"
+    },
+    "formatting": {}
+  },
+  {
+    "fragment_id": "FRAG_7ef0576b",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Second In-Patient Period",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_92336da3",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "First In-Patient Period",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_361457d5",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are in the single ascending dose (SAD) portion of the study, Cohorts X-X, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from selected contract research organizations (CRO). You will be paid per completed visit as follows:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_48317f2e",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are in the single ascending dose portion of the study, Cohorts X-X, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from the contract research organization (CRO). You will be paid per completed visit as follows:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_b7c4bc5b",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are in the repeat-dose component of the study, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from the contract research organization.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_039c82d5",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Risks of using Lidocaine:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_28faddc7",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you are injured from your participation in this study, you should contact the study doctor as soon as possible in person or at the telephone number listed on page one of this consent form. Medical care may be obtained in the same way you would ordinarily obtain other medical treatment. If you suffer a physical injury that is directly caused by the study drug given as described in the study protocol or by a properly performed medical procedure required by the protocol, the reasonable costs of necessary medical treatment of the injury will be reimbursed by the Sponsor to the extent these costs are not covered by your insurance or other third-party coverage.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7dc1856c",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "The following will be done at Day 8.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_6447e860",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "You must follow the contract research organization (CRO) in-patient clinic rules of conduct while you are taking part in this study. If you do not follow the rules, part of your payment (not to exceed the amount of the additional payment) may be taken away. You may not be able to take part in other studies at the contract research organization (CRO). These rules will be reviewed with you at the screening visit and are available on the contract research organization (CRO) website.",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_56876ad6",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "Fasting",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_0214a24d",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "If you feel faint tell the study staff right away. Electrocardiogram (ECG):",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_a77f0a7e",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "the stage of the study where participants receive multiple doses of the investigational drug:",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_872888ca",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_7cb09010",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_3f6b52b5",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_0a1d921d",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_4c86f892",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_ff1c1984",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "SKY-2000-101",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_ede80060",
     "node_type": "TABLE_CELL",
     "content": {
-      "content": "Definition",
+      "content": "You have the right to withdraw your consent to participate in genetic testing at any time by notifying the study doctor in writing and requesting that your sample be destroyed. Your blood sample will be destroyed, but the Sponsor will keep and use any research information it has already obtained. You must provide your request to withdraw from participation in genetic testing to the study doctor in writing at the address listed below:",
       "rows": [],
       "formatting": {}
     },
     "formatting": {}
   },
   {
-    "fragment_id": "FRAG_3127afee",
-    "node_type": "PARAGRAPH",
+    "fragment_id": "FRAG_4d07baaa",
+    "node_type": "TABLE_CELL",
     "content": {
-      "content": "Risk Assessment: ABC-123 has not been studied in humans; therefore, risk assessment is based on nonclinical data and experience with similar therapies. No CNS-associated risks have been observed in nonclinical pharmacology and safety studies. The primary risks to participants are adverse reactions to the investigational product, as well as discomfort from subcutaneous injections or study procedures. Additional risks observed with related therapies (blorp inductors) include gastrointestinal adverse events (nausea, diarrhea, vomiting), asthenia/fatigue, hot flushes, and dizziness. Participants will be closely monitored for these and other potential adverse effects.Benefit Assessment: This is a non-therapeutic study involving healthy volunteers and participants with boneitis. Potential benefits for participants include contributing to the development of new therapies in an area of unmet medical need and receiving medical evaluations as part of study procedures. However, participants with boneitis may or may not experience any impact on disease progression.Overall Benefit–Risk Conclusion: The prior safety experience with related therapies, lack of brain penetration in nonclinical studies, and absence of significant adverse findings in toxicology studies support the conduct of this study. The anticipated risks are justified by the potential benefits to medical and scientific knowledge. Appropriate monitoring and dose escalation are in place to minimize participant risks. Based on available data and the study population, the benefit–risk assessment is favorable for participation in this study.",
-      "formatting": [
-        {
-          "text": "Risk Assessment:",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": " ABC-123 has not been studied in humans; therefore, risk assessment is based on nonclinical data and experience with similar therapies. No CNS-associated risks have been observed in nonclinical pharmacology and safety studies. The primary risks to participants are adverse reactions to the investigational product, as well as discomfort from subcutaneous injections or study procedures. Additional risks observed with related therapies (blorp inductors) include gastrointestinal adverse events (nausea, diarrhea, vomiting), asthenia/fatigue, hot flushes, and dizziness. Participants will be closely monitored for these and other potential adverse effects.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": "Benefit Assessment:",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": " This is a non-therapeutic study involving healthy volunteers and participants with boneitis. Potential benefits for participants include contributing to the development of new therapies in an area of unmet medical need and receiving medical evaluations as part of study procedures. However, participants with boneitis may or may not experience any impact on disease progression.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": "Overall Benefit–Risk Conclusion:",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": " The prior safety experience with related therapies, lack of brain penetration in nonclinical studies, and absence of significant adverse findings in toxicology studies support the conduct of this study. The anticipated risks are justified by the potential benefits to medical and scientific knowledge. Appropriate monitoring and dose escalation are in place to minimize participant risks. Based on available data and the study population, the benefit–risk assessment is favorable for participation in this study.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Risk Assessment:",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": " ABC-123 has not been studied in humans; therefore, risk assessment is based on nonclinical data and experience with similar therapies. No CNS-associated risks have been observed in nonclinical pharmacology and safety studies. The primary risks to participants are adverse reactions to the investigational product, as well as discomfort from subcutaneous injections or study procedures. Additional risks observed with related therapies (blorp inductors) include gastrointestinal adverse events (nausea, diarrhea, vomiting), asthenia/fatigue, hot flushes, and dizziness. Participants will be closely monitored for these and other potential adverse effects.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": "Benefit Assessment:",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": " This is a non-therapeutic study involving healthy volunteers and participants with boneitis. Potential benefits for participants include contributing to the development of new therapies in an area of unmet medical need and receiving medical evaluations as part of study procedures. However, participants with boneitis may or may not experience any impact on disease progression.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": "Overall Benefit–Risk Conclusion:",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": " The prior safety experience with related therapies, lack of brain penetration in nonclinical studies, and absence of significant adverse findings in toxicology studies support the conduct of this study. The anticipated risks are justified by the potential benefits to medical and scientific knowledge. Appropriate monitoring and dose escalation are in place to minimize participant risks. Based on available data and the study population, the benefit–risk assessment is favorable for participation in this study.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_e623b122",
-    "node_type": "KEYVALUE",
-    "content": {
-      "content": "This is a non-therapeutic study in healthy volunteers (SAD component) and participants with boneitis (repeat-dose component). Potential benefits for participants in the study may include contributing to the process of developing new therapies in an area of unmet need and receiving medical evaluations/assessments associated with study procedures. Although participants with boneitis due to lurgi may or may not experience an impact on disease progression, their involvement is valuable for advancing medical and scientific knowledge.",
-      "formatting": []
-    },
-    "formatting": []
-  },
-  {
-    "fragment_id": "FRAG_2024f086",
-    "node_type": "KEYVALUE",
-    "content": {
-      "content": "The prior safety experience with blorp inductors, the absence of brain penetration in nonclinical studies, and the lack of significant adverse findings in the 13-week monkey toxicology study support the conduct of this study. The potential risks associated with ABC-123 are justified by the anticipated benefits to medical and scientific knowledge. These risks can be minimized through appropriate monitoring and dose escalation during the study. Based on the available data and the participant population to be studied, the benefit-risk assessment is favorable for participation in this study.",
-      "formatting": []
-    },
-    "formatting": []
-  },
-  {
-    "fragment_id": "FRAG_eff17d7a",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "The prior safety experience with blorp inductors, the absence of brain penetration in nonclinical studies, and the lack of significant adverse findings in the 13-week monkey toxicology study support the conduct of this study. The potential risks associated with ABC-123 are justified by the anticipated benefits to medical and scientific knowledge. These risks can be minimized through appropriate monitoring and dose escalation during the study. Based on the available data and the participant population to be studied, the benefit-risk assessment is favorable for participation in this study.",
-      "formatting": [
-        {
-          "text": "The prior safety experience with blorp inductors, the absence of brain penetration in nonclinical studies, and the lack of significant adverse findings in the 13-week monkey toxicology study support the conduct of this study. The potential risks associated with ABC-123 are justified by the anticipated benefits to medical and scientific knowledge. These risks can be minimized through appropriate monitoring and dose escalation during the study. Based on the available data and the participant population to be studied, the benefit-risk assessment is favorable for participation in this study.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "The prior safety experience with blorp inductors, the absence of brain penetration in nonclinical studies, and the lack of significant adverse findings in the 13-week monkey toxicology study support the conduct of this study. The potential risks associated with ABC-123 are justified by the anticipated benefits to medical and scientific knowledge. These risks can be minimized through appropriate monitoring and dose escalation during the study. Based on the available data and the participant population to be studied, the benefit-risk assessment is favorable for participation in this study.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_33d2687f",
-    "node_type": "KEYVALUE",
-    "content": {
-      "content": "The schedule of assessments for Study Parts A and B are presented in Table 3.",
-      "formatting": []
-    },
-    "formatting": []
-  },
-  {
-    "fragment_id": "FRAG_e5bee87b",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "This study utilizes a double-blind, randomized, placebo-controlled design to rigorously assess the safety, tolerability, and pharmacokinetics of ABC-123. The single ascending dose (SAD) portion includes healthy participants, while the repeat-dose component focuses on participants with boneitis. The design allows for the evaluation of single and multiple dose effects, exploration of pharmacodynamic parameters, participant selection criteria, and identification of biomarkers for differential response. These approaches ensure robust data collection to inform dose selection and future studies, while adherence to protocol and regulatory approvals safeguards participant safety and study integrity.",
-      "formatting": [
-        {
-          "text": "This study utilizes a double-blind, randomized, placebo-controlled design to rigorously assess the safety, tolerability, and pharmacokinetics of ABC-123. The single ascending dose (SAD) portion includes healthy participants, while the repeat-dose component focuses on participants with boneitis. The design allows for the evaluation of single and multiple dose effects, exploration of pharmacodynamic parameters, participant selection criteria, and identification of biomarkers for differential response. These approaches ensure robust data collection to inform dose selection and future studies, while adherence to protocol and regulatory approvals safeguards participant safety and study integrity.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "This study utilizes a double-blind, randomized, placebo-controlled design to rigorously assess the safety, tolerability, and pharmacokinetics of ABC-123. The single ascending dose (SAD) portion includes healthy participants, while the repeat-dose component focuses on participants with boneitis. The design allows for the evaluation of single and multiple dose effects, exploration of pharmacodynamic parameters, participant selection criteria, and identification of biomarkers for differential response. These approaches ensure robust data collection to inform dose selection and future studies, while adherence to protocol and regulatory approvals safeguards participant safety and study integrity.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_d006294b",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "The planned clinical starting dose of ABC-123 in healthy volunteers is a single 5 mg subcutaneous injection, with a maximum planned dose of 600 mg. This starting dose was selected based on an integrated assessment of Good Laboratory Practice (GLP) toxicology studies, minimal cytokine changes, and expected 10% receptor occupancy at maximum serum concentration. The minimal anticipated biological effect level (MABEL), derived from the half-maximal inhibitory concentration (IC50) of ABC-123, also informed dose selection. In a 13-week GLP toxicology study in cynomolgus monkeys, the no observed adverse effect level (NOAEL) was 300 mg/kg, corresponding to a human equivalent dose of 265.5 mg/kg. Using maximum recommended starting dose (MRSD) guidance, the maximum allowable starting dose is 26.5 mg/kg. Thus, the clinical starting dose of 5 mg is 318-fold lower than the dose supported by toxicology data, ensuring participant safety and allowing for comprehensive characterization of safety, pharmacokinetics, and pharmacodynamics of ABC-123.",
-      "formatting": [
-        {
-          "text": "The planned clinical starting dose of ABC-123 in healthy volunteers is a single 5 mg subcutaneous injection, with a maximum planned dose of 600 mg. This starting dose was selected based on an integrated assessment of Good Laboratory Practice (GLP) toxicology studies, minimal cytokine changes, and expected 10% receptor occupancy at maximum serum concentration. The minimal anticipated biological effect level (MABEL), derived from the half-maximal inhibitory concentration (IC",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": "50",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        },
-        {
-          "text": ") of ABC-123, also informed dose selection. In a 13-week GLP toxicology study in cynomolgus monkeys, the no observed adverse effect level (NOAEL) was 300 mg/kg, corresponding to a human equivalent dose of 265.5 mg/kg. Using maximum recommended starting dose (MRSD) guidance, the maximum allowable starting dose is 26.5 mg/kg. Thus, the clinical starting dose of 5 mg is 318-fold lower than the dose supported by toxicology data, ensuring participant safety and allowing for comprehensive characterization of safety, pharmacokinetics, and pharmacodynamics of ABC-123.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "The planned clinical starting dose of ABC-123 in healthy volunteers is a single 5 mg subcutaneous injection, with a maximum planned dose of 600 mg. This starting dose was selected based on an integrated assessment of Good Laboratory Practice (GLP) toxicology studies, minimal cytokine changes, and expected 10% receptor occupancy at maximum serum concentration. The minimal anticipated biological effect level (MABEL), derived from the half-maximal inhibitory concentration (IC",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": "50",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      },
-      {
-        "text": ") of ABC-123, also informed dose selection. In a 13-week GLP toxicology study in cynomolgus monkeys, the no observed adverse effect level (NOAEL) was 300 mg/kg, corresponding to a human equivalent dose of 265.5 mg/kg. Using maximum recommended starting dose (MRSD) guidance, the maximum allowable starting dose is 26.5 mg/kg. Thus, the clinical starting dose of 5 mg is 318-fold lower than the dose supported by toxicology data, ensuring participant safety and allowing for comprehensive characterization of safety, pharmacokinetics, and pharmacodynamics of ABC-123.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_8307522b",
-    "node_type": "LIST",
-    "content": {
-      "items": [],
-      "list_type": "bullet"
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_26c552c5",
-    "node_type": "LIST",
-    "content": {
-      "items": [],
-      "list_type": "bullet"
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_ebbfcda7",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Criteria for discontinuation or withdrawal from the study include, but are not limited to: participant decision due to scheduling difficulties, dissatisfaction with study requirements or treatment, or medical necessity such as adverse events (AEs) or safety concerns; serious adverse events (SAEs); progressive disease; liver test abnormalities meeting criteria for permanent discontinuation; meeting dose-limiting toxicity (DLT) criteria; death; reasons unrelated to medical condition; withdrawal of informed consent; loss to follow-up; pregnancy; and trial termination by the Sponsor. Complete withdrawal of consent requires refusal of all follow-up procedures and contact. The reasons for discontinuation or withdrawal must be documented, and participants withdrawn for reasons not related to study intervention may be replaced after discussion with the Sponsor, whereas those withdrawn due to AEs related to intervention will not be replaced.",
-      "formatting": [
-        {
-          "text": "Criteria for discontinuation or withdrawal from the study include, but are not limited to: participant decision due to scheduling difficulties, dissatisfaction with study requirements or treatment, or medical necessity such as adverse events (AEs) or safety concerns; serious adverse events (SAEs); progressive disease; liver test abnormalities meeting criteria for permanent discontinuation; meeting dose-limiting toxicity (DLT) criteria; death; reasons unrelated to medical condition; withdrawal of informed consent; loss to follow-up; pregnancy; and trial termination by the Sponsor. Complete withdrawal of consent requires refusal of all follow-up procedures and contact. The reasons for discontinuation or withdrawal must be documented, and participants withdrawn for reasons not related to study intervention may be replaced after discussion with the Sponsor, whereas those withdrawn due to AEs related to intervention will not be replaced.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Criteria for discontinuation or withdrawal from the study include, but are not limited to: participant decision due to scheduling difficulties, dissatisfaction with study requirements or treatment, or medical necessity such as adverse events (AEs) or safety concerns; serious adverse events (SAEs); progressive disease; liver test abnormalities meeting criteria for permanent discontinuation; meeting dose-limiting toxicity (DLT) criteria; death; reasons unrelated to medical condition; withdrawal of informed consent; loss to follow-up; pregnancy; and trial termination by the Sponsor. Complete withdrawal of consent requires refusal of all follow-up procedures and contact. The reasons for discontinuation or withdrawal must be documented, and participants withdrawn for reasons not related to study intervention may be replaced after discussion with the Sponsor, whereas those withdrawn due to AEs related to intervention will not be replaced.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_bb36ed10",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "A participant is considered lost to follow-up if they repeatedly fail to return for scheduled visits and cannot be contacted by the study site. Before classifying a participant as lost to follow-up, the Investigator or designee must make every reasonable effort to regain contact, including at least three telephone calls and, if necessary, a certified letter to the participant’s last known address or local equivalent methods. All contact attempts should be documented in the participant’s medical record.",
-      "formatting": [
-        {
-          "text": "A participant is considered lost to follow-up if they repeatedly fail to return for scheduled visits and cannot be contacted by the study site. Before classifying a participant as lost to follow-up, the Investigator or designee must make every reasonable effort to regain contact, including at least three telephone calls and, if necessary, a certified letter to the participant’s last known address or local equivalent methods. All contact attempts should be documented in the participant’s medical record.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "A participant is considered lost to follow-up if they repeatedly fail to return for scheduled visits and cannot be contacted by the study site. Before classifying a participant as lost to follow-up, the Investigator or designee must make every reasonable effort to regain contact, including at least three telephone calls and, if necessary, a certified letter to the participant’s last known address or local equivalent methods. All contact attempts should be documented in the participant’s medical record.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_5824afa6",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Injections were administered by the Investigator or a qualified designee, primarily in the abdomen. For the repeat-dose component, the injection site could be divided into quadrants, with rotation of quadrants for each injection. Injection sites were carefully monitored throughout the study. Study participants continued their usual boneitis treatment, and allowed concomitant medications for lurgi, sporadic invisibility, and Fink-Nottle syndrome had to be stable for at least 30 days prior to Screening and remained unchanged unless approved by the Investigator. Paracetamol/acetaminophen (up to 2 g/day for 3 consecutive days) was permitted as needed.",
-      "formatting": [
-        {
-          "text": "Injections were administered by the Investigator or a qualified designee, primarily in the abdomen. For the repeat-dose component, the injection site could be divided into quadrants, with rotation of quadrants for each injection. Injection sites were carefully monitored throughout the study. Study participants continued their usual boneitis treatment, and allowed concomitant medications for lurgi, sporadic invisibility, and Fink-Nottle syndrome had to be stable for at least 30 days prior to Screening and remained unchanged unless approved by the Investigator. Paracetamol/acetaminophen (up to 2 g/day for 3 consecutive days) was permitted as needed.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Injections were administered by the Investigator or a qualified designee, primarily in the abdomen. For the repeat-dose component, the injection site could be divided into quadrants, with rotation of quadrants for each injection. Injection sites were carefully monitored throughout the study. Study participants continued their usual boneitis treatment, and allowed concomitant medications for lurgi, sporadic invisibility, and Fink-Nottle syndrome had to be stable for at least 30 days prior to Screening and remained unchanged unless approved by the Investigator. Paracetamol/acetaminophen (up to 2 g/day for 3 consecutive days) was permitted as needed.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_5ca3a342",
-    "node_type": "KEYVALUE",
-    "content": {
-      "content": "A summary of the Investigational drug product, ABC-123 is presented in Table 4.",
-      "formatting": []
-    },
-    "formatting": []
-  },
-  {
-    "fragment_id": "FRAG_69a8aa13",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Participants were assigned to either the active treatment or placebo group based on a randomization schedule prepared by an unblinded statistician to maintain the blind.",
-      "formatting": [
-        {
-          "text": "Participants were assigned to either the active treatment or placebo group based on a randomization schedule prepared by an unblinded statistician to maintain the blind.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Participants were assigned to either the active treatment or placebo group based on a randomization schedule prepared by an unblinded statistician to maintain the blind.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_e56df70c",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Dose selection in this study involves a single ascending dose (SAD) escalation component in healthy volunteers, with dose increments not exceeding half-log steps (approximately 3.3-fold). The repeat-dose cohort, consisting of participants with boneitis, will receive subcutaneous ABC-123 (150 mg) or placebo every other week for three doses. The dose for the repeat-dose phase will not exceed 50% of a dose previously shown to be safe and well tolerated in the SAD cohort, accounting for anticipated accumulation. Final dose and regimen selection will be based on safety, tolerability, and pharmacokinetic data from the ongoing SAD phase.",
-      "formatting": [
-        {
-          "text": "Dose selection in this study involves a single ascending dose (SAD) escalation component in healthy volunteers, with dose increments not exceeding half-log steps (approximately 3.3-fold). The repeat-dose cohort, consisting of participants with boneitis, will receive subcutaneous ABC-123 (150 mg) or placebo every other week for three doses. The dose for the repeat-dose phase will not exceed 50% of a dose previously shown to be safe and well tolerated in the SAD cohort, accounting for anticipated accumulation. Final dose and regimen selection will be based on safety, tolerability, and pharmacokinetic data from the ongoing SAD phase.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Dose selection in this study involves a single ascending dose (SAD) escalation component in healthy volunteers, with dose increments not exceeding half-log steps (approximately 3.3-fold). The repeat-dose cohort, consisting of participants with boneitis, will receive subcutaneous ABC-123 (150 mg) or placebo every other week for three doses. The dose for the repeat-dose phase will not exceed 50% of a dose previously shown to be safe and well tolerated in the SAD cohort, accounting for anticipated accumulation. Final dose and regimen selection will be based on safety, tolerability, and pharmacokinetic data from the ongoing SAD phase.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_387727b1",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Dose selection for each participant will be based on clinical, laboratory safety, and pharmacokinetic data from currently dosed and previous cohorts. During the single ascending dose (SAD) phase, dose increments will not exceed half-log (approximately 3.3-fold) increases. Blood samples for pharmacokinetics and biomarker analyses are collected prior to dosing and at specified post-dose time points, with timing subject to adjustment based on emerging cohort data.",
-      "formatting": [
-        {
-          "text": "Dose selection for each participant will be based on clinical, laboratory safety, and pharmacokinetic data from currently dosed and previous cohorts. During the single ascending dose (SAD) phase, dose increments will not exceed half-log (approximately 3.3-fold) increases. Blood samples for pharmacokinetics and biomarker analyses are collected prior to dosing and at specified post-dose time points, with timing subject to adjustment based on emerging cohort data.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Dose selection for each participant will be based on clinical, laboratory safety, and pharmacokinetic data from currently dosed and previous cohorts. During the single ascending dose (SAD) phase, dose increments will not exceed half-log (approximately 3.3-fold) increases. Blood samples for pharmacokinetics and biomarker analyses are collected prior to dosing and at specified post-dose time points, with timing subject to adjustment based on emerging cohort data.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_2cb999a0",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "The study is conducted in a double-blind manner, with participants receiving either active treatment or placebo according to a randomization schedule prepared by an unblinded statistician. The blinding is maintained throughout the study, and treatment assignments may only be unblinded at the clinic in cases of emergency or when necessary for participant safety or to assess dose-limiting toxicity. Any breaking of the blind outside these circumstances is considered a protocol deviation, and the Sponsor must be notified within 24 hours if the blind is broken. The Investigator must document the date and reason for unblinding in source documents and relevant eCRF pages.",
-      "formatting": [
-        {
-          "text": "The study is conducted in a double-blind manner, with participants receiving either active treatment or placebo according to a randomization schedule prepared by an unblinded statistician. The blinding is maintained throughout the study, and treatment assignments may only be unblinded at the clinic in cases of emergency or when necessary for participant safety or to assess dose-limiting toxicity. Any breaking of the blind outside these circumstances is considered a protocol deviation, and the Sponsor must be notified within 24 hours if the blind is broken. The Investigator must document the date and reason for unblinding in source documents and relevant eCRF pages.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "The study is conducted in a double-blind manner, with participants receiving either active treatment or placebo according to a randomization schedule prepared by an unblinded statistician. The blinding is maintained throughout the study, and treatment assignments may only be unblinded at the clinic in cases of emergency or when necessary for participant safety or to assess dose-limiting toxicity. Any breaking of the blind outside these circumstances is considered a protocol deviation, and the Sponsor must be notified within 24 hours if the blind is broken. The Investigator must document the date and reason for unblinding in source documents and relevant eCRF pages.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_eca006e1",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "For the SAD cohorts, the use of any prescription or nonprescription medications or nutritional products—including vitamins (except ongoing multivitamin supplement), minerals, and herbal/plant-derived preparations—is prohibited from Screening until the end of the study, unless approved by the Investigator. Saline, lidocaine, or other medications required by study procedures may be used at the Investigator’s discretion. Paracetamol/acetaminophen (up to 2 g/day for a maximum of 3 consecutive days) is permitted as needed.",
-      "formatting": [
-        {
-          "text": "For the SAD cohorts, the use of any prescription or nonprescription medications or nutritional products—including vitamins (except ongoing multivitamin supplement), minerals, and herbal/plant-derived preparations—is prohibited from Screening until the end of the study, unless approved by the Investigator. Saline, lidocaine, or other medications required by study procedures may be used at the Investigator’s discretion. Paracetamol/acetaminophen (up to 2 g/day for a maximum of 3 consecutive days) is permitted as needed.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "For the SAD cohorts, the use of any prescription or nonprescription medications or nutritional products—including vitamins (except ongoing multivitamin supplement), minerals, and herbal/plant-derived preparations—is prohibited from Screening until the end of the study, unless approved by the Investigator. Saline, lidocaine, or other medications required by study procedures may be used at the Investigator’s discretion. Paracetamol/acetaminophen (up to 2 g/day for a maximum of 3 consecutive days) is permitted as needed.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_96706299",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "All medications or vaccines (including over-the-counter and prescription medicines, vitamins, herbal supplements, or other relevant categories) taken by participants at enrollment or during the study must be documented. This includes the reason for use, dates of administration (start and end), dosage information (dose and frequency), and any changes in concomitant therapy. Medication use will be monitored throughout the study, and certain restrictions apply depending on cohort assignment.",
-      "formatting": [
-        {
-          "text": "All medications or vaccines (including over-the-counter and prescription medicines, vitamins, herbal supplements, or other relevant categories) taken by participants at enrollment or during the study must be documented. This includes the reason for use, dates of administration (start and end), dosage information (dose and frequency), and any changes in concomitant therapy. Medication use will be monitored throughout the study, and certain restrictions apply depending on cohort assignment.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "All medications or vaccines (including over-the-counter and prescription medicines, vitamins, herbal supplements, or other relevant categories) taken by participants at enrollment or during the study must be documented. This includes the reason for use, dates of administration (start and end), dosage information (dose and frequency), and any changes in concomitant therapy. Medication use will be monitored throughout the study, and certain restrictions apply depending on cohort assignment.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_d8d0a083",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Rescue medication is not applicable in this study.",
-      "formatting": [
-        {
-          "text": "Rescue medication is not applicable in this study.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Rescue medication is not applicable in this study.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_7bdbe017",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Participants will be dosed at the study site and receive the intervention directly from the Investigator or their designee under medical supervision. The date, time, and injection location for each dose administered in the clinic will be documented in source records and the electronic case report form (eCRF). Study participant identification and the dose will be confirmed at the time of dosing by the administering staff and another site staff member to ensure compliance.",
-      "formatting": [
-        {
-          "text": "Participants will be dosed at the study site and receive the intervention directly from the Investigator or their designee under medical supervision. The date, time, and injection location for each dose administered in the clinic will be documented in source records and the electronic case report form (eCRF). Study participant identification and the dose will be confirmed at the time of dosing by the administering staff and another site staff member to ensure compliance.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Participants will be dosed at the study site and receive the intervention directly from the Investigator or their designee under medical supervision. The date, time, and injection location for each dose administered in the clinic will be documented in source records and the electronic case report form (eCRF). Study participant identification and the dose will be confirmed at the time of dosing by the administering staff and another site staff member to ensure compliance.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_d6adf48f",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Applicable Laws, Regulations, and Guidelines",
-      "formatting": [
-        {
-          "text": "Applicable Laws, Regulations, and Guidelines",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Applicable Laws, Regulations, and Guidelines",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_0a42908a",
-    "node_type": "TABLE",
-    "content": {
+      "content": "In-Residence Period",
       "rows": [],
-      "style": {}
+      "formatting": {}
     },
     "formatting": {}
   },
   {
-    "fragment_id": "FRAG_d3c7fd47",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Participants must be informed that their participation in the study is voluntary. Informed consent must be obtained prior to enrollment, and participants or their legally authorized representative are required to sign a statement of informed consent that complies with 21 CFR 50, local regulations, ICH guidelines, HIPAA requirements (where applicable), and the IRB/IEC or study center. The medical record must document that written informed consent was obtained, including the date, and the authorized person obtaining consent must sign the ICF. Participants must be re-consented to the most current version of the ICF during the study, and a copy of the ICF must be provided to the participant or their representative. Personal study-related data will be used in accordance with local data protection law, and participants must consent to the described level of disclosure.",
-      "formatting": [
-        {
-          "text": "Participants must be informed that their participation in the study is voluntary. Informed consent must be obtained prior to enrollment, and participants or their legally authorized representative are required to sign a statement of informed consent that complies with 21 CFR 50, local regulations, ICH guidelines, HIPAA requirements (where applicable), and the IRB/IEC or study center. The medical record must document that written informed consent was obtained, including the date, and the authorized person obtaining consent must sign the ICF. Participants must be re-consented to the most current version of the ICF during the study, and a copy of the ICF must be provided to the participant or their representative. Personal study-related data will be used in accordance with local data protection law, and participants must consent to the described level of disclosure.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Participants must be informed that their participation in the study is voluntary. Informed consent must be obtained prior to enrollment, and participants or their legally authorized representative are required to sign a statement of informed consent that complies with 21 CFR 50, local regulations, ICH guidelines, HIPAA requirements (where applicable), and the IRB/IEC or study center. The medical record must document that written informed consent was obtained, including the date, and the authorized person obtaining consent must sign the ICF. Participants must be re-consented to the most current version of the ICF during the study, and a copy of the ICF must be provided to the participant or their representative. Personal study-related data will be used in accordance with local data protection law, and participants must consent to the described level of disclosure.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_04a5dd76",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Demographics data are summarized in Table 14.2.2 for the Full Analysis Set.",
-      "formatting": [
-        {
-          "text": "Demographics data are summarized in Table 14.2.2 for the Full Analysis Set.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Demographics data are summarized in Table 14.2.2 for the Full Analysis Set.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_81f3822c",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Medical and medication history for study participants should be documented through review of medical records, medical examinations, or medical history interviews conducted by site personnel. Medical occurrences that begin before signing the informed consent form (ICF) are recorded in the Medical History/Current Medical Conditions section of the electronic case report form (eCRF), while any worsening of these conditions after signing the ICF is reported as an adverse event (AE).",
-      "formatting": [
-        {
-          "text": "Medical and medication history for study participants should be documented through review of medical records, medical examinations, or medical history interviews conducted by site personnel. Medical occurrences that begin before signing the informed consent form (ICF) are recorded in the Medical History/Current Medical Conditions section of the electronic case report form (eCRF), while any worsening of these conditions after signing the ICF is reported as an adverse event (AE).",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Medical and medication history for study participants should be documented through review of medical records, medical examinations, or medical history interviews conducted by site personnel. Medical occurrences that begin before signing the informed consent form (ICF) are recorded in the Medical History/Current Medical Conditions section of the electronic case report form (eCRF), while any worsening of these conditions after signing the ICF is reported as an adverse event (AE).",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_1048e496",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Blood samples for pharmacokinetics (PK) and biomarkers will be collected by venipuncture or cannulation at times specified in the Schedule of Activities (SoA). Up to three additional blood samples may be collected from each participant per treatment period. Any changes to the scheduled times of PK or PD assessments will be agreed with the Sponsor and documented in the Trial Master File. Procedures for collection, processing, and shipping of PK blood samples will be detailed in a separate document. For biomarker assessments, whole blood, serum, and plasma will be collected from all enrolled participants, unless prohibited by local regulations. Blood and urine samples for biomarkers are planned to be collected prior to dosing and at specific post-dose time points per the SoA, and timing may change based on new data from completed study cohorts.",
-      "formatting": [
-        {
-          "text": "Blood samples for pharmacokinetics (PK) and biomarkers will be collected by venipuncture or cannulation at times specified in the Schedule of Activities (SoA). Up to three additional blood samples may be collected from each participant per treatment period. Any changes to the scheduled times of PK or PD assessments will be agreed with the Sponsor and documented in the Trial Master File. Procedures for collection, processing, and shipping of PK blood samples will be detailed in a separate document. For biomarker assessments, whole blood, serum, and plasma will be collected from all enrolled participants, unless prohibited by local regulations. Blood and urine samples for biomarkers are planned to be collected prior to dosing and at specific post-dose time points per the SoA, and timing may change based on new data from completed study cohorts.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Blood samples for pharmacokinetics (PK) and biomarkers will be collected by venipuncture or cannulation at times specified in the Schedule of Activities (SoA). Up to three additional blood samples may be collected from each participant per treatment period. Any changes to the scheduled times of PK or PD assessments will be agreed with the Sponsor and documented in the Trial Master File. Procedures for collection, processing, and shipping of PK blood samples will be detailed in a separate document. For biomarker assessments, whole blood, serum, and plasma will be collected from all enrolled participants, unless prohibited by local regulations. Blood and urine samples for biomarkers are planned to be collected prior to dosing and at specific post-dose time points per the SoA, and timing may change based on new data from completed study cohorts.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_0a98653f",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Serum concentrations of ABC-123 will be determined using validated analytical procedures. Specifics of the analytical methods will be provided in separate documents.",
-      "formatting": [
-        {
-          "text": "Serum concentrations of ABC-123 will be determined using validated analytical procedures. Specifics of the analytical methods will be provided in separate documents.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Serum concentrations of ABC-123 will be determined using validated analytical procedures. Specifics of the analytical methods will be provided in separate documents.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_9dd344a5",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "This study will collect whole blood, serum, and plasma samples from all enrolled participants for biomarker assessments, unless prohibited by local regulations. These pharmacodynamic (PD) assessments will help inform dose selection, monitor baseline and post-treatment responses, and further characterize the mechanism of action or identify potential prognostic and predictive biomarkers related to ABC-123 and boneitis. Blood sampling for exploratory PD and safety biomarkers will be conducted, with the timing specified in the Schedule of Assessments and subject to change based on ongoing data review. Up to three additional blood samples per treatment period may be collected. All analyses will be performed by the Sponsor or designee, and any changes to scheduled PD assessments will be documented accordingly.",
-      "formatting": [
-        {
-          "text": "This study will collect whole blood, serum, and plasma samples from all enrolled participants for biomarker assessments, unless prohibited by local regulations. These pharmacodynamic (PD) assessments will help inform dose selection, monitor baseline and post-treatment responses, and further characterize the mechanism of action or identify potential prognostic and predictive biomarkers related to ABC-123 and boneitis. Blood sampling for exploratory PD and safety biomarkers will be conducted, with the timing specified in the Schedule of Assessments and subject to change based on ongoing data review. Up to three additional blood samples per treatment period may be collected. All analyses will be performed by the Sponsor or designee, and any changes to scheduled PD assessments will be documented accordingly.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "This study will collect whole blood, serum, and plasma samples from all enrolled participants for biomarker assessments, unless prohibited by local regulations. These pharmacodynamic (PD) assessments will help inform dose selection, monitor baseline and post-treatment responses, and further characterize the mechanism of action or identify potential prognostic and predictive biomarkers related to ABC-123 and boneitis. Blood sampling for exploratory PD and safety biomarkers will be conducted, with the timing specified in the Schedule of Assessments and subject to change based on ongoing data review. Up to three additional blood samples per treatment period may be collected. All analyses will be performed by the Sponsor or designee, and any changes to scheduled PD assessments will be documented accordingly.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_53b6e1da",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Blood sampling will be conducted for analysis of exploratory pharmacodynamic (PD) and safety biomarkers. The timing of all PD assessments during the study is outlined in the Schedule of Activities and may be adjusted based on ongoing data review. Up to three additional blood samples per participant per treatment period may be collected as needed. Any changes to the scheduled times of PD assessments will be agreed upon with the Sponsor and documented in the Trial Master File (TMF).",
-      "formatting": [
-        {
-          "text": "Blood sampling will be conducted for analysis of exploratory pharmacodynamic (PD) and safety biomarkers. The timing of all PD assessments during the study is outlined in the Schedule of Activities and may be adjusted based on ongoing data review. Up to three additional blood samples per participant per treatment period may be collected as needed. Any changes to the scheduled times of PD assessments will be agreed upon with the Sponsor and documented in the Trial Master File (TMF).",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Blood sampling will be conducted for analysis of exploratory pharmacodynamic (PD) and safety biomarkers. The timing of all PD assessments during the study is outlined in the Schedule of Activities and may be adjusted based on ongoing data review. Up to three additional blood samples per participant per treatment period may be collected as needed. Any changes to the scheduled times of PD assessments will be agreed upon with the Sponsor and documented in the Trial Master File (TMF).",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_12f41126",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Immunogenicity will be assessed by evaluating antibodies to ABC-123 in serum samples collected from all participants as specified in the Schedule of Assessments. Additional serum samples will be collected at the final visit from participants who discontinue or withdraw from the study. Samples will be screened for antibodies binding to ABC-123, with titers reported for confirmed positives. Analyses may also verify antibody stability and further characterize immunogenicity. Detection and characterization will use validated assay methods supervised by the Sponsor, including evaluation of neutralizing activity. Samples may be stored for at least 3 years (or per local regulations) for further immune response analysis.",
-      "formatting": [
-        {
-          "text": "Immunogenicity will be assessed by evaluating antibodies to ABC-123 in serum samples collected from all participants as specified in the Schedule of Assessments. Additional serum samples will be collected at the final visit from participants who discontinue or withdraw from the study. Samples will be screened for antibodies binding to ABC-123, with titers reported for confirmed positives. Analyses may also verify antibody stability and further characterize immunogenicity. Detection and characterization will use validated assay methods supervised by the Sponsor, including evaluation of neutralizing activity. Samples may be stored for at least 3 years (or per local regulations) for further immune response analysis.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Immunogenicity will be assessed by evaluating antibodies to ABC-123 in serum samples collected from all participants as specified in the Schedule of Assessments. Additional serum samples will be collected at the final visit from participants who discontinue or withdraw from the study. Samples will be screened for antibodies binding to ABC-123, with titers reported for confirmed positives. Analyses may also verify antibody stability and further characterize immunogenicity. Detection and characterization will use validated assay methods supervised by the Sponsor, including evaluation of neutralizing activity. Samples may be stored for at least 3 years (or per local regulations) for further immune response analysis.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_1387c973",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Pharmacogenomic analysis will be conducted by collecting a blood sample, where permitted by local laws and regulations, as specified in the Schedule of Activities and main informed consent form. The sample may be used to study genetic variations affecting the safety, efficacy, and ADME of ABC-123 and related therapies, as well as to further research on drug response and genetics of specific disorders of interest to the Sponsor. Results from these analyses will not be used for clinical diagnosis or treatment and will not be shared with participants or investigators. Samples will be coded for confidentiality, securely stored, and retained for up to 30 years, until exhausted, or until requested for destruction by the Sponsor, whichever occurs first.",
-      "formatting": [
-        {
-          "text": "Pharmacogenomic analysis will be conducted by collecting a blood sample, where permitted by local laws and regulations, as specified in the Schedule of Activities and main informed consent form. The sample may be used to study genetic variations affecting the safety, efficacy, and ADME of ABC-123 and related therapies, as well as to further research on drug response and genetics of specific disorders of interest to the Sponsor. Results from these analyses will not be used for clinical diagnosis or treatment and will not be shared with participants or investigators. Samples will be coded for confidentiality, securely stored, and retained for up to 30 years, until exhausted, or until requested for destruction by the Sponsor, whichever occurs first.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Pharmacogenomic analysis will be conducted by collecting a blood sample, where permitted by local laws and regulations, as specified in the Schedule of Activities and main informed consent form. The sample may be used to study genetic variations affecting the safety, efficacy, and ADME of ABC-123 and related therapies, as well as to further research on drug response and genetics of specific disorders of interest to the Sponsor. Results from these analyses will not be used for clinical diagnosis or treatment and will not be shared with participants or investigators. Samples will be coded for confidentiality, securely stored, and retained for up to 30 years, until exhausted, or until requested for destruction by the Sponsor, whichever occurs first.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_8650b2c6",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Safety assessments will be conducted at planned time points as specified in the Schedule of Activities (SoA). These include 12-lead ECG, vital sign monitoring (blood pressure, pulse rate, respiratory rate, body temperature, oximetry), clinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments), physical examinations, mental health assessment, and other relevant metrics. Procedures should be performed as close as possible to the nominal time and actual times recorded in the eCRF. Investigators must pay special attention to clinical signs related to previous serious illnesses, and all clinically significant abnormal laboratory findings should be followed up until resolved or explained. Adverse events and concomitant medication use will be monitored throughout the study.",
-      "formatting": [
-        {
-          "text": "Safety assessments will be conducted at planned time points as specified in the Schedule of Activities (SoA). These include 12-lead ECG, vital sign monitoring (blood pressure, pulse rate, respiratory rate, body temperature, oximetry), clinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments), physical examinations, mental health assessment, and other relevant metrics. Procedures should be performed as close as possible to the nominal time and actual times recorded in the eCRF. Investigators must pay special attention to clinical signs related to previous serious illnesses, and all clinically significant abnormal laboratory findings should be followed up until resolved or explained. Adverse events and concomitant medication use will be monitored throughout the study.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Safety assessments will be conducted at planned time points as specified in the Schedule of Activities (SoA). These include 12-lead ECG, vital sign monitoring (blood pressure, pulse rate, respiratory rate, body temperature, oximetry), clinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments), physical examinations, mental health assessment, and other relevant metrics. Procedures should be performed as close as possible to the nominal time and actual times recorded in the eCRF. Investigators must pay special attention to clinical signs related to previous serious illnesses, and all clinically significant abnormal laboratory findings should be followed up until resolved or explained. Adverse events and concomitant medication use will be monitored throughout the study.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_e18f5485",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "The selected measurements, including vital signs, clinical laboratory tests, physical examinations, ECG, and mental health assessments, are appropriate for monitoring participant safety and health status. These measurements are obtained at specific time points per the Schedule of Activities (SoA) and may be repeated at the Investigator's discretion if necessary. Additionally, criteria such as high follicle-stimulating hormone (FSH) levels can be used to confirm postmenopausal status, further supporting the appropriateness of the measurement protocols.",
-      "formatting": [
-        {
-          "text": "The selected measurements, including vital signs, clinical laboratory tests, physical examinations, ECG, and mental health assessments, are appropriate for monitoring participant safety and health status. These measurements are obtained at specific time points per the Schedule of Activities (SoA) and may be repeated at the Investigator's discretion if necessary. Additionally, criteria such as high follicle-stimulating hormone (FSH) levels can be used to confirm postmenopausal status, further supporting the appropriateness of the measurement protocols.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "The selected measurements, including vital signs, clinical laboratory tests, physical examinations, ECG, and mental health assessments, are appropriate for monitoring participant safety and health status. These measurements are obtained at specific time points per the Schedule of Activities (SoA) and may be repeated at the Investigator's discretion if necessary. Additionally, criteria such as high follicle-stimulating hormone (FSH) levels can be used to confirm postmenopausal status, further supporting the appropriateness of the measurement protocols.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_7e661522",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Data quality assurance for the study will involve recording all participant data on printed or electronic case report forms (CRFs), with the Investigator verifying accuracy by signing the CRF. The Investigator must permit study-related monitoring, audits, IRB/IEC review, and regulatory inspections, providing direct access to source documents. The Sponsor or designee is responsible for data management, including quality checks, and will oversee delegated actions. Study monitors will perform ongoing source data verification to ensure data accuracy, completeness, and participant safety, and confirm adherence to the approved protocol and regulatory requirements. Records, including signed informed consent forms, must be retained by the Investigator for at least two years after study completion or until final marketing authorization approval, unless longer retention is required by local regulations or institutional policies. No records may be destroyed or transferred during the retention period without Sponsor approval or notification.",
-      "formatting": [
-        {
-          "text": "Data quality assurance for the study will involve recording all participant data on printed or electronic case report forms (CRFs), with the Investigator verifying accuracy by signing the CRF. The Investigator must permit study-related monitoring, audits, IRB/IEC review, and regulatory inspections, providing direct access to source documents. The Sponsor or designee is responsible for data management, including quality checks, and will oversee delegated actions. Study monitors will perform ongoing source data verification to ensure data accuracy, completeness, and participant safety, and confirm adherence to the approved protocol and regulatory requirements. Records, including signed informed consent forms, must be retained by the Investigator for at least two years after study completion or until final marketing authorization approval, unless longer retention is required by local regulations or institutional policies. No records may be destroyed or transferred during the retention period without Sponsor approval or notification.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Data quality assurance for the study will involve recording all participant data on printed or electronic case report forms (CRFs), with the Investigator verifying accuracy by signing the CRF. The Investigator must permit study-related monitoring, audits, IRB/IEC review, and regulatory inspections, providing direct access to source documents. The Sponsor or designee is responsible for data management, including quality checks, and will oversee delegated actions. Study monitors will perform ongoing source data verification to ensure data accuracy, completeness, and participant safety, and confirm adherence to the approved protocol and regulatory requirements. Records, including signed informed consent forms, must be retained by the Investigator for at least two years after study completion or until final marketing authorization approval, unless longer retention is required by local regulations or institutional policies. No records may be destroyed or transferred during the retention period without Sponsor approval or notification.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_d36b50d6",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Pharmacodynamic parameters will be summarized using descriptive statistics, with no formal statistical analysis of PD data planned. Associations between pharmacokinetic (PK) and pharmacodynamic (PD) parameters will be explored using appropriate statistical methods, as detailed in the Statistical Analysis Plan (SAP). Serum concentrations of ABC-123 will be measured using validated analytical procedures, with further specifics provided in separate documents. Combined analyses of PK, PD, and safety data will inform future study design, including dose selection and identification of populations most likely to benefit from ABC-123 treatment.",
-      "formatting": [
-        {
-          "text": "Pharmacodynamic parameters will be summarized using descriptive statistics, with no formal statistical analysis of PD data planned. Associations between pharmacokinetic (PK) and pharmacodynamic (PD) parameters will be explored using appropriate statistical methods, as detailed in the Statistical Analysis Plan (SAP). Serum concentrations of ABC-123 will be measured using validated analytical procedures, with further specifics provided in separate documents. Combined analyses of PK, PD, and safety data will inform future study design, including dose selection and identification of populations most likely to benefit from ABC-123 treatment.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Pharmacodynamic parameters will be summarized using descriptive statistics, with no formal statistical analysis of PD data planned. Associations between pharmacokinetic (PK) and pharmacodynamic (PD) parameters will be explored using appropriate statistical methods, as detailed in the Statistical Analysis Plan (SAP). Serum concentrations of ABC-123 will be measured using validated analytical procedures, with further specifics provided in separate documents. Combined analyses of PK, PD, and safety data will inform future study design, including dose selection and identification of populations most likely to benefit from ABC-123 treatment.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_981631a0",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "The analysis populations for this study are defined according to specific criteria. Participants must meet all inclusion criteria and none of the exclusion criteria to be considered for enrollment. Eligibility assessments may be retested once following discussion with the Medical Monitor. The study will analyze populations based on informed consent, pharmacodynamic (PD), and pharmacokinetic (PK) parameters, as outlined in the protocol.",
-      "formatting": [
-        {
-          "text": "The analysis populations for this study are defined according to specific criteria. Participants must meet all inclusion criteria and none of the exclusion criteria to be considered for enrollment. Eligibility assessments may be retested once following discussion with the Medical Monitor. The study will analyze populations based on informed consent, pharmacodynamic (PD), and pharmacokinetic (PK) parameters, as outlined in the protocol.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "The analysis populations for this study are defined according to specific criteria. Participants must meet all inclusion criteria and none of the exclusion criteria to be considered for enrollment. Eligibility assessments may be retested once following discussion with the Medical Monitor. The study will analyze populations based on informed consent, pharmacodynamic (PD), and pharmacokinetic (PK) parameters, as outlined in the protocol.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_921995e0",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Formal statistical calculations of sample size are not appropriate for this early development study. The planned sample sizes are based on customary practices: for the Single Ascending Dose part, 6 cohorts of 8 participants each are planned, with up to 56 participants permitted including replacements; for the Repeat-dose part, 8 participants in a single cohort are planned, with up to 10 participants allowed including replacements. These sample sizes are expected to allow clinical judgment of safety, tolerability, and assessment of the PK profile. If an adverse event occurs at a rate of 1% or 10%, the probability of observing such an event among 6 participants receiving a given dose is 6% or 47%, respectively. If no adverse event of a given type is observed, then with 80% (90%) confidence, the true incidence at that dose is at most 24% (32%).",
-      "formatting": [
-        {
-          "text": "Formal statistical calculations of sample size are not appropriate for this early development study. The planned sample sizes are based on customary practices: for the Single Ascending Dose part, 6 cohorts of 8 participants each are planned, with up to 56 participants permitted including replacements; for the Repeat-dose part, 8 participants in a single cohort are planned, with up to 10 participants allowed including replacements. These sample sizes are expected to allow clinical judgment of safety, tolerability, and assessment of the PK profile. If an adverse event occurs at a rate of 1% or 10%, the probability of observing such an event among 6 participants receiving a given dose is 6% or 47%, respectively. If no adverse event of a given type is observed, then with 80% (90%) confidence, the true incidence at that dose is at most 24% (32%).",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Formal statistical calculations of sample size are not appropriate for this early development study. The planned sample sizes are based on customary practices: for the Single Ascending Dose part, 6 cohorts of 8 participants each are planned, with up to 56 participants permitted including replacements; for the Repeat-dose part, 8 participants in a single cohort are planned, with up to 10 participants allowed including replacements. These sample sizes are expected to allow clinical judgment of safety, tolerability, and assessment of the PK profile. If an adverse event occurs at a rate of 1% or 10%, the probability of observing such an event among 6 participants receiving a given dose is 6% or 47%, respectively. If no adverse event of a given type is observed, then with 80% (90%) confidence, the true incidence at that dose is at most 24% (32%).",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_91da1cef",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Statistical estimations in this study will primarily use descriptive statistics to summarize participant characteristics such as age, BMI, weight, and height. Key pharmacokinetic (PK) parameters, including serum concentration-time profiles and dose proportionality metrics (AUCinf, AUClast, Cmax), will be evaluated using descriptive statistics and visual inspection. Dose proportionality will also be assessed via a power model. Pharmacodynamic (PD) parameters will be listed and summarized descriptively, with no formal statistical analysis planned. Associations between PK and PD will be explored using appropriate statistical methods, as detailed in the SAP. Adverse events, clinical laboratory test data, and vital sign abnormalities will be summarized descriptively, and shift tables will be provided for laboratory and ECG data. Anti-ABC-123 antibody concentrations and their incidence or persistence will also be summarized descriptively.",
-      "formatting": [
-        {
-          "text": "Statistical estimations in this study will primarily use descriptive statistics to summarize participant characteristics such as age, BMI, weight, and height. Key pharmacokinetic (PK) parameters, including serum concentration-time profiles and dose proportionality metrics (AUCinf, AUClast, Cmax), will be evaluated using descriptive statistics and visual inspection. Dose proportionality will also be assessed via a power model. Pharmacodynamic (PD) parameters will be listed and summarized descriptively, with no formal statistical analysis planned. Associations between PK and PD will be explored using appropriate statistical methods, as detailed in the SAP. Adverse events, clinical laboratory test data, and vital sign abnormalities will be summarized descriptively, and shift tables will be provided for laboratory and ECG data. Anti-ABC-123 antibody concentrations and their incidence or persistence will also be summarized descriptively.",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Statistical estimations in this study will primarily use descriptive statistics to summarize participant characteristics such as age, BMI, weight, and height. Key pharmacokinetic (PK) parameters, including serum concentration-time profiles and dose proportionality metrics (AUCinf, AUClast, Cmax), will be evaluated using descriptive statistics and visual inspection. Dose proportionality will also be assessed via a power model. Pharmacodynamic (PD) parameters will be listed and summarized descriptively, with no formal statistical analysis planned. Associations between PK and PD will be explored using appropriate statistical methods, as detailed in the SAP. Adverse events, clinical laboratory test data, and vital sign abnormalities will be summarized descriptively, and shift tables will be provided for laboratory and ECG data. Anti-ABC-123 antibody concentrations and their incidence or persistence will also be summarized descriptively.",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_a0d263c8",
+    "fragment_id": "FRAG_c87f3d55",
     "node_type": "KEYVALUE",
     "content": {
-      "content": "The original protocol was submitted to IND: 123456 in the original submission SKY-2000-101. The protocol, dated DD MM YYYY, represents the only version used for the conduct of this study and is provided in Appendix 16.1.1. No amendments to the protocol were made during the course of the study. ",
+      "content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
       "formatting": []
     },
     "formatting": []
   },
   {
-    "fragment_id": "FRAG_bb8f1c48",
+    "fragment_id": "FRAG_24656627",
     "node_type": "KEYVALUE",
     "content": {
-      "content": "The original protocol was submitted to IND: 123456 in the original submission SKY-2000-101. The protocol, dated DD MM YYYY, represents the only version used for the conduct of this study and is provided in Appendix 16.1.1. No amendments to the protocol were made during the course of the study. ",
+      "content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
       "formatting": []
     },
     "formatting": []
   },
   {
-    "fragment_id": "FRAG_89b7221c",
+    "fragment_id": "FRAG_fef1a0bf",
     "node_type": "KEYVALUE",
     "content": {
-      "content": "The original protocol was submitted to IND: 123456 in the original submission SKY-2000-101. The protocol, dated DD MM YYYY, represents the only version used for the conduct of this study and is provided in Appendix 16.1.1. No amendments to the protocol were made during the course of the study. ",
+      "content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
       "formatting": []
     },
     "formatting": []
   },
   {
-    "fragment_id": "FRAG_91174166",
-    "node_type": "PARAGRAPH",
+    "fragment_id": "FRAG_2c5875a8",
+    "node_type": "KEYVALUE",
     "content": {
-      "content": "Demographics and other Baseline Characteristics",
-      "formatting": [
-        {
-          "text": "Demographics and other Baseline Characteristics",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
+      "content": "Visit",
+      "formatting": []
     },
-    "formatting": [
-      {
-        "text": "Demographics and other Baseline Characteristics",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
+    "formatting": []
   },
   {
-    "fragment_id": "FRAG_7789215d",
-    "node_type": "TABLE",
+    "fragment_id": "FRAG_24b1e4f7",
+    "node_type": "KEYVALUE",
     "content": {
+      "content": "Compensation (amount)",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_e7267f37",
+    "node_type": "KEYVALUE",
+    "content": {
+      "content": "In-Residence Period",
+      "formatting": []
+    },
+    "formatting": []
+  },
+  {
+    "fragment_id": "FRAG_6bffb437",
+    "node_type": "TABLE_CELL",
+    "content": {
+      "content": "Follow-Up Period",
       "rows": [],
-      "style": {}
+      "formatting": {}
     },
     "formatting": {}
   },
   {
-    "fragment_id": "FRAG_38db07f7",
-    "node_type": "TABLE",
+    "fragment_id": "FRAG_ea5a3474",
+    "node_type": "TABLE_CELL",
     "content": {
+      "content": "Visit",
       "rows": [],
-      "style": {}
+      "formatting": {}
     },
     "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_354f30c7",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Demographics and other Baseline Characteristics",
-      "formatting": [
-        {
-          "text": "Demographics and other Baseline Characteristics",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Demographics and other Baseline Characteristics",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_e86c90ff",
-    "node_type": "TABLE",
-    "content": {
-      "rows": [],
-      "style": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_821040b1",
-    "node_type": "TABLE",
-    "content": {
-      "rows": [],
-      "style": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_e094309d",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Brief Summary of Adverse Events (Safety Analysis Set)",
-      "formatting": [
-        {
-          "text": "Brief Summary of Adverse Events (Safety Analysis Set)",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Brief Summary of Adverse Events (Safety Analysis Set)",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_731a33cb",
-    "node_type": "TABLE",
-    "content": {
-      "rows": [],
-      "style": {}
-    },
-    "formatting": {}
-  },
-  {
-    "fragment_id": "FRAG_f501937e",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Conclusion",
-      "formatting": [
-        {
-          "text": "Conclusion",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Conclusion",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_51da3689",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Pharmacokinetics Data Summary Figures and Tables",
-      "formatting": [
-        {
-          "text": "Pharmacokinetics Data Summary Figures and Tables",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Pharmacokinetics Data Summary Figures and Tables",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_fe90f59c",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Pharmacodynamic Data Summary Figures and Tables",
-      "formatting": [
-        {
-          "text": "Pharmacodynamic Data Summary Figures and Tables",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Pharmacodynamic Data Summary Figures and Tables",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_175a1106",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Pharmacokinetics Data Summary Figures and Tables",
-      "formatting": [
-        {
-          "text": "Pharmacokinetics Data Summary Figures and Tables",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Pharmacokinetics Data Summary Figures and Tables",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
-  },
-  {
-    "fragment_id": "FRAG_72b11aa9",
-    "node_type": "PARAGRAPH",
-    "content": {
-      "content": "Listings of Deaths, Other Serious and Significant Adverse Events",
-      "formatting": [
-        {
-          "text": "Listings of Deaths, Other Serious and Significant Adverse Events",
-          "bold": false,
-          "italic": false,
-          "underline": false,
-          "strike": false,
-          "font_name": null,
-          "font_size": null,
-          "color": null,
-          "highlight": null
-        }
-      ]
-    },
-    "formatting": [
-      {
-        "text": "Listings of Deaths, Other Serious and Significant Adverse Events",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "strike": false,
-        "font_name": null,
-        "font_size": null,
-        "color": null,
-        "highlight": null
-      }
-    ]
   }
 ]

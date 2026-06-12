@@ -10,7 +10,10 @@ class ResolutionScorer:
     FORMAT_WEIGHT = 0.05
     NODE_DISTANCE_WEIGHT = 0.05
 
-    RESOLVED_THRESHOLD = 0.60
+    RESOLVED_THRESHOLD = 0.30
+    RESOLVED_HIGH_CONFIDENCE = 0.60
+    RESOLVED_MEDIUM_CONFIDENCE = 0.40
+    RESOLVED_LOW_CONFIDENCE = 0.30
 
     @staticmethod
     def similarity(a: str | None, b: str | None) -> float:

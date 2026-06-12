@@ -24,12 +24,12 @@ class PlaceholderExtractor:
 
     def _traverse_node(self, node, inventory):
 
-        # Only scan paragraph nodes
-        # Prevent duplicate detection from table/row/cell nodes
-        if (
-            node.type in ["paragraph", "list_item"]
-            and node.text
-        ):
+        # Scan text-bearing nodes: paragraph, list_item, AND cell
+        if node.text and node.type in [
+            "paragraph",
+            "list_item",
+            "cell"
+        ]:
 
             matches = find_placeholder_matches(node.text)
 
@@ -153,4 +153,3 @@ class PlaceholderExtractor:
 
         # Human-readable 1-based indexing
         return f"T{table + 1}/R{row + 1}/C{cell + 1}"
-
