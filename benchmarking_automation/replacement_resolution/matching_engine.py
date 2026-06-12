@@ -17,7 +17,9 @@ def is_candidate(
 
     if node.type not in (
         "paragraph",
-        "list_item"
+        "list_item",
+        "table",
+        "table_cell"
     ):
         return False
 
@@ -249,20 +251,30 @@ def find_best_match(
             or neighbor_context.get("after")
         )
 
-        if (
-            has_context
-            and context_score == 0
-        ):
-            continue
-
-        # Table placeholders with no context
-        # must have stronger evidence.
-
+        #
+        # Table placeholders require
+        # context evidence.
+        #
         if (
             occurrence.get("table_path")
-            and context_score == 0
+            and not has_context
         ):
             continue
+
+        # if (
+        #     has_context
+        #     and context_score == 0
+        # ):
+        #     continue
+
+        # # Table placeholders with no context
+        # # must have stronger evidence.
+
+        # if (
+        #     occurrence.get("table_path")
+        #     and context_score == 0
+        # ):
+        #     continue
 
         type_score = score_type(
             occurrence,
