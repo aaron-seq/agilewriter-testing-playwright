@@ -466,6 +466,9 @@ async function generateWordReport() {
         right: 720,
         bottom: 720,
         left: 720,
+        header: 720,
+        footer: 720,
+        gutter: 0,
       },
     }
   );

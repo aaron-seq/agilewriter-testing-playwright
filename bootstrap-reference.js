@@ -55,7 +55,7 @@ newWs['!cols'] = [
 XLSX.utils.book_append_sheet(newWb, newWs, 'ICF_Full');
 XLSX.writeFile(newWb, OUTPUT_FILE);
 
-console.log(`✅ Created ${OUTPUT_FILE}`);
+console.log(` Created ${OUTPUT_FILE}`);
 console.log(`   Total unique placeholders: ${seen.size}`);
 console.log(`   With expected values:      ${withExpected}`);
-console.log(`   Blank (per Anil):          ${withoutExpected}`);
+console.log(`   Blank (per QA Tester):          ${withoutExpected}`);
