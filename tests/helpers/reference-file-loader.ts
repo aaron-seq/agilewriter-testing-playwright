@@ -9,12 +9,22 @@ export interface PlaceholderRef {
   notes?: string;
 }
 
-export function normalizePlaceholderName(name: string): string {
-  return name
-    .replace(/^<|>$/g, '')   // strip leading < and trailing > (Agile Writer format)
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+/**
+ * Normalization Contract
+ * 1. Ignore case (lowercase everything)
+ * 2. Ignore leading, trailing, and duplicate whitespace (collapse to single space)
+ * 3. Ignore angle brackets (remove all < and > characters, even internal or malformed)
+ * 4. Preserve apostrophes (e.g. Sponsor's Name)
+ * 5. Preserve other punctuation (e.g. parentheses)
+ * 6. Null/undefined safety (returns empty string)
+ */
+export function normalizePlaceholderName(name: string | null | undefined): string {
+  if (name === null || name === undefined) return '';
+  return String(name)
+    .replace(/[<>]/g, '')    // strip ALL angle brackets (broad strategy)
+    .replace(/\s+/g, ' ')    // collapse multiple spaces
+    .trim()                  // remove leading/trailing spaces
+    .toLowerCase();          // ignore case
 }
 
 function cellText(value: unknown): string {

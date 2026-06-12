@@ -255,6 +255,29 @@ function parseEvaluationData(workbook: XLSX.WorkBook): RawPlaceholderRow[] {
     defval: '',
   });
 
+  // ── Header validation (detection, not adaptation) ──────────────────
+  // Validates that known Agile Writer column headers are at the expected
+  // positions. Emits warnings if they drift — does NOT change parsing.
+  const headerRow = rows[1] as unknown[] | undefined;
+  if (headerRow) {
+    const expectedHeaders: [number, string][] = [
+      [0, 'Ai detected placeholder'],
+      [9, 'AI Replaced Text'],
+      [17, 'Placeholder Type'],
+      [18, 'Placeholder ID'],
+    ];
+    for (const [col, expected] of expectedHeaders) {
+      const actual = cellText(headerRow[col]);
+      if (actual && !actual.toLowerCase().startsWith(expected.toLowerCase())) {
+        console.warn(
+          `[AccuracyScorer] Column ${col} header mismatch: expected "${expected}", ` +
+          `got "${actual}". Agile Writer may have changed its output format.`
+        );
+      }
+    }
+  }
+  // ── End header validation ──────────────────────────────────────────
+
   return rows.slice(2).map((row) => ({
     name: cellText(row[0]),
     type: cellText(row[17]),
