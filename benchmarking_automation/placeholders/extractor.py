@@ -4,6 +4,7 @@ from placeholders.validator import (
 )
 from placeholders.occurrence_generator import OccurrenceGenerator
 from placeholders.context_extractor import extract_context
+from models.nodes import RevisionFragment
 
 
 class PlaceholderExtractor:
@@ -22,41 +23,101 @@ class PlaceholderExtractor:
 
         return inventory
 
+    def _get_search_text(self, node):
+        """
+        Get the text to search for placeholders.
+        
+        For documents with tracked changes, placeholders are stored
+        in w:del elements (deleted text), so node.text (visible text)
+        won't contain them. We use combined_text which includes deleted
+        text to ensure placeholders are found.
+        
+        Returns (search_text, has_deleted_placeholders)
+        """
+        # Use combined_text from metadata if available (includes deleted revisions)
+        combined = node.metadata.get("combined_text", "") if node.metadata else ""
+        if combined:
+            return combined, True
+
+        # Fall back to node.text (for documents without tracked changes)
+        return node.text or "", False
+
     def _traverse_node(self, node, inventory):
 
-        # Only scan paragraph nodes
-        # Prevent duplicate detection from table/row/cell nodes
-        if (
-            node.type in ["paragraph", "list_item"]
-            and node.text
-        ):
+        # Scan text-bearing nodes: paragraph, list_item, AND cell
+        if node.type in ["paragraph", "list_item", "cell"]:
 
-            matches = find_placeholder_matches(node.text)
+            search_text, has_deleted = self._get_search_text(node)
 
-            for match in matches:
+            if search_text:
+                # -------------------------------------------------
+                # Find placeholders in the search text
+                # (which includes deleted text if revisions exist)
+                # -------------------------------------------------
+                matches = find_placeholder_matches(search_text)
 
-                occurrence = self._build_occurrence(
-                    node=node,
-                    placeholder=match.group(0),
-                    match=match
-                )
+                for match in matches:
 
-                inventory.append(occurrence)
+                    occurrence = self._build_occurrence(
+                        node=node,
+                        placeholder=match.group(0),
+                        match=match,
+                        search_text=search_text,
+                        revision_source="normal"
+                    )
 
-        # Recursively traverse child nodes
+                    inventory.append(occurrence)
+
+            # -------------------------------------------------
+            # Also check revision fragments for placeholders
+            # that might not appear in combined_text
+            # -------------------------------------------------
+            if hasattr(node, 'revision_fragments') and node.revision_fragments:
+                self._check_revision_fragments(node, inventory)
+
+        # Recursively traverse child nodes (always, even if this node has no text)
         for child in node.children:
-
             self._traverse_node(child, inventory)
+
+    def _check_revision_fragments(self, node, inventory):
+        """Check revision fragments for additional placeholders."""
+        for frag in node.revision_fragments:
+            if frag.source == "deleted" and frag.text:
+                frag_matches = find_placeholder_matches(frag.text)
+                for match in frag_matches:
+                    placeholder = match.group(0)
+                    # Avoid duplicates - only add if not already in inventory
+                    # for this node
+                    if placeholder not in (
+                        o["placeholder"]
+                        for o in inventory
+                        if o["node_id"] == node.id
+                    ):
+                        occurrence = self._build_occurrence(
+                            node=node,
+                            placeholder=placeholder,
+                            match=match,
+                            search_text=frag.text,
+                            revision_source=frag.source,
+                            revision_type=frag.revision_type
+                        )
+                        inventory.append(occurrence)
 
     def _build_occurrence(
         self,
         node,
         placeholder,
-        match
+        match,
+        search_text=None,
+        revision_source="normal",
+        revision_type=None
     ):
 
+        if search_text is None:
+            search_text = node.text or ""
+
         context = extract_context(
-            node.text,
+            search_text,
             placeholder
         )
 
@@ -66,7 +127,7 @@ class PlaceholderExtractor:
         # ----------------------------------------- 
 
         inline_context = extract_context(
-            node.text,
+            search_text,
             placeholder
         )
 
@@ -97,7 +158,7 @@ class PlaceholderExtractor:
             "end": match.end()
         }
 
-        return {    
+        occurrence = {    
             "occurrence_id":
                 self.occurrence_generator.next_id(),
 
@@ -139,8 +200,21 @@ class PlaceholderExtractor:
             "neighbor_context": {
                 "before": neighbor_context["before"],
                 "after": neighbor_context["after"]
-            }
+            },
+
+            # -------------------------------------------------
+            # REVISION METADATA
+            # Tracks whether this placeholder was found in a
+            # tracked deletion vs. normal text
+            # -------------------------------------------------
+            "revision_source": revision_source,
         }
+
+        # Add revision_type if available
+        if revision_type:
+            occurrence["revision_type"] = revision_type
+
+        return occurrence
 
     def _build_table_path(self, location):
 
@@ -153,4 +227,3 @@ class PlaceholderExtractor:
 
         # Human-readable 1-based indexing
         return f"T{table + 1}/R{row + 1}/C{cell + 1}"
-

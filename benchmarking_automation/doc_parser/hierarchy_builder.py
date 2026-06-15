@@ -1,13 +1,14 @@
 # parser/hierarchy_builder.py
 
-from models.nodes import DocumentNode, Location
-from doc_parser.run_normalizer import normalize_runs
-from doc_parser.xml_parser import is_list_paragraph
 from models.nodes import (
     DocumentNode,
     Location,
-    ContextWindow
+    ContextWindow,
+    RevisionFragment,
+    TrackedReplacementPair
 )
+from doc_parser.run_normalizer import normalize_runs
+from doc_parser.xml_parser import is_list_paragraph
 
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -64,11 +65,29 @@ class HierarchyBuilder:
                 f"/R{row_index + 1}"
                 f"/C{cell_index + 1}"
             )
+        # Store combined_text (includes deleted revisions) in metadata
+        # for placeholder detection, while node.text remains the clean visible text
+        metadata = {
+            "section": section,
+        }
+
+        combined_text = normalized.get("combined_text", "")
+        if combined_text and combined_text != normalized["text"]:
+            metadata["combined_text"] = combined_text
+
         return DocumentNode(
             id=self.next_id("P"),
             type=node_type,
             text=normalized["text"],
             rich_runs=normalized["rich_runs"],
+            revision_fragments=normalized.get(
+                "revision_fragments",
+                []
+            ),
+            tracked_replacement_pairs=normalized.get(
+                "tracked_replacement_pairs",
+                []
+            ),
             location=Location(
                 section=section,
                 paragraph_index=paragraph_index,
@@ -81,9 +100,7 @@ class HierarchyBuilder:
                 before_text=context_data["before_text"],
                 after_text=context_data["after_text"]
             ),
-            metadata={
-                "section": section
-            },
+            metadata=metadata,
             node_order=self.next_order(),
         )
 

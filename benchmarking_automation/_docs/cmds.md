@@ -61,3 +61,9 @@ scc-243
 scc-244
 
 > pytest tests/replacement_extraction/test_replacement_extractor.py -v
+
+scc-245
+
+> pytest tests/replacement_reporting/test_replacement_reporting.py -v
+>
+> python tests/run_document_replacement_pipeline.py
