@@ -11,7 +11,18 @@ class ParagraphExtractor:
 
         else:
 
-            text = node.text
+            # Prefer visible_text if available (excludes deleted revisions)
+            # Falls back to node.text if revision_fragments not present
+            if hasattr(node, 'revision_fragments') and node.revision_fragments:
+                # Build visible text from normal + inserted fragments
+                visible_parts = []
+                for frag in node.revision_fragments:
+                    if frag.source != "deleted":
+                        visible_parts.append(frag.text)
+                text = "".join(visible_parts) if visible_parts else node.text
+            else:
+                text = node.text
+
             runs = node.rich_runs
 
         return {

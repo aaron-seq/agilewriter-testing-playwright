@@ -1,33 +1,116 @@
 # Benchmarking Automation
 
-Automated pipeline for analyzing DOCX documents — extracting placeholders, classifying them, matching against generated output, and producing detailed replacement reports.
+Automated pipeline for analyzing DOCX templates against AI-generated DOCX documents — extracting placeholders, classifying them, matching template placeholders to generated content, and producing detailed replacement and accuracy reports.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Running the Pipeline](#running-the-pipeline)
-  - [Option 1: Full Document Replacement Pipeline](#option-1-full-document-replacement-pipeline)
-  - [Option 2: Individual Pipelines](#option-2-individual-pipelines)
+- [Resolution & Matching Strategy](#resolution--matching-strategy)
+- [Debug Metrics](#debug-metrics)
 - [Running Tests](#running-tests)
 - [Output Files](#output-files)
+- [Accuracy Report](#accuracy-report)
 - [Sample Test Documents](#sample-test-documents)
 
 ---
 
 ## Overview
 
-This project processes DOCX templates and generated DOCX documents through a multi-stage pipeline:
+This project processes a **DOCX template** (containing `<Placeholder>` tags) and a **generated DOCX** (where the AI has replaced those placeholders with actual content) through a multi-stage pipeline:
 
-1. **Placeholder Extraction** — Parses a DOCX template and builds a canonical document tree, identifies placeholder fields.
-2. **Classification** — Classifies each placeholder by type (structural, syntax-based rules, etc.).
-3. **Resolution** — Matches template placeholders against a generated DOCX and resolves their locations.
-4. **Replacement Extraction** — Extracts replaced text fragments and builds an inventory.
-5. **Reporting** — Exports results as JSON and Excel reports.
+1. **DOCX Parsing** — Extracts XML parts, handles Word Track Changes (w:del, w:ins) and field codes
+2. **Placeholder Extraction** — Detects `<Placeholder>` tags in normal text AND inside revision elements
+3. **Classification** — Classifies each placeholder by type (KeyValue, Paragraph, Table, List, etc.)
+4. **Resolution** — Matches template placeholders to generated document content
+5. **Replacement Extraction** — Extracts the AI-replaced text from the generated document
+6. **Export** — Produces JSON and Excel reports
+
+An **accuracy comparison** script can also compare pipeline results against a QA report.
+
+---
+
+## Architecture
+
+### Pipeline Data Flow
+
+```
+Template DOCX                              Generated DOCX
+    |                                            |
+    v                                            v
++----------------------+              +----------------------+
+|  doc_parser/         |              |  doc_parser/         |
+|  (DOCX > Canonical   |              |  (DOCX > Canonical   |
+|   Tree)              |              |   Tree)              |
+|  Handles:            |              |  Handles:            |
+|  - w:del, w:ins      |              |  - w:del, w:ins      |
+|  - w:moveFrom,       |              |  - w:moveFrom,       |
+|    w:moveTo          |              |    w:moveTo          |
+|  - Field codes       |              |  - Field codes       |
+|  - Track Changes     |              |  - Track Changes     |
++----------------------+              +----------------------+
+          |                                       |
+          v                                       |
++----------------------+                         |
+|  placeholders/       |                         |
+|  (Tree > Inventory)  |                         |
+|  Searches:           |                         |
+|  - node.text         |                         |
+|  - combined_text     |                         |
+|   (includes deleted  |                         |
+|    revisions)        |                         |
++----------------------+                         |
+          |                                       |
+          v                                       |
++----------------------+                         |
+|  classification/     |                         |
+|  (Syntax +           |                         |
+|   Structural)        |                         |
++----------------------+                         |
+          |                                       |
+          v                                       v
++-------------------------------------------------------+
+|  replacement_resolution/                               |
+|  [Matches template placeholders to                     |
+|   generated document nodes]                            |
+|                                                        |
+|  Strategy (4 levels):                                  |
+|  1. TRACKED PAIRS: w:del ↔ w:ins (highest)            |
+|  2. INLINE CONTEXT: Find text before/after             |
+|     placeholder in generated doc                       |
+|  3. LABEL SEARCH: Match placeholder name               |
+|     to "Label: Value" patterns                         |
+|  4. WORD SEARCH: Match significant words               |
+|     in placeholder name                                |
++-------------------------------------------------------+
+          |
+          v
++-------------------------------------------------------+
+|  replacement_extraction/                               |
+|  [Extract replacement content]                         |
+|  - For tracked pair matches: use matched_text         |
+|    directly (no re-extraction)                         |
+|  - For others: type-specific extractors                |
++-------------------------------------------------------+
+          |
+          v
++-------------------------------------------------------+
+|  replacement_reporting/                                |
+|  [JSON + Excel export with schema validation]          |
++-------------------------------------------------------+
+          |
+          v
++-------------------------------------------------------+
+|  compare_accuracy.py                                   |
+|  [Compare pipeline output vs QA report]                |
++-------------------------------------------------------+
+```
 
 ---
 
@@ -35,26 +118,94 @@ This project processes DOCX templates and generated DOCX documents through a mul
 
 ```
 benchmarking_automation/
-├── app/                          # Pipeline orchestration
-│   ├── pipeline.py               # Placeholder detection pipeline
-│   ├── classification_pipeline.py
-│   ├── document_replacement_pipeline.py
-│   └── placeholder_resolution_pipeline.py
-├── classification/               # Placeholder classification logic
-├── doc_parser/                   # DOCX parsing & canonical tree builder
-├── models/                       # Data models / node types
-├── parser/                       # Additional parsing utilities
-├── placeholders/                 # Placeholder extractor & context
-├── replacement_extraction/       # Extracts replacements from resolved matches
-├── replacement_reporting/        # JSON + Excel report generation
-├── replacement_resolution/       # Matching engine & scoring
-├── reporting/                    # Reporting utilities & exporters
-├── tests/                        # Test scripts & sample documents
-├── output/                       # Pipeline output (JSON, Excel)
-├── final_outputs/                # Final replacement reports
-├── _docs/                        # Internal documentation
-├── main.py                       # Entry point (classification pipeline)
-└── requirements.txt              # Python dependencies
+├── app/                              # Pipeline orchestration
+│   ├── pipeline.py                   # Placeholder detection pipeline
+│   ├── classification_pipeline.py    # Classification pipeline
+│   ├── document_replacement_pipeline.py  # Full end-to-end pipeline
+│   └── placeholder_resolution_pipeline.py  # Resolution pipeline
+├── classification/                   # Placeholder classification
+│   ├── classifier.py                 # Main classifier orchestrator
+│   ├── registry.py                   # Rule registry
+│   ├── precedence.py                 # Rule precedence
+│   ├── base_rule.py                  # Abstract base rule
+│   ├── result_builder.py             # Output enrichment
+│   ├── syntax/                       # Syntax-based rules
+│   │   ├── table_rules.py
+│   │   ├── tables_rules.py
+│   │   ├── figure_rules.py
+│   │   └── list_rules.py
+│   ├── structural/                   # Structural rules (fallback)
+│   │   ├── structural_classifier.py
+│   │   ├── table_cell_rules.py
+│   │   ├── paragraph_rules.py
+│   │   ├── keyvalue_rules.py         # Enhanced: neighbor context support
+│   │   └── list_rules.py
+│   └── models/                       # Classification data models
+├── doc_parser/                       # DOCX parsing & canonical tree
+│   ├── xml_parser.py                 # XML extraction + helper functions
+│   ├── node_builder.py               # Canonical tree builder
+│   ├── hierarchy_builder.py          # Node construction + context
+│   ├── run_normalizer.py             # Rich run extraction + merging
+│   ├── docx_extractor.py             # .docx ZIP extraction
+│   ├── xml_models.py                 # Parsed document models
+│   ├── revision_parser.py            # **NEW** w:del/w:ins/w:moveFrom/w:moveTo parser
+│   └── debug_metrics.py              # **NEW** Document mechanism detection
+├── models/                           # Core data models
+│   └── nodes.py                      # DocumentNode, Location, ContextWindow,
+│                                     # RichTextRun, RevisionFragment (NEW),
+│                                     # TrackedReplacementPair (NEW)
+├── placeholders/                     # Placeholder extraction
+│   ├── extractor.py                  # Searches combined_text + revision fragments
+│   ├── validator.py                  # Regex pattern for <placeholder> detection
+│   ├── occurrence_generator.py       # Unique ID generation
+│   └── context_extractor.py          # Inline context extraction
+├── replacement_extraction/           # Content extraction from generated doc
+│   ├── extractor.py                  # Direct matched_text passthrough for tracked pairs
+│   ├── resolved_node_extractor.py    # O(1) node lookup
+│   ├── fragment_builder.py           # Fragment record builder
+│   ├── formatting_serializer.py      # Run formatting serializer
+│   └── extractors/
+│       ├── keyvalue.py               # Strategy 0: direct replacement value
+│       ├── paragraph.py              # Uses visible text (excludes deleted)
+│       ├── table_cell.py
+│       ├── list.py
+│       ├── table.py
+│       └── figure.py
+├── replacement_resolution/           # Placeholder-to-generated-doc matching
+│   ├── resolver.py                   # 4-level text-search matching
+│   ├── matching_engine.py            # Content-first scoring + revision matching
+│   ├── scoring.py                    # Weighted scoring model
+│   └── models.py                     # ResolutionResult + CandidateMatch
+├── replacement_reporting/            # Final export
+│   ├── export_service.py
+│   ├── json_reporter.py
+│   ├── excel_reporter.py
+│   ├── query_service.py
+│   └── schema_validator.py
+├── reporting/                        # Intermediate reporting
+│   ├── inventory_builder.py
+│   ├── json_reporter.py
+│   ├── export_service.py
+│   ├── excel_reporter.py
+│   ├── classified_inventory_reporter.py
+│   ├── schema_validator.py
+│   └── placeholder_resolution_reporter.py
+├── tests/                            # Test suite & sample documents
+│   ├── ICF_docx/                     # ICF template + QA report
+│   ├── output/                       # Intermediate test outputs
+│   ├── classification/               # Classification tests
+│   ├── doc_parser/                   # DOCX parser tests
+│   ├── replacement_extraction/       # Extraction tests
+│   ├── replacement_reporting/        # Reporting tests
+│   ├── replacement_resolution/       # Resolution tests
+│   ├── run_document_replacement_pipeline.py
+│   └── us01_s4_run_pipeline.py
+├── final_outputs/                    # Pipeline output directory
+├── output/                           # Intermediate outputs
+├── _docs/                            # Internal documentation
+├── compare_accuracy.py               # Pipeline-vs-QA comparison script
+├── main.py                           # Classification pipeline entry point
+└── requirements.txt                  # Python dependencies
 ```
 
 ---
@@ -63,7 +214,7 @@ benchmarking_automation/
 
 - **Python 3.10+**
 - **pip** (Python package installer)
-- **Git** (for cloning)
+- **Git**
 
 ---
 
@@ -89,11 +240,6 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-**Windows (CMD):**
-```cmd
-.\venv\Scripts\activate.bat
-```
-
 **Linux / macOS:**
 ```bash
 source venv/bin/activate
@@ -109,85 +255,120 @@ pip install -r requirements.txt
 
 ## Running the Pipeline
 
-### Option 1: Full Document Replacement Pipeline
+### Full Document Replacement Pipeline (End-to-End)
 
-This runs all stages end-to-end — placeholder extraction, classification, resolution, replacement extraction, and reporting.
+Runs all stages — placeholder extraction, classification, resolution, extraction, and export:
 
 ```bash
 python tests/run_document_replacement_pipeline.py
 ```
 
-By default it uses:
-- **Template:** `tests/CSR_Template_20FEB2026.docx`
-- **Generated doc:** `tests/CSR_1133_19_SB_raw.docx`
+**Default inputs:**
+- **Template:** `tests/ICF_docx/ICF_SET0 (1).docx`
+- **Generated doc:** `tests/ICF_docx/ICF_Full_output_01.docx`
 - **Output directory:** `final_outputs/`
 
-### Option 2: Individual Pipelines
+### Accuracy Comparison (Pipeline vs QA)
 
-#### a) Placeholder Extraction Pipeline
-
-Extracts placeholders from a DOCX template and exports a JSON inventory.
+After running the pipeline, compare results against a QA report:
 
 ```bash
+python compare_accuracy.py
+```
+
+**Inputs:**
+- **Pipeline output:** `final_outputs/replacement_inventory.xlsx`
+- **QA report:** `tests/ICF_docx/QA report_ICF_FULL_0804 - Copy - Copy (2).xlsx`
+
+**Output:** `final_outputs/accuracy_report.xlsx` with sheets for:
+- QA vs Pipeline Comparison — Full comparison with similarity scores
+- Missing in Pipeline Output — QA entries not found in pipeline
+- Extra in Pipeline (not in QA) — Pipeline entries not in QA
+- Summary — Coverage rate, Type accuracy, Content match rate
+
+### Debug Metrics
+
+Analyze which mechanism a DOCX uses (Track Changes vs. Strikethrough vs. Plain Text):
+
+```python
+python -c "
+from doc_parser.xml_parser import load_docx
+from doc_parser.debug_metrics import analyze_document_metrics, format_metrics_report
+
+doc = load_docx('path/to/your.docx')
+metrics = analyze_document_metrics(doc)
+print(format_metrics_report(metrics))
+"
+```
+
+### Individual Pipelines
+
+```bash
+# Placeholder extraction only
 python tests/us01_s4_run_pipeline.py
-```
 
-**Input:** `tests/CSR_Template_20FEB2026.docx`  
-**Output:** `tests/output/inventory.json`
-
-#### b) Classification Pipeline
-
-Classifies the placeholder inventory (from `main.py` or via `us01_s4_run_pipeline.py`).
-
-```bash
+# Classification only
 python main.py
-```
 
-**Input:** `tests/output/inventory.json`  
-**Outputs:**
-- `output/classified_inventory.json`
-- `output/classified_inventory.xlsx`
-
-#### c) Placeholder Resolution Pipeline
-
-Resolves placeholders against a generated document tree.
-
-```bash
+# Resolution only
 python tests/replacement_resolution/scc_243_run_resolution_pipeline.py
 ```
 
 ---
 
-## Running Tests
+## Resolution & Matching Strategy
 
-Run individual test suites with **pytest**:
+The resolver (`replacement_resolution/resolver.py`) uses a **4-level text-search matching strategy**:
 
-```bash
-# Placeholder extraction tests
-pytest tests/test_parser.py -v
-pytest tests/test_canonical_document_builder.py -v
-pytest tests/test_ph_detect_ctx_ext.py -v
-pytest tests/test_us01_subtask4.py -v
+### Level 1: Tracked Change Pair Match (Highest Confidence)
+- Detects `w:del` (deleted) ↔ `w:ins` (inserted) pairs in the DOCX XML
+- If a template placeholder matches the deleted text, the inserted text is the answer
+- **No re-extraction**: the resolver's `matched_text` is used directly
+- **Confidence:** 0.95
 
-# Classification tests
-pytest tests/classification/test_determinism.py -v
-pytest tests/classification/test_syntax_rules.py -v
-pytest tests/classification/test_structural_classifier.py -v
+### Level 2: Inline Context Search
+- For placeholders with inline text before/after (e.g., "Sponsor: \<Sponsor\>")
+- Searches ALL generated document text for the "before" or "after" context string
+- Extracts the text that replaces the placeholder between context markers
+- **Confidence:** 0.85-0.90
 
-# Document parser tests
-pytest tests/doc_parser/test_rich_run_extraction.py -v
-pytest tests/doc_parser/test_canonical_document_builder.py -v
+### Level 3: Label Search (KEYVALUE types)
+- Builds a map of all "Label: Value" patterns in the generated document
+- If the placeholder name appears in a label, extracts the value
+- Handles compound labels like "Sponsor / Study Title: Stendarr, Inc."
+- **Confidence:** 0.85
 
-# Resolution tests
-pytest tests/replacement_resolution/test_placeholder_resolver.py -v
-pytest tests/replacement_resolution/test_resolution_pipeline.py -v
+### Level 4: Word Search (Fallback)
+- Extracts significant words from the placeholder name (e.g., "investigational", "drug", "name")
+- Finds the generated node with the highest significant-word overlap
+- Extracts value after the nearest colon, or uses the full node text
+- **Confidence:** 0.65-0.75
 
-# Replacement extraction tests
-pytest tests/replacement_extraction/test_replacement_extractor.py -v
+### Key Design Principle
+For tracked pair matches (Level 1), the **extraction layer preserves the resolver's text** instead of re-processing it through type-specific extractors. This prevents the corruption of correct answers.
 
-# Reporting tests
-pytest tests/replacement_reporting/test_replacement_reporting.py -v
+---
+
+## Debug Metrics
+
+The debug metrics module (`doc_parser/debug_metrics.py`) reveals which mechanism a document uses:
+
+```json
+{
+  "strike_runs": 0,
+  "deleted_revisions": 156,
+  "inserted_revisions": 264,
+  "placeholders_found": 143,
+  "tracked_replacement_pairs": 116,
+  "primary_mechanism": "tracked_changes"
+}
 ```
+
+This immediately shows whether the document uses strike-through formatting or Word Track Changes.
+
+---
+
+## Running Tests
 
 Run all tests at once:
 
@@ -195,49 +376,84 @@ Run all tests at once:
 pytest tests/ -v
 ```
 
+Run individual test suites:
+
+```bash
+# Placeholder extraction tests
+pytest tests/test_ph_detect_ctx_ext.py -v
+pytest tests/test_canonical_document_builder.py -v
+
+# Classification tests
+pytest tests/classification/ -v
+
+# Resolution tests
+pytest tests/replacement_resolution/ -v
+
+# Replacement extraction tests
+pytest tests/replacement_extraction/ -v
+
+# Reporting tests
+pytest tests/replacement_reporting/ -v
+
+# DOCX parser tests
+pytest tests/doc_parser/ -v
+```
+
 ---
 
 ## Output Files
 
-### After running `main.py` (Classification Pipeline)
-
-| File | Description |
-|------|-------------|
-| `output/classified_inventory.json` | Classified placeholder inventory (JSON) |
-| `output/classified_inventory.xlsx` | Classified placeholder inventory (Excel) |
-
-### After running the full document replacement pipeline
+### After running the full pipeline
 
 | File | Description |
 |------|-------------|
 | `final_outputs/replacement_inventory.json` | Complete replacement inventory (JSON) |
 | `final_outputs/replacement_inventory.xlsx` | Complete replacement inventory (Excel) |
-| `final_outputs/replacement_fragment_store.json` | Extracted text fragments |
+| `final_outputs/replacement_fragment_store.json` | Extracted text fragments with formatting |
+
+### After running accuracy comparison
+
+| File | Description |
+|------|-------------|
+| `final_outputs/accuracy_report.xlsx` | Pipeline vs QA comparison (4 sheets) |
 
 ### Intermediate pipeline outputs
 
 | File | Description |
 |------|-------------|
 | `tests/output/inventory.json` | Raw placeholder inventory (before classification) |
-| `output/placeholders.json` | Detected placeholders |
-| `output/placeholders_arch_a.json` | Placeholders (architecture A) |
-| `output/placeholders_arch_b.json` | Placeholders (architecture B) |
-| `output/canonical_tree.json` | Canonical document tree |
-| `output/parsed_summary.json` | Parsed document summary |
+| `output/classified_inventory.json` | Classified placeholder inventory |
+| `output/classified_inventory.xlsx` | Classified placeholder inventory (Excel) |
 | `output/placeholder_resolution.json` | Resolution results |
+
+---
+
+## Accuracy Report
+
+The accuracy comparison (`compare_accuracy.py`) measures:
+
+| Metric | Description |
+|--------|-------------|
+| **Coverage** | % of QA entries found in pipeline output |
+| **Type Accuracy** | % of matched entries with correct placeholder type |
+| **Content Match Rate** | % with exact replacement content match |
+| **Content Partial** | % with >=80% similarity |
+| **Content Mismatch** | % with content in both but different |
 
 ---
 
 ## Sample Test Documents
 
-The `tests/` directory includes several DOCX files for testing:
+The `tests/` directory includes DOCX files for testing:
 
 | File | Purpose |
 |------|---------|
+| `ICF_docx/ICF_SET0 (1).docx` | ICF template with placeholders (default) |
+| `ICF_docx/ICF_Full_output_01.docx` | Generated ICF document (AI-replaced content) |
 | `basic_sample_template.docx` | Simple template for basic placeholder detection |
 | `Adv_Sample_Template.docx` | Advanced template with complex structure |
-| `CSR_Template_20FEB2026.docx` | CSR template (used by default in the pipeline) |
-| `CSR_1133_19_SB_raw.docx` | Generated CSR document (used by default for comparison) |
+| `CSR_Template_20FEB2026.docx` | CSR template |
+| `CSR_1133_19_SB_raw.docx` | Generated CSR document |
 | `empty_template.docx` | Edge case — empty document |
 | `invalid.docx` | Edge case — invalid/corrupt file |
 | `unsupported_content.docx` | Edge case — unsupported content types |

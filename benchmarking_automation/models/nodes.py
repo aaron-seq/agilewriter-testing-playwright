@@ -18,7 +18,6 @@ class Location:
 
     
 
-
 @dataclass
 class ContextWindow:
     before_text: Optional[str] = None
@@ -42,6 +41,30 @@ class RichTextRun:
 
 
 @dataclass
+class RevisionFragment:
+    """
+    Represents a text fragment from a Word revision element.
+    
+    source: one of "normal", "deleted", "inserted"
+    revision_type: the XML element name e.g. "del", "ins", "moveFrom", "moveTo"
+    """
+    text: str
+    source: str  # "normal" | "deleted" | "inserted"
+    revision_type: Optional[str] = None  # "del" | "ins" | "moveFrom" | "moveTo"
+
+
+@dataclass
+class TrackedReplacementPair:
+    """
+    A matched deletion/insertion pair representing a placeholder replacement.
+    """
+    deleted_text: str
+    inserted_text: str
+    placeholder: Optional[str] = None
+    confidence: float = 1.0
+
+
+@dataclass
 class DocumentNode:
     id: str
     type: str
@@ -51,6 +74,10 @@ class DocumentNode:
     children: List["DocumentNode"] = field(default_factory=list)
 
     rich_runs: List[RichTextRun] = field(default_factory=list)
+
+    revision_fragments: List[RevisionFragment] = field(default_factory=list)
+
+    tracked_replacement_pairs: List[TrackedReplacementPair] = field(default_factory=list)
 
     location: Optional[Location] = None
 
