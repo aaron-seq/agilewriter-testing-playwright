@@ -445,62 +445,157 @@ function filterStepsForReport(steps, testFile) {
   return steps;
 }
 
-async function generateWordReport() {
-  ensureDir();
+// ── Report Generation Failure Guardrails ──
+const os = require('os');
 
-  const rawSteps = readSteps();
-  const steps = filterStepsForReport(rawSteps, runtimeMeta.testFile);
-  const html = buildHtml(steps);
-
-  const summary = summarizeSteps(steps);
-  const isSuccess = summary.overallStatus === 'PASS';
-
-  console.time('DOCX Rendering');
-  const fileBuffer = await htmlToDocx(
-    html,
-    null,
-    {
-      font: 'Calibri',
-      margins: {
-        top: 720,
-        right: 720,
-        bottom: 720,
-        left: 720,
-        header: 720,
-        footer: 720,
-        gutter: 0,
-      },
+function getFallbackDir() {
+  const dirs = [
+    REPORT_DIR,
+    SESSIONS_DIR,
+    path.join(os.tmpdir(), 'agility-reports', SESSION_ID || 'unknown')
+  ];
+  for (const dir of dirs) {
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      // Test writeability
+      const testFile = path.join(dir, '.write_test');
+      fs.writeFileSync(testFile, '');
+      fs.unlinkSync(testFile);
+      return dir;
+    } catch (e) {
+      continue;
     }
-  );
-  console.timeEnd('DOCX Rendering');
-
-  console.time('Disk Write');
-  const tmpFile = OUTPUT_FILE + '.tmp';
-  fs.writeFileSync(tmpFile, fileBuffer);
-  fs.renameSync(tmpFile, OUTPUT_FILE);
-  console.timeEnd('Disk Write');
-
-  console.log(`[DOCX Telemetry] Session ID: ${SESSION_ID || 'None'}`);
-  console.log(`[DOCX Telemetry] Output Path: ${OUTPUT_FILE}`);
-  console.log(`[DOCX Telemetry] Buffer Length: ${fileBuffer.length} bytes`);
-  console.log(`[DOCX Telemetry] Overall Status: ${summary.overallStatus}`);
-  console.log(`[DOCX Telemetry] Run Path: ${isSuccess ? 'Success Path' : 'Failure Path'}`);
-  
-  console.log(
-    `Word report generated successfully: ${OUTPUT_FILE}`
-  );
+  }
+  return null;
 }
 
-// Export for testing — summarizeSteps is the core logic that decides PASS/FAIL
-module.exports = { summarizeSteps };
+function resolveExecutionStatus() {
+  let executionStatus = 'UNKNOWN';
+  let totalSteps = 0;
+  let failedSteps = 0;
+  if (fs.existsSync(STEP_FILE)) {
+    try {
+      const raw = fs.readFileSync(STEP_FILE, 'utf8').trim();
+      const rawSteps = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(rawSteps) && rawSteps.length > 0) {
+        const summary = summarizeSteps(rawSteps);
+        executionStatus = summary.overallStatus;
+        totalSteps = summary.totalSteps;
+        failedSteps = summary.failedSteps;
+      }
+    } catch (err) {
+      executionStatus = 'UNKNOWN';
+    }
+  }
+  return { status: executionStatus, totalSteps, failedSteps };
+}
 
-// Auto-execute only when run directly (not when imported by tests)
-if (require.main === module) {
-  generateWordReport().catch((err) => {
-    console.error(
-      'Failed to generate report:',
-      err
-    );
+function buildManifest(reportStatus, errorMessage) {
+  const execMeta = resolveExecutionStatus();
+  return {
+    schemaVersion: 1,
+    manifestType: "report-manifest",
+    generatedBy: "generate-word-report.js",
+    generatedAt: new Date().toISOString(),
+    sessionId: SESSION_ID || 'local',
+    execution: {
+      source: "step-results.json",
+      status: execMeta.status,
+      totalSteps: execMeta.totalSteps,
+      failedSteps: execMeta.failedSteps
+    },
+    reports: [
+      {
+        format: "docx",
+        attempted: true,
+        status: reportStatus,
+        path: OUTPUT_FILE,
+        error: errorMessage || null
+      }
+    ]
+  };
+}
+
+function buildTextReport(manifest, errorObj) {
+  const docx = manifest.reports.find(r => r.format === 'docx');
+  return `[DOCX]
+Status: ${docx.status}
+Error: ${docx.error || 'None'}
+Stack: ${errorObj && errorObj.stack ? errorObj.stack : 'N/A'}
+Recovery: ${docx.status === 'partial_output_present' ? 'A temporary or corrupted file exists. Check filesystem permissions or disk space.' : 'Check logs for missing dependencies or library crashes.'}
+`;
+}
+
+async function runWithFailureGuard() {
+  let reportStatus = 'failed';
+  let errorObj = null;
+
+  try {
+    ensureDir();
+    
+    const rawSteps = readSteps();
+    const steps = filterStepsForReport(rawSteps, runtimeMeta.testFile);
+    const html = buildHtml(steps);
+
+    console.time('DOCX Rendering');
+    const fileBuffer = await htmlToDocx(html, null, {
+      font: 'Calibri',
+      margins: { top: 720, right: 720, bottom: 720, left: 720, header: 720, footer: 720, gutter: 0 }
+    });
+    console.timeEnd('DOCX Rendering');
+
+    reportStatus = 'artifact_write_failed';
+    const tmpFile = OUTPUT_FILE + '.tmp';
+    
+    console.time('Disk Write');
+    fs.writeFileSync(tmpFile, fileBuffer);
+    
+    reportStatus = 'partial_output_present';
+    fs.renameSync(tmpFile, OUTPUT_FILE);
+    console.timeEnd('Disk Write');
+
+    reportStatus = 'generated';
+    console.log(`Word report generated successfully: ${OUTPUT_FILE}`);
+
+  } catch (err) {
+    errorObj = err;
+    console.error('Report generation failed:', err);
     process.exitCode = 1;
-  });
+  } finally {
+    // Atomic Manifest Write
+    const manifest = buildManifest(reportStatus, errorObj ? errorObj.message : null);
+    const textReport = buildTextReport(manifest, errorObj);
+    const outDir = getFallbackDir();
+    
+    if (outDir) {
+      const manifestPath = path.join(outDir, 'report_manifest.json');
+      const textPath = path.join(outDir, 'report_generation_failure.txt');
+      
+      try {
+        const manifestTmp = manifestPath + '.tmp';
+        fs.writeFileSync(manifestTmp, JSON.stringify(manifest, null, 2));
+        fs.renameSync(manifestTmp, manifestPath);
+        
+        if (reportStatus !== 'generated') {
+          fs.writeFileSync(textPath, textReport);
+        }
+      } catch (manifestErr) {
+        console.error('CRITICAL: Failed to write report_manifest.json', manifestErr);
+      }
+    } else {
+      console.error('CRITICAL: No writeable directory found for failure artifacts.');
+      console.error('Manifest Dump:', JSON.stringify(manifest, null, 2));
+    }
+  }
+}
+
+// Export for testing
+module.exports = { 
+  summarizeSteps, 
+  runWithFailureGuard,
+  getFallbackDir
+};
+
+if (require.main === module) {
+  runWithFailureGuard();
 }
