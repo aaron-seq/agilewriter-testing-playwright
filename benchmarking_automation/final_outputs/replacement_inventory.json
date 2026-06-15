@@ -6,20 +6,20 @@
     "generated_node_id": "P_0002",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b1e1ef9c",
+    "fragment_id": "FRAG_747a668c",
     "replacement_content": "Stendarr, Inc.",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0002",
     "placeholder": "<Full protocol title>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0003",
+    "generated_node_id": "P_0002",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_91bcac09",
-    "replacement_content": "SKY-2000-101",
-    "confidence": 0.4464
+    "fragment_id": "FRAG_891a2005",
+    "replacement_content": "A First-In-Human, Phase 1, Randomized, Double-Blind, Placebo-Controlled Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of ABC-123 as a Single Dose in Healthy Participants and as Multiple Doses in Participants with Grade 2 Boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0003",
@@ -28,9 +28,9 @@
     "generated_node_id": "P_0003",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d1312138",
+    "fragment_id": "FRAG_0ca65baa",
     "replacement_content": "SKY-2000-101",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0004",
@@ -39,9 +39,9 @@
     "generated_node_id": "P_0004",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_f42895db",
-    "replacement_content": "(Study Doctor)Medical Investigator",
-    "confidence": 0.8
+    "fragment_id": "FRAG_e0750a64",
+    "replacement_content": "Medical Investigator",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0005",
@@ -50,9 +50,9 @@
     "generated_node_id": "P_0005",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_27015d34",
+    "fragment_id": "FRAG_da153e2e",
     "replacement_content": "(where possible, 3 telephone calls and, if necessary, a certified letter to the participant’s last known mailing address or local equivalent methods)",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0006",
@@ -61,9 +61,9 @@
     "generated_node_id": "P_0006",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_1586c68c",
+    "fragment_id": "FRAG_7301bf97",
     "replacement_content": "123 Fake Street, Anytown, CO, USA 80002",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0007",
@@ -72,20 +72,20 @@
     "generated_node_id": "P_0010",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d319bf8b",
-    "replacement_content": "This study drug is intended to treat patients with boneitis (a disease that causes bones to change shape or disappear).",
-    "confidence": 0.8767
+    "fragment_id": "FRAG_5c483440",
+    "replacement_content": "boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0008",
     "placeholder": "<brief lay description of disease>",
     "type": "LIST",
-    "generated_node_id": "P_0011",
+    "generated_node_id": "P_0010",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_5e0d188f",
-    "replacement_content": "The study drug is “investigational”. This means that it has not been approved by the United States Food and Drug Administration (FDA).",
-    "confidence": 0.7491
+    "fragment_id": "FRAG_977364b1",
+    "replacement_content": "a disease that causes bones to change shape or disappear",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0009",
@@ -94,9 +94,9 @@
     "generated_node_id": "P_0012",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_a78495e9",
-    "replacement_content": "This is a first-in-human, Phase 1 study. This means the study drug has never been given to humans before. The list of known risks/discomforts is listed later in this informed consent.",
-    "confidence": 0.7882
+    "fragment_id": "FRAG_d47f3354",
+    "replacement_content": "first-in-human, Phase 1",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0010",
@@ -105,20 +105,20 @@
     "generated_node_id": "P_0013",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7a803b16",
-    "replacement_content": "There will be up to 28 participants total in this study.",
-    "confidence": 0.7997
+    "fragment_id": "FRAG_2da42d62",
+    "replacement_content": "28 participants",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0011",
     "placeholder": "<Brief lay description of study design including purpose/objectives>",
     "type": "LIST",
-    "generated_node_id": "P_0016",
+    "generated_node_id": "P_0029",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_f1c866b2",
-    "replacement_content": "Safety measurements, such as ECG, vital signs, laboratory tests, and physical examinations, will be conducted at specific intervals according to the Schedule of Activities (SoA).",
-    "confidence": 0.4304
+    "fragment_id": "FRAG_837aa76d",
+    "replacement_content": "The study is designed as a double-blind, randomized, placebo-controlled trial to evaluate the safety and pharmacokinetics of ABC-123. It includes a Single Ascending Dose (SAD) phase, which involves healthy volunteers, and a repeat-dose component for participants diagnosed with boneitis. The primary objectives are to assess the investigational drug's safety profile and gather data to support future therapeutic developments.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0012",
@@ -127,42 +127,42 @@
     "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e123487f",
-    "replacement_content": "If you participate in the single ascending dose (SAD) portion of the study, the study should take about 2 to 4 weeks of your time and you will be given a subcutaneous injection of ABC-123 or placebo (contains no active ingredient) on Day 1. ",
-    "confidence": 0.7363
+    "fragment_id": "FRAG_38b4cf67",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0013",
     "placeholder": "<XX applicable time unit>",
     "type": "LIST",
-    "generated_node_id": "P_0017",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_33771465",
-    "replacement_content": "The study aims to evaluate the safety, pharmacodynamics, and pharmacokinetics of the investigational medicinal product ABC-123.",
-    "confidence": 0.4311
+    "fragment_id": "FRAG_51d30785",
+    "replacement_content": "2 to 4 weeks",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0014",
     "placeholder": "<lay terminology for route of administration of study drug>",
     "type": "LIST",
-    "generated_node_id": "P_0018",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e58d6d8a",
-    "replacement_content": "Participants may benefit from medical evaluations and assessments associated with the study procedures.",
-    "confidence": 0.3958
+    "fragment_id": "FRAG_b695f57a",
+    "replacement_content": "subcutaneous injection",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0015",
     "placeholder": "<study drug ID>",
     "type": "LIST",
-    "generated_node_id": "P_0015",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_daea0307",
-    "replacement_content": "The study design includes a single ascending dose (SAD) component, which is double-blind, randomized, and placebo-controlled, involving up to six cohorts of healthy participants.",
-    "confidence": 0.3936
+    "fragment_id": "FRAG_6338cade",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0016",
@@ -171,53 +171,53 @@
     "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_58414e61",
-    "replacement_content": "If you participate in the repeat-dose portion of the study, the study should take about 1 week of your time and you will be given a subcutaneous injection of ABC-123 or placebo every other week for 3 doses.",
-    "confidence": 0.7662
+    "fragment_id": "FRAG_cc73c814",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0017",
     "placeholder": "<XX applicable time unit>",
     "type": "LIST",
-    "generated_node_id": "P_0046",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_21d1b10c",
-    "replacement_content": " Be able to follow the study directions and procedures.",
-    "confidence": 0.3838
+    "fragment_id": "FRAG_fe2b5792",
+    "replacement_content": "2 to 4 weeks",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0018",
     "placeholder": "<lay terminology for route of administration of study drug>",
     "type": "LIST",
-    "generated_node_id": "P_0332",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_f050481e",
-    "replacement_content": "or by email:contact@trialstudy.com",
-    "confidence": 0.3827
+    "fragment_id": "FRAG_968e1b49",
+    "replacement_content": "subcutaneous injection",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0019",
     "placeholder": "<study drug ID>",
     "type": "LIST",
-    "generated_node_id": "P_0238",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b024dbea",
-    "replacement_content": "No serious adverse effects were observed in blorp knockout mice, supporting the general safety of blorp inductors.",
-    "confidence": 0.3818
+    "fragment_id": "FRAG_ef0eea9b",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0020",
     "placeholder": "<lay terminology for dosing regimen/duration>",
     "type": "LIST",
-    "generated_node_id": "P_0051",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_c5dbca23",
-    "replacement_content": "Participants must abstain from caffeine- or xanthine-containing products (e.g., coffee, tea, cola drinks, and chocolate) from 24 hours before Check-in until Check-out from the CRU.",
-    "confidence": 0.8115
+    "fragment_id": "FRAG_c57428ff",
+    "replacement_content": "every other week for 3 doses",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0021",
@@ -226,53 +226,53 @@
     "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d74b2cd6",
-    "replacement_content": "selected contract research organizations (CRO) is being paid by the Sponsor (the company paying for this study) to conduct this research study.",
-    "confidence": 0.835
+    "fragment_id": "FRAG_30144ac3",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0022",
     "placeholder": "<disease>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0027",
+    "generated_node_id": "P_0010",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_2f7703a5",
-    "replacement_content": "This study drug is an investigational drug intended to treat patients with boneitis (a disease that causes bones to change shape or disappear). The study drug is \"investigational\", which means the study drug being tested is not approved by the United States Food and Drug Administration (FDA). In this document, you may see the terms “study drug”, “study treatment”, and “study treatment period”; these are terms used in research studies. This does not mean that you will be receiving medical treatment for any condition. These terms apply to the investigational study drug and parts of the study where you will be receiving this investigational product. ",
-    "confidence": 0.8892
+    "fragment_id": "FRAG_76b904ee",
+    "replacement_content": "boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0023",
     "placeholder": "<brief lay description of disease>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0298",
+    "generated_node_id": "P_0010",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_a538a94f",
-    "replacement_content": "If you are enrolled in the single ascending dose (SAD) portion of the study you will get no medical benefit from this study, other than the benefit of free medical tests. You may receive a chance to be in a research study that may help others.",
-    "confidence": 0.4118
+    "fragment_id": "FRAG_2be60217",
+    "replacement_content": "a disease that causes bones to change shape or disappear",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0024",
     "placeholder": "<Brief lay description of study design including purpose/objectives>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0033",
+    "generated_node_id": "P_0029",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7b0014e9",
-    "replacement_content": "Data from each cohort will be reviewed after Day 7 and a decision will be made if the study will proceed to the next dose level. The dose level will not be known until that time. It is possible that a dose level may be repeated, or the dose reduced.",
-    "confidence": 0.41
+    "fragment_id": "FRAG_e1c68d6b",
+    "replacement_content": "The study is designed as a double-blind, randomized, placebo-controlled trial to evaluate the safety and pharmacokinetics of ABC-123. It includes a Single Ascending Dose (SAD) phase, which involves healthy volunteers, and a repeat-dose component for participants diagnosed with boneitis. The primary objectives are to assess the investigational drug's safety profile and gather data to support future therapeutic developments.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0025",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0034",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_53f64f57",
-    "replacement_content": "During the repeat-dose phase:",
-    "confidence": 0.835
+    "fragment_id": "FRAG_51b30d6c",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0026",
@@ -281,427 +281,426 @@
     "generated_node_id": "P_0031",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_42bfae49",
-    "replacement_content": "Up to 6 cohorts (or groups) of 6 participants will be given a subcutaneous administration of ABC-123 or placebo. The first cohort will receive the starting dose, and later cohorts will be given higher and higher dose levels until a safe limit is found. The starting dose will begin at 5 mg. This is 318-fold lower than the highest dose tested in animals. ",
-    "confidence": 0.8171
+    "fragment_id": "FRAG_48ef0cf2",
+    "replacement_content": "6 cohorts (or groups) of 6 participants",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0027",
     "placeholder": "<lay terminology for route of administration of study drug>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0037",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_af89137a",
-    "replacement_content": "Healthy men and women, ages 18 to 55 years old, are expected to be in a single ascending dose (SAD) design involving healthy participants of this study. During the single ascending dose (SAD) component the study will last for the following number of weeks:",
-    "confidence": 0.41
+    "fragment_id": "FRAG_4ed27b5d",
+    "replacement_content": "subcutaneous injection",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0028",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0036",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e8ac381e",
-    "replacement_content": "HOW LONG THE STUDY WILL LAST AND WHO WILL BE IN THE STUDY",
-    "confidence": 0.385
+    "fragment_id": "FRAG_fb1dd036",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0029",
     "placeholder": "<X mg>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0044",
+    "generated_node_id": "P_0031",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_cb3d10af",
-    "replacement_content": "Participant Responsibilities:",
-    "confidence": 0.3812
+    "fragment_id": "FRAG_ed052c8e",
+    "replacement_content": "5 mg",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0030",
     "placeholder": "<XXXX-fold>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0059",
+    "generated_node_id": "P_0031",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7664e309",
-    "replacement_content": "single ascending dose phase:",
-    "confidence": 0.3772
+    "fragment_id": "FRAG_ba37b0ec",
+    "replacement_content": "318-fold",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0031",
     "placeholder": "<lay terminology summarizing design and enrollment plan for Cohort 1 with sentinel participants>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0040",
+    "generated_node_id": "P_0032",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7ac902ac",
-    "replacement_content": "Men and women with known heart disease or clinically significant abnormalities identified in the 12-lead ECG at Screening, ages 18 to 65 years, are expected to be in repeat-dose study of this study. During the repeat-dose portion, the study will last about 15 weeks, including up to 5 weeks for Screening, followed by 3 doses administered every other week, and concluding with a Follow-up period..",
-    "confidence": 0.835
+    "fragment_id": "FRAG_73972ec1",
+    "replacement_content": "Cohort 1 will include 8 participants, with 6 receiving the active drug and 2 receiving a placebo. To ensure safety, 2 sentinel participants will be dosed first, one with the active drug and one with the placebo, followed by the remaining participants after a safety review.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0032",
     "placeholder": "<Day X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0121",
+    "generated_node_id": "P_0033",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_02736d4e",
-    "replacement_content": "Participants will return for their second Check-in, scheduled for Day X, where evaluations and procedures as outlined in the Schedule of Assessments (SoA) will be conducted. This includes follow-up assessments to monitor the effects of the study intervention and ensure participant safety.",
-    "confidence": 0.7606
+    "fragment_id": "FRAG_ebe15331",
+    "replacement_content": "Day 7",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0033",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0042",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_c94dd81f",
-    "replacement_content": "You cannot be in this study if you meet any of the following criteria:",
-    "confidence": 0.835
+    "fragment_id": "FRAG_28e59b44",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0034",
     "placeholder": "<X cohorts of X participants>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0045",
+    "generated_node_id": "P_0035",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_cea370d8",
-    "replacement_content": "While participating in this research study, you will need to follow these conditions:",
-    "confidence": 0.41
+    "fragment_id": "FRAG_270bab07",
+    "replacement_content": "6 cohorts of 8 participants",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0035",
     "placeholder": "<lay terminology for route of administration of study drug>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0060",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_172fc82d",
-    "replacement_content": "Screening",
-    "confidence": 0.3781
+    "fragment_id": "FRAG_f04f6b4b",
+    "replacement_content": "subcutaneous injection",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0036",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0066",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_89156f47",
-    "replacement_content": "Study Procedures Check-in/Day 1",
-    "confidence": 0.3773
+    "fragment_id": "FRAG_ad33b56a",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0037",
     "placeholder": "<lay terminology for dosing regimen/duration>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0071",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_65b96082",
-    "replacement_content": "In-Patient Period",
-    "confidence": 0.3769
+    "fragment_id": "FRAG_a303f576",
+    "replacement_content": "every other week for 3 doses",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0038",
     "placeholder": "<lay terminology for choice of dose for repeat-dose portion of study based on data from SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0333",
+    "generated_node_id": "P_0035",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_3560279a",
-    "replacement_content": "Pro00050709.",
-    "confidence": 0.8252
+    "fragment_id": "FRAG_a686811b",
+    "replacement_content": "selection of the dose for the repeat-dose portion of the study was based on safety, tolerability, and PK data obtained during the SAD portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0039",
     "placeholder": "<insert age eligibility criteria>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0087",
+    "generated_node_id": "P_0037",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d91513f0",
-    "replacement_content": "Follow-Up Visits",
-    "confidence": 0.4023
+    "fragment_id": "FRAG_d7878c7e",
+    "replacement_content": "18 to 55 years old",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0040",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0143",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_358c8709",
-    "replacement_content": "Follow-Up Visits",
-    "confidence": 0.4016
+    "fragment_id": "FRAG_5f52e013",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0041",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0149",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_67cb220b",
-    "replacement_content": "Blood Samples:",
-    "confidence": 0.3991
+    "fragment_id": "FRAG_92b7835f",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0042",
     "placeholder": "<Cohorts X – X>",
     "type": "LIST",
-    "generated_node_id": "P_0049",
+    "generated_node_id": "P_0038",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_8cbd33e3",
-    "replacement_content": " Tell the study doctor or the study staff if you change your mind about staying in the study.",
-    "confidence": 0.3955
+    "fragment_id": "FRAG_fe54caa0",
+    "replacement_content": "Cohorts 1–6",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0043",
     "placeholder": "<lay summary of duration on study including details/time for screening, time in the clinic, follow-up periods>",
     "type": "LIST",
-    "generated_node_id": "P_0074",
+    "generated_node_id": "P_0038",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_15b3dc60",
-    "replacement_content": "Physical examination and vital sign measurement.",
-    "confidence": 0.7476
+    "fragment_id": "FRAG_cfe1f4c0",
+    "replacement_content": "up to 15 weeks (up to 5 weeks for screening, repeat-dose every other week for 3 doses SC, and follow-up period)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0044",
     "placeholder": "<Cohorts X – X>",
     "type": "LIST",
-    "generated_node_id": "P_0052",
+    "generated_node_id": "P_0038",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_5e8d627f",
-    "replacement_content": "Alcohol consumption is prohibited from 48 hours before Check-in until Check-out from the CRU.",
-    "confidence": 0.4079
+    "fragment_id": "FRAG_caf64960",
+    "replacement_content": "Cohorts 1–6",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0045",
     "placeholder": "<lay summary of duration on study including details/time for screening, time in the clinic, follow-up periods>",
     "type": "LIST",
-    "generated_node_id": "P_0198",
+    "generated_node_id": "P_0038",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_aaf302c1",
-    "replacement_content": "Amphibious jocularity.",
-    "confidence": 0.8103
+    "fragment_id": "FRAG_3bb9f31c",
+    "replacement_content": "up to 15 weeks (up to 5 weeks for screening, repeat-dose every other week for 3 doses SC, and follow-up period)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0046",
     "placeholder": "<insert disease criteria>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0090",
+    "generated_node_id": "P_0040",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_476c6276",
-    "replacement_content": "Early Discontinuation",
-    "confidence": 0.3763
+    "fragment_id": "FRAG_6c4084ca",
+    "replacement_content": "known heart disease or clinically significant abnormalities identified in the 12-lead ECG at Screening",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0047",
     "placeholder": "<insert age eligibility criteria>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0093",
+    "generated_node_id": "P_0037",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6237c2bc",
-    "replacement_content": "double-blind, randomized, placebo-controlled study design in participants with boneitis.:",
-    "confidence": 0.3762
+    "fragment_id": "FRAG_6b48a32d",
+    "replacement_content": "18 to 55 years old",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0048",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0094",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7b5ae91a",
-    "replacement_content": "Screening",
-    "confidence": 0.3762
+    "fragment_id": "FRAG_a152cb0e",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0049",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0008",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_ba926c0f",
-    "replacement_content": "KEY INFORMATION",
-    "confidence": 0.3761
+    "fragment_id": "FRAG_8968a2b7",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0050",
     "placeholder": "<lay summary of duration on study including details/ time for screening, time in the clinic, follow-up periods>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0775",
+    "generated_node_id": "P_0040",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b12179e5",
-    "replacement_content": "YOU SHOULD NOT SIGN AND DATE THIS CONSENT FORM.",
-    "confidence": 0.8252
+    "fragment_id": "FRAG_2cb1a1c7",
+    "replacement_content": "15 weeks, including up to 5 weeks for Screening, followed by 3 doses administered every other week, and concluding with a Follow-up period.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0051",
     "placeholder": "<bulleted list of lay terminology summarizing the study exclusion criteria>",
     "type": "LIST",
-    "generated_node_id": "P_0056",
+    "generated_node_id": "P_0043",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6b642bcb",
-    "replacement_content": "Vaccinations must be completed at least 14 days before Screening.",
-    "confidence": 0.8225
+    "fragment_id": "FRAG_b4de7913",
+    "replacement_content": "Participants with a history of rock-joint or brain wobbles within the last 5 years.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0052",
     "placeholder": "<Bulleted list of lay terminology summarizing lifestyle considerations including meal requirements, caffeeine, alcohol, tobacco, and activity>",
     "type": "LIST",
-    "generated_node_id": "P_0069",
-    "replacement_found": true,
-    "status": "RESOLVED",
-    "fragment_id": "FRAG_7a53acdb",
-    "replacement_content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
-    "confidence": 0.4321
+    "generated_node_id": null,
+    "replacement_found": false,
+    "status": "UNRESOLVED",
+    "fragment_id": null,
+    "confidence": 0.0
   },
   {
     "occurrence_id": "PH_0053",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0151",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d6edd01f",
-    "replacement_content": "The SAD portion of the study is a single ascending dose design involving healthy participants in up to six cohorts.:",
-    "confidence": 0.8256
+    "fragment_id": "FRAG_d57f2622",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0054",
     "placeholder": "<Bullet list of lay terminology of all assessments required during screening>",
     "type": "LIST",
-    "generated_node_id": "P_0078",
+    "generated_node_id": "P_0063",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_dc59426a",
-    "replacement_content": "Daily assessments tailored to the study protocol, including additional biomarker sampling where applicable.",
-    "confidence": 0.8183
+    "fragment_id": "FRAG_033b0029",
+    "replacement_content": "Medical history review",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0055",
     "placeholder": "<XX days>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0099",
+    "generated_node_id": "P_0065",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6a818950",
-    "replacement_content": "If you qualify for the study, you will return to the clinic within 35 days for the Study Period.",
-    "confidence": 0.8138
+    "fragment_id": "FRAG_9512ad6b",
+    "replacement_content": "35 days",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0056",
     "placeholder": "<Bullet list of lay terminology of all assessments required during Check-in/Day1>",
     "type": "LIST",
-    "generated_node_id": "P_0202",
+    "generated_node_id": "P_0070",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e9080f10",
-    "replacement_content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
-    "confidence": 0.8105
+    "fragment_id": "FRAG_40c926eb",
+    "replacement_content": "Health assessment including vital signs (blood pressure, pulse rate, respiratory rate, body temperature).",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0057",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the in-residence period; note differences in assessments based on the day of “in-residence”>",
     "type": "LIST",
-    "generated_node_id": "P_0102",
+    "generated_node_id": "P_0009",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_02636011",
-    "replacement_content": "You will be asked questions to be sure that you still qualify for this study.",
-    "confidence": 0.8267
+    "fragment_id": "FRAG_4070a9af",
+    "replacement_content": "This is a research study and your participation is voluntary",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0058",
     "placeholder": "<Check-out/Day X>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0100",
+    "generated_node_id": "P_0079",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_79ce36c0",
-    "replacement_content": "Study Procedures Check-in/Day 1",
-    "confidence": 0.3917
+    "fragment_id": "FRAG_ed3958a5",
+    "replacement_content": "Participants will undergo Check-out procedures on Day 8 after completing the in-residence period at the Clinical Research Unit (CRU). This marks the transition from the in-residence phase to follow-up visits.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0059",
     "placeholder": "<Check-out/Day X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0776",
+    "generated_node_id": "P_0079",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_c9f33373",
-    "replacement_content": "You will be given a signed and dated copy of this consent form to keep.",
-    "confidence": 0.8252
+    "fragment_id": "FRAG_48cbc358",
+    "replacement_content": "Participants will undergo Check-out procedures on Day 8 after completing the in-residence period at the Clinical Research Unit (CRU). This marks the transition from the in-residence phase to follow-up visits.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0060",
     "placeholder": "<Bullet list of lay terminology of all assessments required during Check-out/Day X>",
     "type": "LIST",
-    "generated_node_id": "P_0103",
+    "generated_node_id": "P_0011",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_0ffffc32",
-    "replacement_content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
-    "confidence": 0.8225
+    "fragment_id": "FRAG_5de1b27c",
+    "replacement_content": "The study drug is “investigational”",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0061",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the follow-up period; note differences in assessments based on the day and cohort of “follow-up period”>",
     "type": "LIST",
-    "generated_node_id": "P_0114",
+    "generated_node_id": "P_0089",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_4fe3a620",
-    "replacement_content": "Routine physical examinations and vital sign monitoring, including blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG to assess heart function.Clinical laboratory tests, such as blood chemistry, hematology, lipid profile, and cytokine assessments.Mental health evaluations to monitor psychological well-being.Adverse event tracking and recording concomitant medication use.Specific assessments tailored to the day of in-residence, with additional focus on pharmacokinetic and pharmacodynamic sampling as required..",
-    "confidence": 0.8267
+    "fragment_id": "FRAG_cfb5d69f",
+    "replacement_content": "Blood sampling for exploratory PD and safety biomarkers, including up to 3 additional samples per treatment period.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0062",
     "placeholder": "<Bullet list of lay terminology of all assessments required during ED>",
     "type": "LIST",
-    "generated_node_id": "P_0117",
+    "generated_node_id": "P_0092",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_bd16dcdd",
-    "replacement_content": "12-lead ECGVital sign monitoring including blood pressure, pulse rate, respiratory rate, and body temperatureClinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments)Physical examinationsMental health assessmentMonitoring of adverse events and concomitant medication use.",
-    "confidence": 0.835
+    "fragment_id": "FRAG_56f9883b",
+    "replacement_content": "Safety measurements such as 12-lead ECG, vital sign monitoring (blood pressure, pulse rate, respiratory rate, and body temperature), and clinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments).",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0063",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0153",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_694c13b1",
-    "replacement_content": "the single ascending dose (SAD) portion of the study, involving cohorts of healthy participants:",
-    "confidence": 0.8265
+    "fragment_id": "FRAG_7e2f3673",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0064",
     "placeholder": "<Bullet list of lay terminology of all assessments required during screening>",
     "type": "LIST",
-    "generated_node_id": "P_0124",
+    "generated_node_id": "P_0063",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_eaf48ffd",
-    "replacement_content": "You will be asked about any changes in your health or over-the-counter or prescription medicines, vitamins or herbs you have taken since your last visit.",
-    "confidence": 0.82
+    "fragment_id": "FRAG_169fd11f",
+    "replacement_content": "Medical history review",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0065",
@@ -710,207 +709,207 @@
     "generated_node_id": "P_0065",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7d3eb69d",
-    "replacement_content": "If you qualify for the study, you will return to the clinic within 35 days for the Study Period.",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_0bfeef5e",
+    "replacement_content": "35 days",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0066",
     "placeholder": "<Bullet list of lay terminology of all assessments required during first Check-in/Day1>",
     "type": "LIST",
-    "generated_node_id": "P_0208",
+    "generated_node_id": "P_0015",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_01a34ca7",
-    "replacement_content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_4a641fcc",
+    "replacement_content": "The study design includes a single ascending dose (SAD) component, which is double-blind, randomized, and placebo-controlled, involving up to six cohorts of healthy participants",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0067",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the first in-residence period; note differences in assessments based on the day of “in-residence”>",
     "type": "LIST",
-    "generated_node_id": "P_0145",
+    "generated_node_id": "P_0114",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b9210e8e",
-    "replacement_content": "Blood sampling for exploratory PD and safety biomarkers, including up to 3 additional samples per treatment period.Monitoring of liver enzyme levels (ALT, AST) and other hepatic indicators as per the Schedule of Assessments.Physical examinations and detailed history taking for participants with elevated liver enzymes (>3 × ULN).Laboratory tests including ALT, AST, bilirubin levels, alkaline phosphatase, and gamma glutamyltransferase.Liver ultrasound and tests for acetaminophen toxicity and viral hepatitis causes if indicated..",
-    "confidence": 0.86
+    "fragment_id": "FRAG_fff2e48c",
+    "replacement_content": "Routine physical examinations and vital sign monitoring, including blood pressure, pulse rate, respiratory rate, and body temperature.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0068",
     "placeholder": "<First Check-out/Day X>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0147",
+    "generated_node_id": "P_0115",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_fbda1df2",
-    "replacement_content": "The following will be done if you leave the study early:",
-    "confidence": 0.41
+    "fragment_id": "FRAG_8fae1062",
+    "replacement_content": "Following Check-out from the CRU, all participants will return for Follow-up study visits up to 6 weeks post dosing in the first 3 cohorts and 10 weeks post dosing in the remaining cohorts, as detailed in the Schedule of Assessments.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0069",
     "placeholder": "<first Check-out/Day X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0150",
+    "generated_node_id": "P_0115",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_11076250",
-    "replacement_content": "Blood samples will be taken by single needle-sticks or by a tube that is left in your arm. You cannot choose how the blood is taken.",
-    "confidence": 0.835
+    "fragment_id": "FRAG_36362738",
+    "replacement_content": "Following Check-out from the CRU, all participants will return for Follow-up study visits up to 6 weeks post dosing in the first 3 cohorts and 10 weeks post dosing in the remaining cohorts, as detailed in the Schedule of Assessments.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0070",
     "placeholder": "<Bullet list of lay terminology of all assessments required during first Check-out>",
     "type": "LIST",
-    "generated_node_id": "P_0148",
+    "generated_node_id": "P_0117",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7a8d595e",
-    "replacement_content": "Vital sign monitoring: Includes measurements of blood pressure, pulse rate, respiratory rate, and body temperature.12-lead ECG: Used to assess heart function.Clinical laboratory tests: Evaluations of chemistry, hematology, lipid profile, and cytokine levels.Physical examinations: Comprehensive health check-ups.Mental health assessments: Evaluations to ensure psychological well-being.Adverse events monitoring: Observations to identify any negative health impacts.Concomitant medication tracking: Documentation of other medications taken during the study..",
-    "confidence": 0.8225
+    "fragment_id": "FRAG_b819aac1",
+    "replacement_content": "12-lead ECG",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0071",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the non-residential period; note differences in assessments based on the days of “non-residential”>",
     "type": "LIST",
-    "generated_node_id": "P_0177",
+    "generated_node_id": "P_0016",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_119fdf33",
-    "replacement_content": "Physical risks: you may have a sore arm from where the blood sample is taken.",
-    "confidence": 0.8124
+    "fragment_id": "FRAG_547ce907",
+    "replacement_content": "Safety measurements, such as ECG, vital signs, laboratory tests, and physical examinations, will be conducted at specific intervals according to the Schedule of Activities (SoA)",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0072",
     "placeholder": "<Second Check-in/Day X>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0159",
+    "generated_node_id": "P_0121",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_482d4d29",
-    "replacement_content": "You must have your blood tested for the hepatitis viruses and for HIV. HIV is the virus that causes AIDS. If you have a positive HIV or hepatitis test you cannot be in the study.",
-    "confidence": 0.4281
+    "fragment_id": "FRAG_2689bc57",
+    "replacement_content": "Participants will return for their second Check-in, scheduled for Day X, where evaluations and procedures as outlined in the Schedule of Assessments (SoA) will be conducted. This includes follow-up assessments to monitor the effects of the study intervention and ensure participant safety.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0073",
     "placeholder": "<second Check-in/Day X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0160",
+    "generated_node_id": "P_0121",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_088a725e",
-    "replacement_content": "It may take weeks or months after being infected with HIV for the test to be positive. The HIV test is not always right.",
-    "confidence": 0.7895
+    "fragment_id": "FRAG_df28c40d",
+    "replacement_content": "Participants will return for their second Check-in, scheduled for Day X, where evaluations and procedures as outlined in the Schedule of Assessments (SoA) will be conducted. This includes follow-up assessments to monitor the effects of the study intervention and ensure participant safety.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0074",
     "placeholder": "<Bullet list of lay terminology of all assessments required during second Check-in>",
     "type": "LIST",
-    "generated_node_id": "P_0223",
+    "generated_node_id": "P_0017",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d5355a9a",
-    "replacement_content": "Adverse psychiatric and neurological effects observed in Phase 3 clinical studies of blorp inductors.",
-    "confidence": 0.8108
+    "fragment_id": "FRAG_c4cb5a07",
+    "replacement_content": "The study aims to evaluate the safety, pharmacodynamics, and pharmacokinetics of the investigational medicinal product ABC-123",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0075",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the second in-residence period; note differences in assessments based on the day of “in-residence”>",
     "type": "LIST",
-    "generated_node_id": "P_0178",
+    "generated_node_id": "P_0134",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_a3915628",
-    "replacement_content": "Nonphysical risks: Your sample and data will be kept in a secure location, and every effort will be made to protect any information about you. While it is unlikely, it is possible that information about your DNA could be made known.",
-    "confidence": 0.8156
+    "fragment_id": "FRAG_e9fe1cff",
+    "replacement_content": "Blood sampling for exploratory PD and safety biomarkers.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0076",
     "placeholder": "<Final Check-out/Day X>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0172",
+    "generated_node_id": "P_0135",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_06148590",
-    "replacement_content": "Address Line 2",
-    "confidence": 0.41
+    "fragment_id": "FRAG_2c428acd",
+    "replacement_content": "Following Check-out from the Clinical Research Unit (CRU), all participants will return for Follow-up study visits up to 6 weeks post dosing in the first three cohorts and 10 weeks post dosing in the remaining cohorts.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0077",
     "placeholder": "<final Check-out/Day X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0174",
+    "generated_node_id": "P_0135",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_2090af36",
-    "replacement_content": "The results of this genetic research will not be returned to you or provided to your study doctor; it will be kept in a secure location to protect your privacy. We will not sell your sample or data, but we may work with other companies to do research on your sample and data.",
-    "confidence": 0.86
+    "fragment_id": "FRAG_2609bc13",
+    "replacement_content": "Following Check-out from the Clinical Research Unit (CRU), all participants will return for Follow-up study visits up to 6 weeks post dosing in the first three cohorts and 10 weeks post dosing in the remaining cohorts.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0078",
     "placeholder": "<Bullet list of lay terminology of all assessments required during final Check-out>",
     "type": "LIST",
-    "generated_node_id": "P_0199",
+    "generated_node_id": "P_0018",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_4f073a26",
-    "replacement_content": "Levitation.",
-    "confidence": 0.8121
+    "fragment_id": "FRAG_88fe9aee",
+    "replacement_content": "Participants may benefit from medical evaluations and assessments associated with the study procedures",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0079",
     "placeholder": "<Bullet list of lay terminology of all assessments required during the follow-up period; note differences in assessments based on the day and cohort of “follow-up period”>",
     "type": "LIST",
-    "generated_node_id": "P_0200",
+    "generated_node_id": "P_0089",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_bbc3c07a",
-    "replacement_content": "The crunge.",
-    "confidence": 0.8126
+    "fragment_id": "FRAG_8185c1b6",
+    "replacement_content": "Blood sampling for exploratory PD and safety biomarkers, including up to 3 additional samples per treatment period.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0080",
     "placeholder": "<Bullet list of lay terminology of all assessments required during ED>",
     "type": "LIST",
-    "generated_node_id": "P_0203",
+    "generated_node_id": "P_0092",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_dacb6177",
-    "replacement_content": "General safety and tolerability outside CNS effects, with primary adverse effects being gastrointestinal.",
-    "confidence": 0.8131
+    "fragment_id": "FRAG_71e07e08",
+    "replacement_content": "Safety measurements such as 12-lead ECG, vital sign monitoring (blood pressure, pulse rate, respiratory rate, and body temperature), and clinical laboratory tests (chemistry, hematology, lipid profile, cytokine assessments).",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0081",
     "placeholder": "<lay terminology for SAD portion of study, Cohorts X-X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0196",
+    "generated_node_id": "P_0030",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_2a7af867",
-    "replacement_content": "Other drugs similar to ABC-123 have been studied in humans. The most common side effects seen in people given similar drugs include:",
-    "confidence": 0.8225
+    "fragment_id": "FRAG_be197f49",
+    "replacement_content": "During the single ascending dose (SAD) portion of the study",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0082",
     "placeholder": "<lay terminology for SAD portion of study, Cohorts X-X>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0217",
+    "generated_node_id": "P_0034",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_da5567f7",
-    "replacement_content": "Although the study drug, ABC-123, has not been shown to get into the brain, you will be closely monitored for the following side effects that have been seen when taking a similar type of drug that do get into the brain:",
-    "confidence": 0.8123
+    "fragment_id": "FRAG_57dbcf27",
+    "replacement_content": "During the repeat-dose phase",
+    "confidence": 0.85
   },
   {
     "occurrence_id": "PH_0083",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0280",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_fe9fa2d3",
-    "replacement_content": "You must be of non-childbearing potential (not able to have children) to be in this study. This includes:",
-    "confidence": 0.8106
+    "fragment_id": "FRAG_4f3860a7",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0084",
@@ -919,53 +918,53 @@
     "generated_node_id": "P_0161",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_3bc1ff64",
-    "replacement_content": "We are required to report positive HIV test results to the local regulatory authority. We may also be required to report positive hepatitis test results to the local regulatory authority. Positive HIV test results may be required to be reported to the local regulatory authority. If you have any questions about what information is required to be reported, please ask the study doctor or study staff.",
-    "confidence": 0.811
+    "fragment_id": "FRAG_5ecb32ab",
+    "replacement_content": "local regulatory authority",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0085",
     "placeholder": "<local health authority>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0176",
+    "generated_node_id": "P_0161",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_499a71d2",
-    "replacement_content": "Risks:",
-    "confidence": 0.3764
+    "fragment_id": "FRAG_5e14f0f4",
+    "replacement_content": "local regulatory authority",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0086",
     "placeholder": "<state health authority>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0247",
+    "generated_node_id": "P_0161",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_8ef08779",
-    "replacement_content": "Blood Samples (taken by single needle-sticks or by a tube that is left in your arm):",
-    "confidence": 0.3763
+    "fragment_id": "FRAG_2e04803e",
+    "replacement_content": "local regulatory authority",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0087",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0163",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_8b0fd109",
-    "replacement_content": "Additionally, in the unlikely event that a contract research organization (CRO) employee has been exposed to your blood or other body fluid either through a needle stick injury, splash incident or contact with broken skin (for example, cut, bite), additional samples may be collected to determine and confirm whether or not you have a certain infection. Your de-identified results will be released to the injured employee, and to the health care provider evaluating and treating that employee, to aid the injured employee and the medical provider make decisions regarding his/her medical treatment and follow-up care as a result of this on-the- job exposure.",
-    "confidence": 0.811
+    "fragment_id": "FRAG_7403f289",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0088",
     "placeholder": "<disease>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0166",
+    "generated_node_id": "P_0010",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d6d5913f",
-    "replacement_content": "Researchers would like to study your DNA to help them understand why medicines like the one being used in this study work in some people and not in others. The researchers may also look at your DNA to help them understand what is causing boneitis. This information may help researchers make better medicines in the future.",
-    "confidence": 0.8109
+    "fragment_id": "FRAG_8156147e",
+    "replacement_content": "boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0089",
@@ -974,163 +973,163 @@
     "generated_node_id": "P_0167",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_a17e2ce1",
-    "replacement_content": "Your DNA sample will be labeled with a code and not with your name or birthday to protect your identity and will be stored in a secure location until it is all used up or 30 years, whichever is sooner. You can ask for your DNA sample to be destroyed at any time and your sample will not be used for any new research, but any research data that has already been generated will not be destroyed.",
-    "confidence": 0.8109
+    "fragment_id": "FRAG_7cf2bae4",
+    "replacement_content": "30 years",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0090",
     "placeholder": "<CRO Name>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0184",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e17e82de",
-    "replacement_content": "The contract research organization (CRO) personnel, along with the Sponsor's clinical and biomarker scientists, may access unblinded data for purposes such as exploratory biomarker evaluation and PK/PD response model development during the study.",
-    "confidence": 0.4362
+    "fragment_id": "FRAG_fa4149fd",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0091",
     "placeholder": "<Firstname Lastname>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0186",
+    "generated_node_id": "P_0170",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_3b1e7160",
-    "replacement_content": "Address Line 1",
-    "confidence": 0.4127
+    "fragment_id": "FRAG_ae0f2c1a",
+    "replacement_content": "<Firstname Lastname>",
+    "confidence": 0.9
   },
   {
     "occurrence_id": "PH_0092",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0180",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_222696da",
-    "replacement_content": "The sponsor would like to keep the blood samples collected in the course of the study for future research to continue analyzing it for genes involved in the safety, pharmacokinetics (what the body does to a drug) and pharmacodynamics (how a medicine acts in the body) of the study drug, ABC-123. This information may be useful in increasing the knowledge of differences among individuals in the way they metabolize the investigational product as well as helping in the development of new drugs or improvement of existing drugs. You will not have any right to any such products or inventions or be entitled to any financial benefits from any such products. The information may be published or used for regulatory filings, but your identity will never be disclosed.",
-    "confidence": 0.8108
+    "fragment_id": "FRAG_de36f9ca",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0093",
     "placeholder": "<XX years>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0181",
+    "generated_node_id": "P_0167",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_44ecd6c4",
-    "replacement_content": "The sample will be retained in a secure location until the deoxyribonucleic acid (DNA - the material that determines your unique characteristics such as eye and hair color, and also influences the way your body responds to certain drugs and hereditary disease factors) has been exhausted, until the sponsor instructs the genotyping contractor to destroy the sample in accordance with laboratory procedures, or for 2 years. During this time, the DNA sample will not be immortalized or sold to anyone.",
-    "confidence": 0.8108
+    "fragment_id": "FRAG_a8b869f6",
+    "replacement_content": "30 years",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0094",
     "placeholder": "<CRO Name>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0169",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_073707b0",
-    "replacement_content": "The contract research organization (CRO) personnel, along with the Sponsor's PK, ADME, biomarker, and clinical scientists, may be unblinded for exploratory biomarker evaluation and development of PK and PD response models during the study.",
-    "confidence": 0.4356
+    "fragment_id": "FRAG_e6038369",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0095",
     "placeholder": "<Firstname Lastname>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0171",
+    "generated_node_id": "P_0185",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_eef220d4",
-    "replacement_content": "Address Line 1",
-    "confidence": 0.4121
+    "fragment_id": "FRAG_93ab50d6",
+    "replacement_content": "<Firstname Lastname>",
+    "confidence": 0.9
   },
   {
     "occurrence_id": "PH_0096",
     "placeholder": "<Study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0194",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7f25d726",
-    "replacement_content": "ABC-123 has not been given to humans, so no information about side effects are available.",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_394a24d1",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0097",
     "placeholder": "<XX-fold>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0195",
+    "generated_node_id": "P_0031",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_1fe5f32c",
-    "replacement_content": "In animal studies, there were no side effects observed at doses approximately 318-fold larger than the highest dose you could receive in this study.",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_aa2be0b6",
+    "replacement_content": "318-fold",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0098",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0275",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_43f9b48c",
-    "replacement_content": "Non-Physical Risks Associated with the Planned Genetic Analysis and Future Research of Biomarker Samples:",
-    "confidence": 0.3875
+    "fragment_id": "FRAG_919a332c",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0099",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0263",
+    "generated_node_id": "P_0047",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_4800451e",
-    "replacement_content": "A rare but possible side effect of lidocaine is an extreme allergic reaction. These symptoms may include:",
-    "confidence": 0.8811
+    "fragment_id": "FRAG_0aef4981",
+    "replacement_content": " Tell the study staff about any side effects or problems.",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0100",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0248",
+    "generated_node_id": "P_0190",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_cd174f7d",
-    "replacement_content": "There may be side effects of having blood drawn such as:",
-    "confidence": 0.8643
+    "fragment_id": "FRAG_8fad223c",
+    "replacement_content": "POSSIBLE SIDE EFFECTS AND RISKS",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0101",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0047",
+    "generated_node_id": "P_0191",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_05b6020f",
-    "replacement_content": " Tell the study staff about any side effects or problems.",
-    "confidence": 0.7725
+    "fragment_id": "FRAG_52927d0f",
+    "replacement_content": "If you do not understand what any of these side effects mean, please ask the study doctor or study staff to explain these terms to you.",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0102",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0191",
+    "generated_node_id": "P_0192",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7ecfe899",
-    "replacement_content": "If you do not understand what any of these side effects mean, please ask the study doctor or study staff to explain these terms to you.",
-    "confidence": 0.6828
+    "fragment_id": "FRAG_cd4d462f",
+    "replacement_content": "Because this drug is investigational, all of its side effects may not be known. There may be rare and unknown side effects. Some of these may be life threatening.",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0103",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0278",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_fa47045d",
-    "replacement_content": "Be aware that this Federal law does not protect you against genetic discrimination by companies that sell life insurance, disability insurance, or long term-care insurance, nor does it prohibit discrimination based on a genetic disease or disorder that you already know about.",
-    "confidence": 0.41
+    "fragment_id": "FRAG_e8f508bc",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0104",
@@ -1139,185 +1138,183 @@
     "generated_node_id": "P_0193",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_c33204c6",
+    "fragment_id": "FRAG_8fb273eb",
     "replacement_content": "You must tell the study doctor or study staff about all side effects that you have. If you are not honest about your side effects, you may harm yourself by staying in this study. The study staff will continue to follow up if you have side effects that are still present at the end of the study.",
-    "confidence": 0.6667
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0105",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0245",
+    "generated_node_id": "P_0194",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_0be7a1f7",
-    "replacement_content": "If you have a side effect of the study drug, such as a skin rash or other visible injury, it might be useful to take a digital picture of the affected area to send to the sponsor. By signing and dating this consent, you authorize the study doctor or study staff to take such a picture and provide it to the sponsor. Every effort will be made to protect your identity if a photograph is necessary.",
-    "confidence": 0.6639
+    "fragment_id": "FRAG_d04a727e",
+    "replacement_content": "ABC-123 has not been given to humans, so no information about side effects are available.",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0106",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0190",
+    "generated_node_id": "P_0195",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_bd1b9806",
-    "replacement_content": "POSSIBLE SIDE EFFECTS AND RISKS",
-    "confidence": 0.6588
+    "fragment_id": "FRAG_97c688cc",
+    "replacement_content": "In animal studies, there were no side effects observed at doses approximately 318-fold larger than the highest dose you could receive in this study.",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0107",
     "placeholder": "<side effect>",
     "type": "LIST",
-    "generated_node_id": "P_0192",
+    "generated_node_id": "P_0196",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_abf2a217",
-    "replacement_content": "Because this drug is investigational, all of its side effects may not be known. There may be rare and unknown side effects. Some of these may be life threatening.",
-    "confidence": 0.6617
+    "fragment_id": "FRAG_b7a7359b",
+    "replacement_content": "Other drugs similar to ABC-123 have been studied in humans. The most common side effects seen in people given similar drugs include:",
+    "confidence": 0.75
   },
   {
     "occurrence_id": "PH_0108",
     "placeholder": "<Bullet list of lay terminology summarizing the protocol criteria for women to be not considered a WOCBP>",
     "type": "LIST",
-    "generated_node_id": "P_0331",
-    "replacement_found": true,
-    "status": "RESOLVED",
-    "fragment_id": "FRAG_a0626e2e",
-    "replacement_content": "or call toll free:XXX-XXX-XXXX",
-    "confidence": 0.3783
+    "generated_node_id": null,
+    "replacement_found": false,
+    "status": "UNRESOLVED",
+    "fragment_id": null,
+    "confidence": 0.0
   },
   {
     "occurrence_id": "PH_0109",
     "placeholder": "<Lay terminology summarizing protocol requirement for females receiving HRT and whose menopausual status is in doubt.>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0748",
+    "generated_node_id": "P_0288",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b1d64b0a",
-    "replacement_content": "VOLUNTEERING TO BE IN THE STUDY",
-    "confidence": 0.385
+    "fragment_id": "FRAG_018976f8",
+    "replacement_content": "Females undergoing hormone replacement therapy (HRT) and with uncertain menopausal status must utilize non-estrogen hormonal contraception methods to continue their HRT during the study. Alternatively, they may need to discontinue HRT to confirm their postmenopausal status before enrollment.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0110",
     "placeholder": "<Lay terminology summarizing protocol requirement for males regarding contraception>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0750",
+    "generated_node_id": "P_0289",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e7b6d479",
-    "replacement_content": "The study doctor, the sponsor company, appropriate IRB/IEC members, or the FDA may take you out of the study without your permission, at any time, for the following reasons:",
-    "confidence": 0.385
+    "fragment_id": "FRAG_b6499aff",
+    "replacement_content": "Male participants are required to use contraception while undergoing the study intervention and for a period of at least 6 months following the final dose. This includes the use of a male condom with spermicide alongside an additional acceptable method of contraception. Moreover, sexual intercourse with pregnant or breastfeeding female partners should be avoided unless condoms are used during this timeframe.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0111",
     "placeholder": "<Bullet list of lay terminology summarizing the protocol listed acceptable second methods of contraception.>",
     "type": "LIST",
-    "generated_node_id": "P_0754",
-    "replacement_found": true,
-    "status": "RESOLVED",
-    "fragment_id": "FRAG_955a6594",
-    "replacement_content": "If it becomes harmful to your health",
-    "confidence": 0.385
+    "generated_node_id": null,
+    "replacement_found": false,
+    "status": "UNRESOLVED",
+    "fragment_id": null,
+    "confidence": 0.0
   },
   {
     "occurrence_id": "PH_0112",
     "placeholder": "<Lay terminology summarizing pregnancy information collection practices for male participants with partners who become pregnant.>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0760",
+    "generated_node_id": "P_0295",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_400afe46",
-    "replacement_content": "NEW FINDINGS",
-    "confidence": 0.385
+    "fragment_id": "FRAG_b54dd39a",
+    "replacement_content": "For male participants whose partners become pregnant during the study, the Investigator will collect relevant pregnancy information. This will include obtaining signed informed consent from the pregnant partner and recording details on the appropriate form. The information will be submitted to the Sponsor within 24 hours of learning about the pregnancy. Follow-up will be conducted to determine the pregnancy outcome, including the health status of the mother and child, which will be reported to the Sponsor. Generally, follow-up will extend up to 6 to 8 weeks after the estimated delivery date. Any pregnancy termination will also be documented, regardless of fetal status or reason for the procedure.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0113",
     "placeholder": "<Lay terminology summarizing pregnancy information collection practices for female participants who become pregnant.>",
     "type": "PARAGRAPH",
-    "generated_node_id": "P_0764",
+    "generated_node_id": "P_0296",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_75912e21",
-    "replacement_content": "Please answer YES or NO to the following questions:",
-    "confidence": 0.3875
+    "fragment_id": "FRAG_ee47361a",
+    "replacement_content": "Female participants who become pregnant during the study will cease receiving the study intervention. The Investigator will monitor the pregnancy to determine its outcome, collecting relevant follow-up information about both the participant and the neonate. This data will be shared with the Sponsor. Typically, follow-up will conclude within 6 to 8 weeks after the expected delivery date. Any pregnancy terminations will be documented, regardless of the fetal condition or the reasons for the procedure. Serious adverse events (SAEs) related to the pregnancy and considered connected to the study intervention by the Investigator will be reported to the Sponsor, although the Investigator is not required to actively seek such information from former participants.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0114",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0302",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_d8bc41fc",
-    "replacement_content": "If you are enrolled in the repeat-dose portion of the study your study doctor will discuss other potential treatment options for your boneitis. ",
-    "confidence": 0.8108
+    "fragment_id": "FRAG_7672da51",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0115",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0299",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_5477e3e7",
-    "replacement_content": "If you are enrolled in the repeat-dose portion of the study you may benefit from ABC-123 for your boneitis. ",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_c5869a92",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0116",
     "placeholder": "<study drug ID>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0268",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_11e491d1",
-    "replacement_content": "Risks of Subcutaneous (SC) Injection:",
-    "confidence": 0.3755
+    "fragment_id": "FRAG_34649f3a",
+    "replacement_content": "ABC-123",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0117",
     "placeholder": "<study disease>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0763",
+    "generated_node_id": "P_0299",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_f9550025",
-    "replacement_content": "This consent form contains important information to help you decide if you want to be in the study. If you have any questions that are not answered in this consent form, ask one of the study staff.",
-    "confidence": 0.8183
+    "fragment_id": "FRAG_604335b1",
+    "replacement_content": "boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0118",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0301",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_59c06d32",
-    "replacement_content": "Since this study is for research only, if you are enrolled in single ascending dose study the only other choice would be not to be in the study.",
-    "confidence": 0.8107
+    "fragment_id": "FRAG_5430ac12",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0119",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0774",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_387844da",
-    "replacement_content": "IF YOU ANSWERED “NO” TO ANY OF THE ABOVE QUESTIONS, OR YOU ARE UNABLE TO ANSWER ANY OF THE ABOVE QUESTIONS,",
-    "confidence": 0.41
+    "fragment_id": "FRAG_75cbf828",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0120",
     "placeholder": "<study disease>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0755",
+    "generated_node_id": "P_0299",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_acebf086",
-    "replacement_content": "If you leave the study or if you are taken out of the study, you may be asked to remain at the research site for observation or completion of additional safety procedures (such as ECGs, vital signs, safety labs, etc.). If you leave the study early or if you are taken out of the study, you will be asked to complete a final visit to have some end of study evaluations or tests performed. If information generated from this study is published or presented, your identity will not be revealed. If you leave the study, no more information about you will be collected for this study. However, all of the information you gave us before you left the study will still be used.",
-    "confidence": 0.8125
+    "fragment_id": "FRAG_5dc7f689",
+    "replacement_content": "boneitis",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0121",
@@ -1326,163 +1323,163 @@
     "generated_node_id": "P_0309",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6330f02f",
-    "replacement_content": "Stendarr, Inc. IRB",
-    "confidence": 0.7732
+    "fragment_id": "FRAG_83d9e69a",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0122",
     "placeholder": "<IRB Company>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0314",
+    "generated_node_id": "P_0309",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_50a40a9f",
-    "replacement_content": "The Institutional Review Board (IRB), appropriate IRB/IEC members, and accrediting agencies may inspect and copy your records, which may have your name on them. Therefore, total confidentiality cannot be guaranteed. If the study results are presented at meetings or printed in publications, your name will not be used.",
-    "confidence": 0.8106
+    "fragment_id": "FRAG_15321efa",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0123",
     "placeholder": "<email address>",
     "type": "LIST",
-    "generated_node_id": "P_0274",
+    "generated_node_id": "P_0332",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_8561a2a3",
-    "replacement_content": "Warmth or drainage",
-    "confidence": 0.3842
+    "fragment_id": "FRAG_653906c8",
+    "replacement_content": "contact@trialstudy.com",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0124",
     "placeholder": "<IRB Company>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0132",
+    "generated_node_id": "P_0309",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7ef0576b",
-    "replacement_content": "Second In-Patient Period",
-    "confidence": 0.3985
+    "fragment_id": "FRAG_695bafeb",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0125",
     "placeholder": "<IRB Company>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0112",
+    "generated_node_id": "P_0309",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_92336da3",
-    "replacement_content": "First In-Patient Period",
-    "confidence": 0.3949
+    "fragment_id": "FRAG_886a3706",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0126",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0336",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_361457d5",
-    "replacement_content": "If you are in the single ascending dose (SAD) portion of the study, Cohorts X-X, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from selected contract research organizations (CRO). You will be paid per completed visit as follows:",
-    "confidence": 0.773
+    "fragment_id": "FRAG_fb762fe1",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0127",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0443",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_48317f2e",
-    "replacement_content": "If you are in the single ascending dose portion of the study, Cohorts X-X, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from the contract research organization (CRO). You will be paid per completed visit as follows:",
-    "confidence": 0.7388
+    "fragment_id": "FRAG_66bd9564",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0128",
     "placeholder": "<lay terminology for SAD portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0564",
+    "generated_node_id": "P_0019",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_b7c4bc5b",
-    "replacement_content": "If you are in the repeat-dose component of the study, you may receive up to $XXXX.00 for being in this study. This money covers the costs for time spent at the clinic and is to help cover travel expenses to and from the contract research organization.",
-    "confidence": 0.8105
+    "fragment_id": "FRAG_83ca00e2",
+    "replacement_content": "the single ascending dose (SAD) portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0129",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0262",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_039c82d5",
-    "replacement_content": "Risks of using Lidocaine:",
-    "confidence": 0.3753
+    "fragment_id": "FRAG_90391c55",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0130",
     "placeholder": "<lay terminology for repeat-dose portion of study>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0316",
+    "generated_node_id": "P_0020",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_28faddc7",
-    "replacement_content": "If you are injured from your participation in this study, you should contact the study doctor as soon as possible in person or at the telephone number listed on page one of this consent form. Medical care may be obtained in the same way you would ordinarily obtain other medical treatment. If you suffer a physical injury that is directly caused by the study drug given as described in the study protocol or by a properly performed medical procedure required by the protocol, the reasonable costs of necessary medical treatment of the injury will be reimbursed by the Sponsor to the extent these costs are not covered by your insurance or other third-party coverage.",
-    "confidence": 0.7457
+    "fragment_id": "FRAG_aa892799",
+    "replacement_content": "the repeat-dose portion of the study",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0131",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0136",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7dc1856c",
-    "replacement_content": "The following will be done at Day 8.",
-    "confidence": 0.8102
+    "fragment_id": "FRAG_325deca7",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0132",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0746",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6447e860",
-    "replacement_content": "You must follow the contract research organization (CRO) in-patient clinic rules of conduct while you are taking part in this study. If you do not follow the rules, part of your payment (not to exceed the amount of the additional payment) may be taken away. You may not be able to take part in other studies at the contract research organization (CRO). These rules will be reviewed with you at the screening visit and are available on the contract research organization (CRO) website.",
-    "confidence": 0.8105
+    "fragment_id": "FRAG_6a324346",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0133",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0260",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_56876ad6",
-    "replacement_content": "Fasting",
-    "confidence": 0.3753
+    "fragment_id": "FRAG_4fec0c07",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0134",
     "placeholder": "<CRO Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0258",
+    "generated_node_id": "P_0023",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_0214a24d",
-    "replacement_content": "If you feel faint tell the study staff right away. Electrocardiogram (ECG):",
-    "confidence": 0.3753
+    "fragment_id": "FRAG_06c3f082",
+    "replacement_content": "selected contract research organizations (CRO)",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0135",
     "placeholder": "<IRB Company>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0155",
+    "generated_node_id": "P_0309",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_a77f0a7e",
-    "replacement_content": "the stage of the study where participants receive multiple doses of the investigational drug:",
-    "confidence": 0.3752
+    "fragment_id": "FRAG_83608a8e",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0136",
@@ -1491,9 +1488,9 @@
     "generated_node_id": "P_0815",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_872888ca",
-    "replacement_content": "SKY-2000-101",
-    "confidence": 0.41
+    "fragment_id": "FRAG_6a70e1f9",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0137",
@@ -1502,20 +1499,20 @@
     "generated_node_id": "P_0003",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_7cb09010",
+    "fragment_id": "FRAG_e23ab05e",
     "replacement_content": "SKY-2000-101",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0138",
     "placeholder": "<Sponsor Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0816",
+    "generated_node_id": "P_0815",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_3f6b52b5",
-    "replacement_content": "SKY-2000-101",
-    "confidence": 0.41
+    "fragment_id": "FRAG_14c55392",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0139",
@@ -1524,20 +1521,20 @@
     "generated_node_id": "P_0003",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_0a1d921d",
+    "fragment_id": "FRAG_1832fb8f",
     "replacement_content": "SKY-2000-101",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0140",
     "placeholder": "<Sponsor Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0817",
+    "generated_node_id": "P_0815",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_4c86f892",
-    "replacement_content": "SKY-2000-101",
-    "confidence": 0.41
+    "fragment_id": "FRAG_91e813e5",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0141",
@@ -1546,42 +1543,42 @@
     "generated_node_id": "P_0003",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_ff1c1984",
+    "fragment_id": "FRAG_89d1d2b6",
     "replacement_content": "SKY-2000-101",
-    "confidence": 0.9
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0142",
     "placeholder": "<Sponsor>",
     "type": "TABLE_CELL",
-    "generated_node_id": "P_0168",
+    "generated_node_id": "P_0002",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_ede80060",
-    "replacement_content": "You have the right to withdraw your consent to participate in genetic testing at any time by notifying the study doctor in writing and requesting that your sample be destroyed. Your blood sample will be destroyed, but the Sponsor will keep and use any research information it has already obtained. You must provide your request to withdraw from participation in genetic testing to the study doctor in writing at the address listed below:",
-    "confidence": 0.8553
+    "fragment_id": "FRAG_f85025b6",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0143",
     "placeholder": "<Protocol Number>",
     "type": "TABLE_CELL",
-    "generated_node_id": "P_0340",
+    "generated_node_id": "P_0003",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_4d07baaa",
-    "replacement_content": "In-Residence Period",
-    "confidence": 0.42
+    "fragment_id": "FRAG_664d5302",
+    "replacement_content": "SKY-2000-101",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0144",
     "placeholder": "<Principal Investigator Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0819",
+    "generated_node_id": "P_0004",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_c87f3d55",
-    "replacement_content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
-    "confidence": 0.425
+    "fragment_id": "FRAG_ffa8dcb6",
+    "replacement_content": "Medical Investigator",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0145",
@@ -1590,74 +1587,74 @@
     "generated_node_id": "P_0818",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_24656627",
-    "replacement_content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
-    "confidence": 0.77
+    "fragment_id": "FRAG_4f26c21c",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0146",
     "placeholder": "<Principal Investigator Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0820",
+    "generated_node_id": "P_0004",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_fef1a0bf",
-    "replacement_content": "Medical Investigator                     Stendarr, Inc. IRB Approved Version DD Mon YYYY",
-    "confidence": 0.425
+    "fragment_id": "FRAG_b0e637df",
+    "replacement_content": "Medical Investigator",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0147",
     "placeholder": "<IRB Company Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0342",
+    "generated_node_id": "P_0818",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_2c5875a8",
-    "replacement_content": "Visit",
-    "confidence": 0.32
+    "fragment_id": "FRAG_1d2555bb",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0148",
     "placeholder": "<Principal Investigator Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0344",
+    "generated_node_id": "P_0004",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_24b1e4f7",
-    "replacement_content": "Compensation (amount)",
-    "confidence": 0.32
+    "fragment_id": "FRAG_79d30d14",
+    "replacement_content": "Medical Investigator",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0149",
     "placeholder": "<IRB Company Name>",
     "type": "KEYVALUE",
-    "generated_node_id": "P_0347",
+    "generated_node_id": "P_0818",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_e7267f37",
-    "replacement_content": "In-Residence Period",
-    "confidence": 0.32
+    "fragment_id": "FRAG_03d6142a",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0150",
     "placeholder": "<Principal Investigator Name>",
     "type": "TABLE_CELL",
-    "generated_node_id": "P_0403",
+    "generated_node_id": "P_0004",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_6bffb437",
-    "replacement_content": "Follow-Up Period",
-    "confidence": 0.4141
+    "fragment_id": "FRAG_1479aa0f",
+    "replacement_content": "Medical Investigator",
+    "confidence": 0.95
   },
   {
     "occurrence_id": "PH_0151",
     "placeholder": "<IRB Company Name>",
     "type": "TABLE_CELL",
-    "generated_node_id": "P_0449",
+    "generated_node_id": "P_0818",
     "replacement_found": true,
     "status": "RESOLVED",
-    "fragment_id": "FRAG_ea5a3474",
-    "replacement_content": "Visit",
-    "confidence": 0.4075
+    "fragment_id": "FRAG_a4595a40",
+    "replacement_content": "Stendarr, Inc.",
+    "confidence": 0.95
   }
 ]

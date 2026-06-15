@@ -21,7 +21,8 @@
         "neighbor_context": {
             "before": "Patient Medical Summary",
             "after": "Date of Birth: <DOB>"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0002",
@@ -45,7 +46,8 @@
         "neighbor_context": {
             "before": "Patient Name: <Patient_Name>",
             "after": "Patient ID: <Patient_ID>"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0003",
@@ -69,7 +71,8 @@
         "neighbor_context": {
             "before": "Date of Birth: <DOB>",
             "after": "Patient Information Table"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0004",
@@ -93,7 +96,8 @@
         "neighbor_context": {
             "before": "",
             "after": ""
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0005",
@@ -117,7 +121,8 @@
         "neighbor_context": {
             "before": "",
             "after": ""
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0006",
@@ -141,7 +146,8 @@
         "neighbor_context": {
             "before": "",
             "after": ""
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0007",
@@ -165,7 +171,8 @@
         "neighbor_context": {
             "before": "Diagnosis",
             "after": "Treatment Plan"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0008",
@@ -189,7 +196,8 @@
         "neighbor_context": {
             "before": "Treatment Plan",
             "after": "<Treatment_Item_2>"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0009",
@@ -213,7 +221,8 @@
         "neighbor_context": {
             "before": "<Treatment_Item_1>",
             "after": "Emergency Contact"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0010",
@@ -237,7 +246,8 @@
         "neighbor_context": {
             "before": "Emergency Contact",
             "after": "Secondary Contact: <Contact_Name>"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0011",
@@ -261,7 +271,8 @@
         "neighbor_context": {
             "before": "Primary Contact: <Contact_Name>",
             "after": "Medical Notes"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0012",
@@ -285,7 +296,8 @@
         "neighbor_context": {
             "before": "Notes Start",
             "after": "Notes End"
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0013",
@@ -309,7 +321,8 @@
         "neighbor_context": {
             "before": "",
             "after": ""
-        }
+        },
+        "revision_source": "normal"
     },
     {
         "occurrence_id": "PH_0014",
@@ -333,6 +346,7 @@
         "neighbor_context": {
             "before": "",
             "after": ""
-        }
+        },
+        "revision_source": "normal"
     }
 ]
