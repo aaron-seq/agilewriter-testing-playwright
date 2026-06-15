@@ -1,22 +1,21 @@
-import json
+"""
+Placeholder Resolver — Full Text Scan Approach
+
+For each placeholder:
+1. Try tracked pair match (deleted text in XML)
+2. Search ALL generated document text for inline_before/inline_after context
+3. Search ALL generated document text for placeholder name as label:value
+4. Search ALL generated document text for significant placeholder words
+"""
+
 import re
 from difflib import SequenceMatcher
 
-from replacement_resolution.models import (
-    ResolutionResult
-)
-from replacement_resolution.scoring import (
-    ResolutionScorer
-)
-from replacement_resolution.matching_engine import (
-    find_best_match
-)
+from replacement_resolution.models import ResolutionResult
 
 
 def contains_placeholder(text):
-    if not text:
-        return False
-    return bool(re.search(r"<[^>]+>", text))
+    return bool(re.search(r"<[^>]+>", text)) if text else False
 
 
 def flatten_tree(node):
@@ -26,271 +25,330 @@ def flatten_tree(node):
     return result
 
 
-def extract_label_value_pairs(node_text):
-    """
-    Extract (label, value) pairs from generated document text.
-    Returns list of dicts: {label, label_norm, value, node_id, full_text}
-    """
-    if not node_text:
-        return []
-
+def collect_tracked_pairs(tree):
     pairs = []
-
-    # Pattern: "Label: Value"
-    colon_idx = node_text.find(":")
-    if colon_idx > 0:
-        label_part = node_text[:colon_idx].strip()
-        value_part = node_text[colon_idx + 1:].strip()
-
-        if label_part and value_part:
-            # Whole label
-            pairs.append({
-                "label": label_part,
-                "label_norm": label_part.lower().strip(),
-                "value": value_part
-            })
-
-            # Split compound labels by /
-            for sep in [" / ", " /", "/ "]:
-                if sep in label_part:
-                    for individual_label in label_part.split(sep):
-                        ind_label = individual_label.strip()
-                        if ind_label and len(ind_label) > 1:
-                            pairs.append({
-                                "label": ind_label,
-                                "label_norm": ind_label.lower().strip(),
-                                "value": value_part
-                            })
-                    break
-
-    # Tab-separated cells: "Label\tValue"
-    tab_match = re.match(r'([A-Za-z][A-Za-z\s/]+)\t+(.+)', node_text)
-    if tab_match:
-        label = tab_match.group(1).strip()
-        value = tab_match.group(2).strip()
-        pairs.append({
-            "label": label,
-            "label_norm": label.lower().strip(),
-            "value": value
-        })
-
+    for node in flatten_tree(tree):
+        if hasattr(node, 'tracked_replacement_pairs') and node.tracked_replacement_pairs:
+            for p in node.tracked_replacement_pairs:
+                pairs.append({
+                    "deleted_text": p.deleted_text,
+                    "inserted_text": p.inserted_text,
+                    "node_id": node.id,
+                })
     return pairs
 
 
-def extract_value_after_label(node_text, label_name):
-    """
-    Extract the value from a label:value pair in node_text.
-    label_name is the placeholder name (lowercased, no brackets).
-    
-    e.g. node_text="Sponsor / Study Title:Stendarr, Inc."
-         label_name="sponsor"
-         returns "Stendarr, Inc."
-    """
-    if not node_text or not label_name:
+def extract_clean_value(text):
+    """Extract a clean value from la bel:value text."""
+    if not text:
         return None
-
-    label_lower = label_name.lower().strip()
-
-    # Find colon
-    colon_idx = node_text.find(":")
-    if colon_idx <= 0:
-        return None
-
-    before_colon = node_text[:colon_idx].lower().strip()
-    after_colon = node_text[colon_idx + 1:].strip()
-
-    # Check if our label is in the part before the colon
-    if label_lower in before_colon:
-        # Extract value - split on common separators and take first segment
-        value = after_colon
+    colon_idx = text.find(":")
+    if colon_idx > 0:
+        val = text[colon_idx + 1:].strip()
         for sep in [" / ", "  ", "\t"]:
-            if sep in value:
-                first_val = value.split(sep)[0].strip()
-                if len(first_val) < 150:  # Reasonable value length
-                    return first_val
-                break
-        if value:
-            return value
-
+            if sep in val:
+                val = val.split(sep)[0].strip()
+        if val and len(val) < 400 and not contains_placeholder(val):
+            return val
     return None
-
-
-def is_label(placeholder_name, node_text):
-    """
-    Check if the placeholder name (without brackets) appears as a label
-    in the given node text.
-    e.g. "sponsor" in "Sponsor / Study Title:Value" -> True
-    """
-    if not placeholder_name or not node_text:
-        return False
-    colon_idx = node_text.find(":")
-    if colon_idx <= 0:
-        return False
-    before_colon = node_text[:colon_idx].lower().strip()
-    return placeholder_name.lower() in before_colon
 
 
 class PlaceholderResolver:
 
     def resolve(self, classified_inventory, generated_tree):
 
-        # Get all text-bearing nodes from generated document
-        all_nodes = [
-            node for node in flatten_tree(generated_tree)
-            if node.type in ("paragraph", "list_item", "cell") and node.text
-        ]
-        node_lookup = {node.id: node for node in all_nodes}
+        tracked_pairs = collect_tracked_pairs(generated_tree)
 
-        # Create label index for KEYVALUE resolution
-        label_value_map = {}  # label_norm -> {value: str, node_id: str}
-        for node in all_nodes:
-            pairs = extract_label_value_pairs(node.text)
-            for pair in pairs:
-                ln = pair["label_norm"]
-                if ln not in label_value_map:
-                    label_value_map[ln] = {
-                        "value": pair["value"],
-                        "node_id": node.id
-                    }
+        # Build a flat text index of ALL generated document content
+        all_nodes = [
+            n for n in flatten_tree(generated_tree)
+            if n.type in ("paragraph", "list_item", "cell") and n.text
+        ]
 
         results = []
         used_node_ids = set()
+        matched_count = 0
+        unresolved_count = 0
 
-        # Process placeholders
         for occurrence in classified_inventory:
-            placeholder = occurrence.get("placeholder", "")
+            placeholder = occurrence.get("placeholder", "").strip()
             occ_id = occurrence["occurrence_id"]
-            ph_type = occurrence.get("type", "").upper()
-            ph_name = placeholder.strip("<>").strip().lower()
+            ph_name = placeholder.strip("<>").strip()
+            ph_normalized = ph_name.lower().strip()
 
             resolved = False
 
-            # Step 1: For KEYVALUE, try label match first
-            if ph_type == "KEYVALUE" and ph_name:
-                # Direct label match
-                if ph_name in label_value_map:
-                    entry = label_value_map[ph_name]
-                    node = node_lookup.get(entry["node_id"])
-                    if node:
-                        # Allow multiple placeholders to share the same node 
-                        # if they all come from the same compound label cell
-                        value = extract_value_after_label(node.text, ph_name)
-                        matched = value or entry["value"]
-                        results.append(
-                            ResolutionResult(
-                                occurrence_id=occ_id,
-                                placeholder=placeholder,
-                                generated_node_id=node.id,
-                                matched_text=matched,
-                                match_confidence=0.9,
-                                resolution_status="RESOLVED",
-                                score_breakdown={
-                                    "method": "label_exact_match"
-                                }
-                            )
-                        )
-                        used_node_ids.add(node.id)
-                        resolved = True
-
-                # Multi-word label: all significant words must match
-                if not resolved:
-                    ph_words = set(w for w in ph_name.split() if len(w) > 3 and w not in (
-                        "the", "and", "for", "with", "study", "lay", "brief", "insert", "bulleted",
-                        "protocol", "number", "participant", "name", "terminology", "summary",
-                        "description"
-                    ))
-                    if len(ph_words) >= 2:
-                        for label_key, entry in label_value_map.items():
-                            if resolved:
-                                break
-                            label_words = set(w for w in label_key.split() if len(w) > 3)
-                            if len(label_words) >= 2 and ph_words.issubset(label_words):
-                                node = node_lookup.get(entry["node_id"])
-                                if node and node.id not in used_node_ids:
-                                    value = extract_value_after_label(node.text, label_key)
-                                    results.append(
-                                        ResolutionResult(
-                                            occurrence_id=occ_id,
-                                            placeholder=placeholder,
-                                            generated_node_id=node.id,
-                                            matched_text=value or entry["value"],
-                                            match_confidence=0.8,
-                                            resolution_status="RESOLVED",
-                                            score_breakdown={
-                                                "method": "label_multiword_match"
-                                            }
-                                        )
-                                    )
-                                    used_node_ids.add(node.id)
-                                    resolved = True
-
-            # Step 2: For KEYVALUE that wasn't label-matched, check if placeholder name
-            # text (without brackets) appears as a label in any unused node
+            # ==============================================
+            # LEVEL 1: Direct tracked pair match
+            # ==============================================
             if not resolved:
-                available_nodes = [
-                    n for n in all_nodes
-                    if n.id not in used_node_ids and not contains_placeholder(n.text or "")
-                ]
-                for node in available_nodes:
-                    if resolved:
+                for p in tracked_pairs:
+                    dt = p["deleted_text"].strip()
+                    if placeholder == dt or placeholder in dt or ph_normalized in dt.lower():
+                        results.append(ResolutionResult(
+                            occurrence_id=occ_id, placeholder=placeholder,
+                            generated_node_id=p["node_id"],
+                            matched_text=p["inserted_text"],
+                            match_confidence=0.95,
+                            resolution_status="RESOLVED",
+                            score_breakdown={"method": "tracked_pair"}
+                        ))
+                        used_node_ids.add(p["node_id"])
+                        resolved = True
+                        matched_count += 1
                         break
-                    if is_label(ph_name, node.text):
-                        value = extract_value_after_label(node.text, ph_name)
-                        if value:
-                            results.append(
-                                ResolutionResult(
-                                    occurrence_id=occ_id,
-                                    placeholder=placeholder,
+
+            # ==============================================
+            # LEVEL 2: INLINE CONTEXT — Find text before/after in generated doc
+            # ==============================================
+            if not resolved:
+                inline_before = (occurrence.get("inline_context", {}) or {}).get("before", "").strip()
+                inline_after = (occurrence.get("inline_context", {}) or {}).get("after", "").strip()
+
+                if inline_before:
+                    ib_lower = inline_before.lower()
+                    for node in all_nodes:
+                        if node.id in used_node_ids:
+                            continue
+                        node_text = node.text or ""
+                        ntl = node_text.lower()
+                        pos = ntl.find(ib_lower)
+                        if pos >= 0:
+                            after_pos = pos + len(ib_lower)
+                            remaining = node_text[after_pos:].strip()
+                            # Strip inline after
+                            if inline_after:
+                                ia_pos = remaining.lower().find(inline_after.lower())
+                                if ia_pos >= 0:
+                                    remaining = remaining[:ia_pos].strip()
+                            # Clean
+                            for sep in [" / ", "  ", "\t"]:
+                                if sep in remaining:
+                                    remaining = remaining.split(sep)[0].strip()
+                            if remaining and len(remaining) < 400:
+                                results.append(ResolutionResult(
+                                    occurrence_id=occ_id, placeholder=placeholder,
                                     generated_node_id=node.id,
-                                    matched_text=value,
+                                    matched_text=remaining,
+                                    match_confidence=0.9,
+                                    resolution_status="RESOLVED",
+                                    score_breakdown={"method": "inline_before"}
+                                ))
+                                used_node_ids.add(node.id)
+                                resolved = True
+                                matched_count += 1
+                                break
+
+                if not resolved and inline_after:
+                    ia_lower = inline_after.lower()
+                    for node in all_nodes:
+                        if node.id in used_node_ids:
+                            continue
+                        node_text = node.text or ""
+                        pos = node_text.lower().find(ia_lower)
+                        if pos >= 0:
+                            before = node_text[:pos].strip()
+                            if before and len(before) < 400:
+                                results.append(ResolutionResult(
+                                    occurrence_id=occ_id, placeholder=placeholder,
+                                    generated_node_id=node.id,
+                                    matched_text=before,
                                     match_confidence=0.85,
                                     resolution_status="RESOLVED",
-                                    score_breakdown={
-                                        "method": "label_content_search"
-                                    }
-                                )
-                            )
+                                    score_breakdown={"method": "inline_after"}
+                                ))
+                                used_node_ids.add(node.id)
+                                resolved = True
+                                matched_count += 1
+                                break
+
+            # ==============================================
+            # LEVEL 3: LABEL SEARCH — Find label:value where label matches ph_name
+            # ==============================================
+            if not resolved:
+                for node in all_nodes:
+                    if node.id in used_node_ids:
+                        continue
+                    node_text = node.text or ""
+                    if contains_placeholder(node_text):
+                        continue
+                    
+                    colon_idx = node_text.find(":")
+                    if colon_idx <= 0:
+                        continue
+                    
+                    before_colon = node_text[:colon_idx].lower().strip()
+                    after_colon = node_text[colon_idx + 1:].strip()
+                    
+                    # Check various match strategies
+                    matched = False
+                    val = None
+                    
+                    # Strategy A: Exact match
+                    if ph_normalized == before_colon:
+                        val = after_colon
+                        matched = True
+                    # Strategy B: ph_normalized in before_colon
+                    elif ph_normalized in before_colon:
+                        val = after_colon
+                        matched = True
+                    # Strategy C: Any significant word from ph_name in before_colon
+                    else:
+                        ph_words = set(ph_normalized.split())
+                        label_words = set(before_colon.split())
+                        overlap = ph_words & label_words
+                        # Filter stopwords
+                        stopwords = {"the", "and", "for", "with", "study", "of", "in", "to", "a", "an", "by", "on", "at", "is", "are", "be", "will", "not", "or", "as", "but", "if", "no", "each", "all", "any", "per", "its", "may", "via", "vs", "eg", "ie"}
+                        significant_overlap = overlap - stopwords
+                        if len(significant_overlap) >= 2:
+                            val = after_colon
+                            matched = True
+                    
+                    if matched and val:
+                        for sep in [" / ", "  ", "\t"]:
+                            if sep in val:
+                                val = val.split(sep)[0].strip()
+                        if val and len(val) < 400 and not contains_placeholder(val):
+                            results.append(ResolutionResult(
+                                occurrence_id=occ_id, placeholder=placeholder,
+                                generated_node_id=node.id,
+                                matched_text=val,
+                                match_confidence=0.85,
+                                resolution_status="RESOLVED",
+                                score_breakdown={"method": "label_match"}
+                            ))
                             used_node_ids.add(node.id)
                             resolved = True
+                            matched_count += 1
+                            break
 
-            # Step 3: Structural matching fallback
+            # ==============================================
+            # LEVEL 4: TEXT SEARCH — Find placeholder name text anywhere in node
+            # ==============================================
             if not resolved:
-                available_nodes = [
-                    n for n in all_nodes
-                    if n.id not in used_node_ids and not contains_placeholder(n.text or "")
-                ]
-                if not available_nodes:
-                    available_nodes = all_nodes
-
-                best_match = find_best_match(occurrence, available_nodes)
-                if best_match and best_match.score >= ResolutionScorer.RESOLVED_THRESHOLD:
-                    matched_node = node_lookup.get(best_match.node_id)
-                    if matched_node and not contains_placeholder(matched_node.text or ""):
-                        results.append(
-                            ResolutionResult(
-                                occurrence_id=occ_id,
-                                placeholder=placeholder,
-                                generated_node_id=matched_node.id,
-                                matched_text=matched_node.text,
-                                match_confidence=round(best_match.score, 4),
-                                resolution_status="RESOLVED",
-                                score_breakdown={
-                                    "method": "structural_match"
-                                }
-                            )
-                        )
-                        used_node_ids.add(best_match.node_id)
+                for node in all_nodes:
+                    if node.id in used_node_ids:
+                        continue
+                    node_text = node.text or ""
+                    if contains_placeholder(node_text):
+                        continue
+                    
+                    ntl = node_text.lower()
+                    if ph_normalized in ntl:
+                        # Found it. Try to extract a colon value if exists
+                        val = extract_clean_value(node_text)
+                        results.append(ResolutionResult(
+                            occurrence_id=occ_id, placeholder=placeholder,
+                            generated_node_id=node.id,
+                            matched_text=val or node_text,
+                            match_confidence=0.75,
+                            resolution_status="RESOLVED",
+                            score_breakdown={"method": "text_search"}
+                        ))
+                        used_node_ids.add(node.id)
                         resolved = True
+                        matched_count += 1
+                        break
+
+            # ==============================================
+            # LEVEL 5: WORD SEARCH — Find significant words from ph_name in node text
+            # ==============================================
+            if not resolved:
+                # Get significant words
+                stopwords = {"the", "and", "for", "with", "study", "of", "in", "to", "a", "an", 
+                             "by", "on", "at", "is", "are", "be", "will", "not", "or", "as", "but",
+                             "if", "no", "each", "all", "any", "per", "its", "may", "via", "vs",
+                             "eg", "ie", "lay", "brief", "note", "based", "data", "also", "into",
+                             "than", "has", "had", "was", "were", "been", "being", "have", "does"}
+                ph_words = [w for w in ph_normalized.split() 
+                           if len(w) > 3 and w not in stopwords]
+                
+                if ph_words:
+                    best_node = None
+                    best_count = 0
+                    for node in all_nodes:
+                        if node.id in used_node_ids:
+                            continue
+                        node_text = node.text or ""
+                        if contains_placeholder(node_text):
+                            continue
+                        ntl = node_text.lower()
+                        count = sum(1 for w in ph_words if w in ntl)
+                        if count > best_count:
+                            best_count = count
+                            best_node = node
+                    
+                    if best_node and best_count >= max(1, len(ph_words) // 2):
+                        node_text = best_node.text or ""
+                        val = extract_clean_value(node_text)
+                        results.append(ResolutionResult(
+                            occurrence_id=occ_id, placeholder=placeholder,
+                            generated_node_id=best_node.id,
+                            matched_text=val or node_text,
+                            match_confidence=0.65,
+                            resolution_status="RESOLVED",
+                            score_breakdown={"method": "word_search"}
+                        ))
+                        used_node_ids.add(best_node.id)
+                        resolved = True
+                        matched_count += 1
+
+            # ---------------------------------------------------
+            # LEVEL 5: Paragraph position fallback (lowest confidence)
+            # Match by same section + paragraph_index
+            # ---------------------------------------------------
+            if not resolved:
+                section = occurrence.get("section", "")
+                paragraph_index = occurrence.get("paragraph_index")
+                for node in all_nodes:
+                    if node.id in used_node_ids:
+                        continue
+                    loc = node.location
+                    if loc and loc.section == section and loc.paragraph_index == paragraph_index:
+                        node_text = node.text or ""
+                        if not contains_placeholder(node_text):
+                            results.append(ResolutionResult(
+                                occurrence_id=occ_id, placeholder=placeholder,
+                                generated_node_id=node.id,
+                                matched_text=node_text,
+                                match_confidence=0.55,
+                                resolution_status="RESOLVED",
+                                score_breakdown={"method": "paragraph_position"}
+                            ))
+                            # Don't mark node as used for same paragraph position
+                            # This allows multiple placeholders to share the same node
+                            resolved = True
+                            break
 
             if not resolved:
-                results.append(
-                    ResolutionResult(
-                        occurrence_id=occ_id,
-                        placeholder=placeholder,
-                        generated_node_id=None,
-                        match_confidence=0.0,
-                        resolution_status="UNRESOLVED"
-                    )
-                )
+                # Also try table_path match
+                table_path = occurrence.get("table_path")
+                if table_path:
+                    for node in all_nodes:
+                        if node.id in used_node_ids:
+                            continue
+                        loc = node.location
+                        if loc and loc.table_path == table_path:
+                            node_text = node.text or ""
+                            if not contains_placeholder(node_text):
+                                results.append(ResolutionResult(
+                                    occurrence_id=occ_id, placeholder=placeholder,
+                                    generated_node_id=node.id,
+                                    matched_text=node_text,
+                                    match_confidence=0.5,
+                                    resolution_status="RESOLVED",
+                                    score_breakdown={"method": "table_path_position"}
+                                ))
+                                used_node_ids.add(node.id)
+                                resolved = True
+                                break
+
+            if not resolved:
+                unresolved_count += 1
+                results.append(ResolutionResult(
+                    occurrence_id=occ_id, placeholder=placeholder,
+                    generated_node_id=None, match_confidence=0.0,
+                    resolution_status="UNRESOLVED"
+                ))
 
         return results

@@ -6,6 +6,10 @@ from replacement_resolution.scoring import (
     ResolutionScorer
 )
 
+import re
+
+PLACEHOLDER_PATTERN = re.compile(r"<\s*([^<>]+?)\s*>")
+
 
 def is_candidate(
     placeholder_occurrence,
@@ -413,3 +417,63 @@ def find_best_match(
             best = candidate
 
     return best
+
+
+def find_revision_pair_match(
+    placeholder,
+    tracked_pairs,
+    node_id=None
+):
+    """
+    Find a tracked replacement pair that matches a placeholder.
+    
+    Priority matching:
+    1. Exact placeholder match (pair.placeholder == placeholder)
+    2. Placeholder name appears in deleted_text
+    3. Same node_id with matching placeholder pattern in deleted_text
+    4. Deleted text contains <...> pattern and placeholder name matches
+    
+    Returns the best matching pair or None.
+    """
+    if not tracked_pairs:
+        return None
+
+    # Extract the placeholder name without brackets
+    ph_name = placeholder.strip("<>").strip().lower() if placeholder else ""
+
+    best_match = None
+    best_confidence = 0.0
+
+    for pair in tracked_pairs:
+        pair_ph = pair.get("placeholder", "") or ""
+        deleted = pair.get("deleted_text", "") or ""
+        inserted = pair.get("inserted_text", "") or ""
+        confidence = pair.get("confidence", 0.5)
+
+        # Level 1: Exact placeholder match
+        if pair_ph == placeholder:
+            if node_id is None or pair["node_id"] == node_id:
+                if confidence > best_confidence:
+                    best_match = pair
+                    best_confidence = confidence
+                    continue
+
+        # Level 2: Placeholder name appears in deleted text
+        if ph_name and ph_name in deleted.lower():
+            if node_id is None or pair["node_id"] == node_id:
+                score = confidence * 0.95
+                if score > best_confidence:
+                    best_match = pair
+                    best_confidence = score
+                    continue
+
+        # Level 3: Deleted text contains any <...> pattern and matches node
+        if node_id and pair["node_id"] == node_id:
+            if PLACEHOLDER_PATTERN.search(deleted):
+                # The same node has a placeholder pattern in its deleted text
+                score = confidence * 0.9
+                if score > best_confidence:
+                    best_match = pair
+                    best_confidence = score
+
+    return best_match

@@ -1,13 +1,15 @@
 """
-Accuracy Comparison Script
-===========================
+Accuracy Comparison Script v2 — Uses QA Expected Value
+======================================================
 Source of truth: QA report (tests/ICF_docx/QA report_ICF_FULL_0804 - Copy - Copy (2).xlsx)
 Compares against: Pipeline output (final_outputs/replacement_inventory.xlsx)
 
-Shows all QA entries with their expected columns, then checks if the pipeline
-produced matching data and highlights what's missing or incorrect.
+DIFFERENCE FROM compare_accuracy.py:
+  v1 compares pipeline replacement text against QA "AI Replaced Text" column.
+  v2 compares against QA "Expected Value" column — which is closer to the 
+  actual text in the generated DOCX document.
 
-Output: accuracy_report.xlsx
+Output: accuracy_report_v2.xlsx
 """
 
 import openpyxl
@@ -18,7 +20,7 @@ from difflib import SequenceMatcher
 
 QA_REPORT = Path(r"tests/ICF_docx/QA report_ICF_FULL_0804 - Copy - Copy (2).xlsx")
 PIPELINE_OUTPUT = Path("final_outputs/replacement_inventory.xlsx")
-OUTPUT_FILE = Path("final_outputs/accuracy_report.xlsx")
+OUTPUT_FILE = Path("final_outputs/accuracy_report_v2.xlsx")
 
 GREEN_FILL = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
 RED_FILL = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
@@ -50,20 +52,28 @@ def similarity(a, b):
     return round(SequenceMatcher(None, a, b).ratio(), 4)
 
 
+def clean_text(t):
+    """Strip HTML tags and normalize whitespace."""
+    if not t:
+        return ""
+    t = re.sub(r"<[^>]+>", " ", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
 # ────────────────────────────────────────────────────────────────
-# 1. Extract ALL QA entries (rows with placeholders and their columns)
+# 1. Extract ALL QA entries
 # ────────────────────────────────────────────────────────────────
 def extract_qa_all():
     """
-    Return list of dicts: {placeholder, type, expected_value, ai_text, ai_source, matching_accuracy, similarity_score, source_match, ...}
-    Reads all columns from the QA sheet rows that have a placeholder.
+    Return list of dicts. Compared to v1, this version uses
+    qa_expected_value as the PRIMARY comparison text.
     """
     wb = openpyxl.load_workbook(QA_REPORT, data_only=True)
     ws = wb["QA"]
-    header_row = 2  # headers are in row 2
+    header_row = 2
 
     headers = [c.value for c in ws[header_row]]
-    # Map column names to indices
     col_map = {}
     for idx, h in enumerate(headers):
         if h:
@@ -75,7 +85,6 @@ def extract_qa_all():
         row = [c.value for c in ws[row_idx]]
         ph = row[col_map.get("placeholder")] if col_map.get("placeholder") is not None and col_map["placeholder"] < len(row) else None
 
-        # Skip rows without a valid placeholder
         if ph is None or not isinstance(ph, str) or not PLACEHOLDER_RE.search(ph):
             continue
         if ph.strip() in ("#VALUE!", ""):
@@ -84,20 +93,18 @@ def extract_qa_all():
         entry = {
             "qa_placeholder": ph.strip(),
             "qa_type": str(row[col_map.get("placeholder type")]).strip() if col_map.get("placeholder type") is not None and col_map["placeholder type"] < len(row) and row[col_map["placeholder type"]] else "",
+            # PRIMARY COMPARISON TEXT: Expected Value (more accurate than AI text)
             "qa_expected_value": str(row[col_map.get("expected value")]).strip() if col_map.get("expected value") is not None and col_map["expected value"] < len(row) and row[col_map["expected value"]] else "",
-            "qa_source": str(row[col_map.get("source document")]).strip() if col_map.get("source document") is not None and col_map["source document"] < len(row) and row[col_map["source document"]] else "",
-            "qa_writing_instruction": str(row[col_map.get("writing instruction")]).strip() if col_map.get("writing instruction") is not None and col_map["writing instruction"] < len(row) and row[col_map["writing instruction"]] else "",
+            # SECONDARY: AI Replaced Text (kept for reference)
             "qa_ai_text": str(row[col_map.get("ai replaced text")]).strip() if col_map.get("ai replaced text") is not None and col_map["ai replaced text"] < len(row) and row[col_map["ai replaced text"]] else "",
-            "qa_ai_source": str(row[col_map.get("ai detected source ")]).strip() if col_map.get("ai detected source ") is not None and col_map["ai detected source "] < len(row) and row[col_map["ai detected source "]] else "",
+            "qa_source": str(row[col_map.get("source document")]).strip() if col_map.get("source document") is not None and col_map["source document"] < len(row) and row[col_map["source document"]] else "",
             "qa_similarity_score": row[col_map.get("similarity score")] if col_map.get("similarity score") is not None and col_map["similarity score"] < len(row) else None,
         }
 
-        # Clean up empty/None values
         for k in entry:
             if isinstance(entry[k], str) and entry[k].strip() in ("None", "0", ""):
                 entry[k] = ""
 
-        # Normalize type for matching
         entry["qa_type_norm"] = normalize_type(entry["qa_type"])
         entry["qa_ph_norm"] = normalize(entry["qa_placeholder"])
 
@@ -108,7 +115,7 @@ def extract_qa_all():
 
 
 # ────────────────────────────────────────────────────────────────
-# 2. Extract pipeline entries grouped by placeholder
+# 2. Extract pipeline entries
 # ────────────────────────────────────────────────────────────────
 def extract_pipeline_index():
     """Build a lookup: normalized placeholder -> list of pipeline entries."""
@@ -150,8 +157,7 @@ def extract_pipeline_index():
 def compare(qa_all, pipeline_index):
     """
     For each QA entry, find matching pipeline entries.
-    Report what exists in QA but is missing or different in pipeline.
-    Also report pipeline entries not found in QA.
+    Compares pipeline replacement against QA EXPECTED VALUE (v2 change).
     """
     results = []
     matched_pipeline_keys = set()
@@ -161,11 +167,14 @@ def compare(qa_all, pipeline_index):
         ph_norm = qa["qa_ph_norm"]
         pipe_entries = pipeline_index.get(ph_norm, [])
 
-        # Find best match among all pipeline entries for this placeholder
+        # Use QA Expected Value as the comparison target
+        qa_compare_text = qa["qa_expected_value"]
+
+        # Find best pipeline match by comparing to expected value
         matching_pipe = None
         best_score = 0.0
         for pe in pipe_entries:
-            score = similarity(pe["replacement"], qa["qa_ai_text"])
+            score = similarity(pe["replacement"], qa_compare_text)
             if score > best_score:
                 best_score = score
                 matching_pipe = pe
@@ -180,19 +189,10 @@ def compare(qa_all, pipeline_index):
             pipe_type_norm = normalize_type(matching_pipe["type"])
             type_verdict = "YES" if pipe_type_norm == qa["qa_type_norm"] else "NO"
 
-            # Content comparison
-            # Preprocess: strip HTML tags, normalize whitespace for comparison
-            def clean_text(t):
-                if not t:
-                    return ""
-                t = re.sub(r"<[^>]+>", " ", t)  # strip HTML tags
-                t = re.sub(r"\s+", " ", t).strip()
-                return t
-
+            # Content comparison using cleaned text
             pipe_clean = clean_text(matching_pipe["replacement"])
-            qa_clean = clean_text(qa["qa_ai_text"])
+            qa_clean = clean_text(qa_compare_text)
 
-            # Recompute similarity on cleaned text
             if pipe_clean and qa_clean:
                 best_score = similarity(pipe_clean, qa_clean)
 
@@ -217,7 +217,8 @@ def compare(qa_all, pipeline_index):
             results.append({
                 "qa_placeholder": qa["qa_placeholder"],
                 "qa_type": qa["qa_type"],
-                "qa_ai_text": qa["qa_ai_text"],
+                "qa_compare_text": qa_compare_text,  # Expected Value
+                "qa_ai_text_ref": qa["qa_ai_text"],   # AI text for reference
                 "pipeline_placeholder": matching_pipe["placeholder"],
                 "pipeline_type": matching_pipe["type"],
                 "pipeline_replacement": matching_pipe["replacement"],
@@ -225,16 +226,14 @@ def compare(qa_all, pipeline_index):
                 "content_match": content_verdict,
                 "similarity": best_score,
                 "pipeline_status": matching_pipe["status"],
-                "qa_expected": qa["qa_expected_value"],
-                "qa_similarity": qa["qa_similarity_score"],
                 "section": "QA present in Pipeline",
             })
         else:
-            # QA entry has no match in pipeline output at all
             results.append({
                 "qa_placeholder": qa["qa_placeholder"],
                 "qa_type": qa["qa_type"],
-                "qa_ai_text": qa["qa_ai_text"],
+                "qa_compare_text": qa_compare_text,
+                "qa_ai_text_ref": qa["qa_ai_text"],
                 "pipeline_placeholder": "",
                 "pipeline_type": "",
                 "pipeline_replacement": "",
@@ -242,8 +241,6 @@ def compare(qa_all, pipeline_index):
                 "content_match": "NOT FOUND IN PIPELINE",
                 "similarity": 0.0,
                 "pipeline_status": "",
-                "qa_expected": qa["qa_expected_value"],
-                "qa_similarity": qa["qa_similarity_score"],
                 "section": "MISSING from Pipeline",
             })
 
@@ -254,7 +251,8 @@ def compare(qa_all, pipeline_index):
                 results.append({
                     "qa_placeholder": "",
                     "qa_type": "",
-                    "qa_ai_text": "",
+                    "qa_compare_text": "",
+                    "qa_ai_text_ref": "",
                     "pipeline_placeholder": pe["placeholder"],
                     "pipeline_type": pe["type"],
                     "pipeline_replacement": pe["replacement"],
@@ -262,35 +260,27 @@ def compare(qa_all, pipeline_index):
                     "content_match": "EXTRA IN PIPELINE",
                     "similarity": 0.0,
                     "pipeline_status": pe["status"],
-                    "qa_expected": "",
-                    "qa_similarity": None,
                     "section": "Extra - not in QA",
                 })
 
     # Summary
-    # ---- CORRECTED SUMMARY ----
     total_qa = len(qa_all)
     total_pipeline = sum(len(v) for v in pipeline_index.values())
 
-    # Count UNIQUE placeholder names found vs missing
     all_qa_ph_norms = set(qa["qa_ph_norm"] for qa in qa_all)
     all_pipe_ph_norms = set(p for p in pipeline_index.keys())
     unique_qa_count = len(all_qa_ph_norms)
     unique_covered = len(all_qa_ph_norms & all_pipe_ph_norms)
-    unique_missing_count = len(all_qa_ph_norms - all_pipe_ph_norms)
 
     found = sum(1 for r in results if r["section"] == "QA present in Pipeline")
     missing = sum(1 for r in results if r["section"] == "MISSING from Pipeline")
     extra = sum(1 for r in results if r["section"] == "Extra - not in QA")
 
-    # Type match: use unique placeholder names
     type_compared = sum(1 for r in results if r["type_match"] in ("YES", "NO"))
     type_matched = sum(1 for r in results if r["type_match"] == "YES")
 
-    # Content matching - only count where BOTH have real non-empty text
-    # Entries where QA text is empty are NOT errors
     content_compared = sum(1 for r in results if r["content_match"] in ("MATCH", "PARTIAL (>=70%)", "LOW SIMILARITY", "MISMATCH"))
-    
+
     content_match_count = sum(1 for r in results if r["content_match"] == "MATCH")
     content_high_partial = sum(1 for r in results if r["content_match"] == "PARTIAL (>=70%)")
     content_low = sum(1 for r in results if r["content_match"] == "LOW SIMILARITY")
@@ -301,8 +291,6 @@ def compare(qa_all, pipeline_index):
 
     content_acceptable = content_match_count + content_high_partial
     content_acceptable_rate = round(content_acceptable / content_compared * 100, 2) if content_compared else 0
-
-    # Coverage based on UNIQUE placeholders (more accurate)
     unique_coverage_rate = round(unique_covered / unique_qa_count * 100, 2) if unique_qa_count else 0
 
     summary = {
@@ -310,7 +298,6 @@ def compare(qa_all, pipeline_index):
         "total_pipeline": total_pipeline,
         "unique_qa_phs": unique_qa_count,
         "unique_covered": unique_covered,
-        "unique_missing": unique_missing_count,
         "qa_found_in_pipeline": found,
         "qa_missing_from_pipeline": missing,
         "pipeline_extra_not_in_qa": extra,
@@ -341,16 +328,15 @@ def compare(qa_all, pipeline_index):
 def write_output(results, summary):
     wb = openpyxl.Workbook()
 
-    # ---- Sheet 1: Full Comparison (QA as source of truth) ----
+    # ---- Sheet 1: Full Comparison ----
     ws = wb.active
-    ws.title = "QA vs Pipeline Comparison"
+    ws.title = "QA vs Pipeline (Expected Value)"
 
     headers = [
         "QA Placeholder",
         "QA Placeholder Type",
-        "QA AI Replaced Text",
-        "QA Expected Value",
-        "QA Similarity Score",
+        "QA Expected Value (Comparison)",
+        "QA AI Text (Reference)",
         "Pipeline Placeholder",
         "Pipeline Type",
         "Pipeline Replacement",
@@ -372,9 +358,8 @@ def write_output(results, summary):
         data = [
             r["qa_placeholder"],
             r["qa_type"],
-            r["qa_ai_text"],
-            r["qa_expected"],
-            r["qa_similarity"],
+            r["qa_compare_text"],
+            r["qa_ai_text_ref"],
             r["pipeline_placeholder"],
             r["pipeline_type"],
             r["pipeline_replacement"],
@@ -390,30 +375,29 @@ def write_output(results, summary):
             cell.border = THIN_BORDER
             cell.alignment = Alignment(wrap_text=True, vertical="top")
 
-            # Color code
-            if ci == 9:  # Type Match
+            if ci == 8:  # Type Match
                 cell.fill = GREEN_FILL if val == "YES" else (RED_FILL if val == "NO" else PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid"))
-            if ci == 10:  # Content Match
+            if ci == 9:  # Content Match
                 if val == "MATCH":
                     cell.fill = GREEN_FILL
-                elif val == "PARTIAL":
+                elif "PARTIAL" in str(val):
                     cell.fill = YELLOW_FILL
                 elif val in ("MISMATCH", "MISSING IN PIPELINE", "NOT FOUND IN PIPELINE"):
                     cell.fill = RED_FILL
-            if ci == 13:  # Section
+            if ci == 12:  # Section
                 if "MISSING" in str(val):
                     cell.fill = RED_FILL
                 elif "Extra" in str(val):
                     cell.fill = YELLOW_FILL
 
     ws.freeze_panes = "A2"
-    widths = [35, 16, 50, 50, 14, 35, 16, 50, 12, 20, 12, 14, 24]
+    widths = [35, 16, 50, 50, 35, 16, 50, 12, 20, 12, 14, 24]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[chr(64 + i) if i <= 26 else "AA"].width = w
 
-    # ---- Sheet 2: Missing from Pipeline (QA entries pipeline didn't capture) ----
+    # ---- Sheet 2: Missing from Pipeline ----
     ws2 = wb.create_sheet("Missing in Pipeline Output")
-    for ci, h in enumerate(["QA Placeholder", "QA Type", "QA AI Replaced Text", "QA Expected Value"], 1):
+    for ci, h in enumerate(["QA Placeholder", "QA Type", "QA Expected Value", "QA AI Text"], 1):
         c = ws2.cell(row=1, column=ci, value=h)
         c.fill = HEADER_FILL
         c.font = HEADER_FONT
@@ -422,7 +406,7 @@ def write_output(results, summary):
     ri = 2
     for r in results:
         if r["section"] == "MISSING from Pipeline":
-            for ci, val in enumerate([r["qa_placeholder"], r["qa_type"], r["qa_ai_text"], r["qa_expected"]], 1):
+            for ci, val in enumerate([r["qa_placeholder"], r["qa_type"], r["qa_compare_text"], r["qa_ai_text_ref"]], 1):
                 cell = ws2.cell(row=ri, column=ci, value=val)
                 cell.font = NORMAL_FONT
                 cell.border = THIN_BORDER
@@ -434,7 +418,7 @@ def write_output(results, summary):
     ws2.column_dimensions["C"].width = 60
     ws2.column_dimensions["D"].width = 60
 
-    # ---- Sheet 3: Extra in Pipeline (not in QA) ----
+    # ---- Sheet 3: Extra in Pipeline ----
     ws3 = wb.create_sheet("Extra in Pipeline (not in QA)")
     for ci, h in enumerate(["Pipeline Placeholder", "Pipeline Type", "Pipeline Replacement", "Pipeline Status"], 1):
         c = ws3.cell(row=1, column=ci, value=h)
@@ -471,12 +455,12 @@ def write_output(results, summary):
         ("Pipeline entries not in QA (extras)", summary["pipeline_extra_not_in_qa"]),
         ("Placeholder Coverage Rate", f"{summary['placeholder_coverage']}%"),
         ("", ""),
-        ("TYPE MATCH ACCURACY (Pipeline Type vs QA Type)", ""),
+        ("TYPE MATCH ACCURACY", ""),
         ("Type comparisons done", summary["type_compared"]),
         ("Type matches", summary["type_matched"]),
         ("Type accuracy", f"{summary['type_accuracy']}%"),
         ("", ""),
-        ("CONTENT MATCH (Pipeline Replacement vs QA AI Replaced Text)", ""),
+        ("CONTENT MATCH (Pipeline vs QA Expected Value)", ""),
         ("Content comparisons done (both have data)", summary["content_compared"]),
         ("Exact MATCH (>=95% sim)", summary["content_match"]),
         ("High Partial (>=70% sim)", summary["content_high_partial"]),
@@ -488,11 +472,7 @@ def write_output(results, summary):
         ("Exact match rate", f"{summary['exact_match_rate']}%"),
         ("Acceptable (>=70% sim)", f"{summary['content_acceptable_rate']}%"),
         ("", ""),
-        ("SUMMARY", ""),
-        (f"Out of {summary['total_qa']} QA entries:", ""),
-        (f"  - {summary['qa_found_in_pipeline']} found in pipeline output", ""),
-        (f"  - {summary['qa_missing_from_pipeline']} MISSING from pipeline output", ""),
-        (f"  - {summary['pipeline_extra_not_in_qa']} extra in pipeline not in QA", ""),
+        ("NOTE", "Comparison uses QA Expected Value column, not AI Replaced Text"),
     ]
 
     for ri, (label, val) in enumerate(items, 1):
@@ -519,7 +499,7 @@ def write_output(results, summary):
 
     # Print summary
     print("\n" + "=" * 65)
-    print("ACCURACY RESULTS (QA = Source of Truth)")
+    print("ACCURACY RESULTS V2 (Pipeline vs QA Expected Value)")
     print("=" * 65)
     print(f"QA entries (source of truth): {summary['total_qa']}")
     print(f"")
@@ -532,7 +512,7 @@ def write_output(results, summary):
     print(f"TYPE MATCH:")
     print(f"  Accuracy: {summary['type_matched']}/{summary['type_compared']} ({summary['type_accuracy']}%)")
     print(f"")
-    print(f"CONTENT MATCH (Replacement vs AI Text):")
+    print(f"CONTENT MATCH (Pipeline Replacement vs QA Expected Value):")
     print(f"  Both have content:       {summary['content_compared']}")
     print(f"  Exact MATCH (>=95%):     {summary['content_match']}")
     print(f"  High Partial (>=70%):    {summary['content_high_partial']}")
@@ -560,7 +540,7 @@ if __name__ == "__main__":
     total_pipe = sum(len(v) for v in pipeline_index.values())
     print(f"  Found {total_pipe} entries in pipeline output ({len(pipeline_index)} unique placeholders)")
 
-    print("Comparing...")
+    print("Comparing using QA Expected Value (v2)...")
     results, summary = compare(qa_all, pipeline_index)
 
     print("Writing report...")

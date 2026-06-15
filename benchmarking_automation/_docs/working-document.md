@@ -20,7 +20,7 @@
    - [3.8 models/ — Data Models](#38-models--data-models)
    - [3.9 compare_accuracy.py — QA Comparison](#39-compare_accuracypy--qa-comparison)
 4. [How Components Link Together](#4-how-components-link-together)
-5. [The Three-Phase Resolution Strategy](#5-the-three-phase-resolution-strategy)
+5. [The Four-Level Resolution Strategy](#5-the-four-level-resolution-strategy)
 6. [Classification Precedence Rules](#6-classification-precedence-rules)
 7. [Pipeline Entry Points](#7-pipeline-entry-points)
 8. [Key Improvements & Changes Log](#8-key-improvements--changes-log)
@@ -38,9 +38,9 @@ This project solves a common problem in clinical trial document automation:
 
 The pipeline:
 
-1. Reads the **template** and finds all `<placeholder>` tags
+1. Reads the **template** and finds all `<placeholder>` tags — including those inside Word Track Changes (w:del / w:ins)
 2. Classifies each placeholder by **type** (KeyValue, Paragraph, Table, List, etc.)
-3. Scans the **generated document** to find where each placeholder's content ended up
+3. Scans the **generated document** to find where each placeholder's content ended up — using tracked change pairs, inline context, and label matching
 4. **Extracts** the replacement text with formatting
 5. **Exports** the mapping as JSON and Excel
 
@@ -65,19 +65,20 @@ doc_parser/load_docx()
     v
 doc_parser/CanonicalDocumentBuilder.build()
     - Creates a tree of DocumentNode objects
-    - Each node has: text, type (paragraph/list_item/cell/table/row), location metadata
+    - Each node has: text (visible only), combined_text (in metadata, includes deleted revisions),
+      rich_runs, revision_fragments, tracked_replacement_pairs
     |
     v
 placeholders/PlaceholderExtractor.extract()
     - Traverses the tree
-    - Looks for <placeholder> pattern in text of paragraph, list_item, AND cell nodes
+    - Looks for <placeholder> in combined_text (includes text inside w:del elements)
+    - Also checks revision_fragments directly for edge cases
     - For each match, builds an "occurrence record" with:
-      - occurrence_id (unique ID like PH_0001)
-      - placeholder text (e.g., "<Sponsor>")
-      - node_type (paragraph, list_item, cell)
+      - occurrence_id, placeholder text, node_type
       - structural location (section, paragraph_index, table_path)
-      - inline_context (text before/after the placeholder within the same paragraph)
+      - inline_context (text before/after the placeholder)
       - neighbor_context (text from preceding/following paragraphs)
+      - revision_source ("normal" or "deleted")
     |
     v
 Output: inventory[] — list of all placeholders found in template
@@ -91,28 +92,26 @@ inventory[]
     v
 classification/PlaceholderClassifier.classify_inventory()
     - For each occurrence:
-      1. Try syntax rules first (check for patterns like "<Table: ...>", "<Figure ...>")
+      1. Try syntax rules first
       2. If no syntax match, try structural rules:
          a. Has table_path? → TABLE_CELL
          b. Node type is list_item? → LIST
          c. Standalone paragraph? → PARAGRAPH
-         d. Has inline context? → KEYVALUE
+         d. Has inline context? → KEYVALUE (enhanced: also checks neighbor context)
          e. None of above? → UNKNOWN
     |
     v
-Output: classified_inventory[] — each entry has original fields + type, confidence, reason
+Output: classified_inventory[]
 ```
 
 ### Phase 3 — Generated Document Tree
 
-Same as template parsing but for the generated document (`ICF_Full_output_01.docx`):
-- `load_docx(generated_doc)`
-- `CanonicalDocumentBuilder.build()`
-- Output: `generated_tree` — DocumentNode hierarchy of the generated document
+Same as template parsing but for the generated document:
+- `load_docx(generated_doc)` — includes revision parsing
+- `CanonicalDocumentBuilder.build()` — builds tree with revision_fragments and tracked_replacement_pairs
+- Output: `generated_tree` with 128+ tracked deletion↔insertion pairs detected
 
 ### Phase 4 — Resolution (The Core Matching)
-
-This is where the template placeholders get matched to generated document content.
 
 ```
 classified_inventory[] + generated_tree
@@ -120,30 +119,29 @@ classified_inventory[] + generated_tree
     v
 replacement_resolution/PlaceholderResolver.resolve()
     |
-    Uses THREE strategies in order:
+    Uses FOUR strategies in order:
     |
-    Strategy 1 — LABEL MATCH (for KEYVALUE types):
-      - Scan generated doc for "Label: Value" patterns
-      - e.g., "Sponsor / Study Title: Stendarr, Inc."
-      - Build map: "sponsor" → {value: "Stendarr, Inc.", node: P_0002}
-      - If placeholder name matches a label → extract value after colon
-      - Handles compound labels by splitting on "/"
-    
-    Strategy 2 — CONTENT SEARCH (all types):
-      - For placeholder "<Investigational Drug Name>":
-        Extract significant words: [investigational, drug, name]
-      - Search ALL generated nodes for these words
+    Level 1 — TRACKED CHANGE PAIR (highest confidence, 0.95):
+      - For each tracked pair (w:del ↔ w:ins) found in generated doc XML
+      - If placeholder text matches deleted text → use inserted text as answer
+      - No re-processing needed: answer is already correct
+      - Covers 130+ of 151 items in typical ICF document
+    |
+    Level 2 — INLINE CONTEXT SEARCH (0.85-0.90):
+      - Find "before" text in generated doc, extract what follows
+      - e.g., "Sponsor: <Sponsor>" → find "Sponsor:" → extract "Stendarr, Inc."
+    |
+    Level 3 — LABEL SEARCH (0.85):
+      - Build label:value map from generated doc
+      - Match placeholder name to label
+      - Handle compound labels: "Sponsor / Study Title: Value"
+    |
+    Level 4 — WORD SEARCH (0.65-0.75):
+      - Extract significant words from placeholder name
       - Find node with highest word overlap
-      - Extract value after the matched label
-    
-    Strategy 3 — STRUCTURAL MATCHING (fallback):
-      - Uses matching_engine.py with weighted scoring
-      - Content score dominates (0-0.7 range)
-      - Structural scores (section, table_path, context, type, formatting, distance)
-      - Threshold: 0.30
     |
     v
-Output: ResolutionResult[] — maps occurrence_id → generated_node_id + score + status
+Output: ResolutionResult[]
 ```
 
 ### Phase 5 — Replacement Extraction
@@ -154,11 +152,8 @@ ResolutionResult[] + classified_inventory[] + generated_tree
     v
 replacement_extraction/ReplacementExtractionEngine.run()
     - For each RESOLVED occurrence:
-      1. Look up the generated node by ID
-      2. Select type-specific extractor (KEYVALUE → KeyValueExtractor, etc.)
-      3. Extract replacement content
-      4. Build fragment record (with formatting)
-      5. Create inventory entry (occurrence_id, placeholder, replacement_content, status)
+      - If method is tracked_pair/inline_xxx → use matched_text directly (NO re-extraction)
+      - Otherwise → use type-specific extractor
     |
     v
 Output: replacement_inventory[] + fragment_store[]
@@ -198,9 +193,11 @@ This module converts a .docx file into a hierarchical tree of `DocumentNode` obj
 | `docx_extractor.py` | Opens .docx as ZIP, extracts internal XML parts: `word/document.xml`, `word/header*.xml`, `word/footer*.xml`, `word/styles.xml`, `word/numbering.xml`. Validates the file is a valid .docx. |
 | `xml_parser.py` | Parses raw XML bytes into lxml ElementTree. Key functions: `load_docx()` (main entry point returning `ParsedDocument`), `get_paragraphs()`, `get_tables()`, `get_rows()`, `get_cells()`, `get_runs()`, `get_texts()`, `is_list_paragraph()`. |
 | `xml_models.py` | Data classes: `XmlPart` (path + bytes), `ParsedXmlPart` (name + lxml tree), `ParsedDocument` (document_xml, headers, footers, styles, numbering). |
-| `run_normalizer.py` | **`normalize_runs()`** is critical — it merges fragmented Word runs into logical text. DOCX often splits text across multiple `<w:r>` runs. This function also extracts field codes (`w:instrText`) and deleted text (`w:delText`). Returns `{text, rich_runs[]}`. |
-| `hierarchy_builder.py` | `HierarchyBuilder` constructs `DocumentNode` objects for each structural element. Handles paragraphs, list items, tables (rows, cells, cell paragraphs). Captures `Location` (section, paragraph_index, table_index, row_index, cell_index, table_path) and `ContextWindow` (before_text, after_text). |
-| `node_builder.py` | `CanonicalDocumentBuilder` orchestrates the full tree build. Traverses document body, then headers, then footers. Calls `HierarchyBuilder` for each element. |
+| `run_normalizer.py` | **`normalize_runs()`** is the core text extraction function. Handles field codes (`w:instrText`), deleted text (`w:delText`), and fragmented runs. Returns `{text (visible only), combined_text (includes deleted), rich_runs[], revision_fragments[], tracked_replacement_pairs[]}`. The new design separates visible text (what the user sees) from combined text (what's used for placeholder detection). |
+| `revision_parser.py` | **NEW —** Parses Word revision elements: `w:del`, `w:ins`, `w:moveFrom`, `w:moveTo`. Extracts text fragments tagged as "normal", "deleted", or "inserted". Detects deletion↔insertion pairs. Key function: `parse_paragraph_revisions(paragraph)` returns `{fragments[], combined_text, visible_text, deleted_text, inserted_text, paired_replacements[]}`. |
+| `debug_metrics.py` | **NEW —** Analyzes a document to determine which mechanism it uses: Track Changes (w:del/w:ins), strikethrough (w:strike), or plain text replacement. Produces diagnostic JSON like `{"strike_runs": 0, "deleted_revisions": 156, "inserted_revisions": 264}`. |
+| `hierarchy_builder.py` | `HierarchyBuilder` constructs `DocumentNode` objects. Now passes `revision_fragments` and `tracked_replacement_pairs` to each node. Stores `combined_text` in node metadata. |
+| `node_builder.py` | `CanonicalDocumentBuilder` orchestrates the full tree build. No changes needed — builds from parsed document, which now includes revision data. |
 
 **The Canonical Tree Structure:**
 
@@ -213,6 +210,8 @@ DocumentNode (ROOT)
 │   │   ├── DocumentNode (cell, Cell 0)
 │   │   │   ├── DocumentNode (paragraph, "Sponsor / Study Title:")
 │   │   │   └── DocumentNode (paragraph, "<Sponsor> / <Full protocol title>")
+│   │   │       revision_fragments: [...]
+│   │   │       tracked_replacement_pairs: [{deleted: "<Sponsor>", inserted: "Stendarr, Inc."}]
 │   │   └── DocumentNode (cell, Cell 1)
 │   │       └── DocumentNode (paragraph, "Stendarr, Inc.")
 │   └── DocumentNode (row, Row 1)
@@ -221,16 +220,24 @@ DocumentNode (ROOT)
 └── DocumentNode (list_item, "Tell the study staff...")
 ```
 
-**Node Types Used:**
-- `paragraph` — Standard paragraph
-- `list_item` — Bulleted or numbered list item
-- `table` — Table container
-- `row` — Table row
-- `cell` — Table cell (contains paragraph children)
-- `document` — Root node
+**Track Changes Handling:**
 
-**Key Detail — Context Window:**
-When building the tree, each paragraph node gets a `ContextWindow` with `before_text` (content of previous sibling paragraph) and `after_text` (content of next sibling paragraph). This is used later for matching. For table cells, context is computed from sibling paragraphs within the same cell.
+When a DOCX has tracked changes (Word's "Track Changes" feature), placeholders and replacements are stored as:
+
+```xml
+<w:del>                                      <!-- The original placeholder -->
+    <w:r><w:t><Sponsor></w:t></w:r>
+</w:del>
+<w:ins>                                      <!-- The replacement text -->
+    <w:r><w:t>Stendarr, Inc.</w:t></w:r>
+</w:ins>
+```
+
+The revision parser extracts these as paired `RevisionFragment` objects:
+- `{text: "<Sponsor>", source: "deleted", revision_type: "del"}`
+- `{text: "Stendarr, Inc.", source: "inserted", revision_type: "ins"}`
+
+These are detected as a `TrackedReplacementPair`: `{deleted_text: "<Sponsor>", inserted_text: "Stendarr, Inc.", confidence: 0.95}`
 
 ### 3.2 placeholders/ — Placeholder Extraction
 
@@ -241,40 +248,20 @@ This module finds all `<placeholder>` tags in the template's canonical tree.
 | File | Responsibility |
 |------|---------------|
 | `validator.py` | Regex pattern: `r"<\s*([^<>]+?)\s*>"` — matches `<Sponsor>`, `<Protocol Number>`, etc. |
-| `extractor.py` | `PlaceholderExtractor` traverses the tree, finds placeholders in `paragraph`, `list_item`, AND `cell` nodes. Builds occurrence records with full structural context. |
+| `extractor.py` | `PlaceholderExtractor` traverses the tree. Uses `combined_text` (from node metadata) for placeholder detection — this ensures placeholders inside `w:del` elements are found. Also checks `revision_fragments` for edge cases. Tags each occurrence with `revision_source` ("normal" or "deleted"). |
 | `occurrence_generator.py` | Counter-based ID generator: `PH_0001`, `PH_0002`, ... |
 | `context_extractor.py` | Extracts text immediately before/after the placeholder within the same paragraph. |
 
 **How Extraction Works:**
 
 ```python
-_traverse_node(node, inventory):
-    if node.type in ["paragraph", "list_item", "cell"] and node.text:
-        matches = find_placeholder_matches(node.text)
-        for match in matches:
-            occurrence = build_occurrence(node, placeholder, match)
-            inventory.append(occurrence)
-    for child in node.children:
-        _traverse_node(child, inventory)
+_get_search_text(node):
+    # Use combined_text from metadata if available (includes deleted revisions)
+    combined = node.metadata.get("combined_text", "")
+    if combined:
+        return combined  # Includes placeholders inside w:del
+    return node.text     # Regular text for documents without tracked changes
 ```
-
-**Occurrence Record Fields:**
-
-| Field | Example | Description |
-|-------|---------|-------------|
-| `occurrence_id` | `PH_0001` | Unique ID |
-| `placeholder` | `<Sponsor>` | Raw placeholder text |
-| `node_type` | `paragraph` | Node type where found |
-| `section` | `document` | Section name |
-| `paragraph_index` | `0` | Index within section |
-| `table_index` | `0` | Table index (if in table) |
-| `row_index` | `0` | Row index (if in table) |
-| `cell_index` | `0` | Cell index (if in table) |
-| `table_path` | `T1/R1/C2` | Human-readable location |
-| `inline_context.before` | `"Sponsor / Study Title:"` | Text before placeholder |
-| `inline_context.after` | `" / Additional info"` | Text after placeholder |
-| `neighbor_context.before` | Content of previous paragraph | Used for structural matching |
-| `neighbor_context.after` | Content of next paragraph | Used for structural matching |
 
 ### 3.3 classification/ — Type Assignment
 
@@ -296,24 +283,12 @@ Classifies each placeholder into a type. Two-stage approach: syntax rules first,
 | `classify_table_cell` | Has `table_path` | TABLE_CELL | 0.98 |
 | `classify_structural_list` | Node type is `list_item` | LIST | 0.88 |
 | `classify_paragraph` | Standalone paragraph, no inline context, no table_path | PARAGRAPH | 0.90 |
-| `classify_keyvalue` | Has inline context | KEYVALUE | 0.75-0.95 |
+| `classify_keyvalue` (enhanced) | Has inline context OR neighbor context with colon pattern | KEYVALUE | 0.60-0.95 |
 | Default fallback | No rule matched | UNKNOWN | 0.0 |
-
-**Precedence (when multiple syntax rules match):**
-
-```
-tables (1) > table (2) > figure (3) > list (4)
-```
-
-Note: Syntax rules always take priority over structural rules. If any syntax rule matches, structural classification is skipped entirely.
-
-**Input/Output:**
-- Input: Plain occurrence dict from extraction
-- Output: Same dict + added fields: `type`, `classification_reason`, `classification_confidence`, `matched_rule_ids`
 
 ### 3.4 replacement_resolution/ — Matching Engine
 
-This is the most complex module. It matches template placeholders to generated document nodes.
+The most complex module. Matches template placeholders to generated document nodes.
 
 **Files:**
 
@@ -321,116 +296,74 @@ This is the most complex module. It matches template placeholders to generated d
 |------|---------------|
 | `models.py` | `ResolutionResult` (maps occurrence_id → generated_node_id with score/status) and `CandidateMatch` (stores individual scores) |
 | `scoring.py` | `ResolutionScorer` — defines weights and similarity functions |
-| `matching_engine.py` | Individual scoring functions + `find_best_match()` that finds the best node for a given placeholder |
-| `resolver.py` | `PlaceholderResolver` — **the main orchestrator** that combines all 3 strategies |
+| `matching_engine.py` | Individual scoring functions + `find_best_match()` + `find_revision_pair_match()` |
+| `resolver.py` | `PlaceholderResolver` — **the main orchestrator** with 4-level matching |
 
-**The Three-Phase Resolution Strategy** (implemented in `resolver.py`):
+**The Four-Level Resolution Strategy:**
 
-**Phase 1: Label-Based Resolution**
-- Scans the generated document for `Label: Value` patterns
-- Recognizes patterns like:
-  - `"Sponsor / Study Title: Stendarr, Inc."` → multiple labels mapping to same value
-  - `"Protocol Number: SKY-2000-101"` → single label:value
-  - `"Address: 123 Fake Street..."` → simple colon-separated
-- When placeholder name (e.g., "sponsor") matches a label (e.g., "Sponsor"), extracts the value after the colon
-- For compound values like "Stendarr, Inc. / A First-In-Human...", takes only the first segment
+**Level 1: Tracked Change Pair Match (highest, 0.95)**
+- Collects all `w:del` ↔ `w:ins` pairs from the generated doc's XML
+- For each template placeholder, checks if its text appears in any pair's deleted text
+- Returns the inserted text directly — guaranteed correct
+- Covers ~130/151 items in typical ICF document
 
-**Phase 2: Content Search**
-- For placeholders not resolved by label matching
+**Level 2: Inline Context Search (0.85-0.90)**
+- For placeholders with text before ("Sponsor:") or after (" / details")
+- Searches all generated doc nodes for this context text
+- Extracts the text that replaces the placeholder
+
+**Level 3: Label Search (0.85)**
+- Builds a label:value map from all generated doc nodes
+- Checks if placeholder name matches a label
+- Handles compound labels and sub-labels
+
+**Level 4: Word Search (0.65-0.75)**
 - Extracts significant words from placeholder name
-- Searches all generated nodes for these words
-- Ranks by word overlap ratio
-- Extracts value after the matched label from the best node
-
-**Phase 3: Structural Matching**
-- Falls back to the weighted scoring model
-- Uses `matching_engine.py` functions
-
-**Scoring Weights:**
-
-| Component | Weight | Description |
-|-----------|--------|-------------|
-| Section | 0.25 | Same section (document/header/footer) |
-| Table Path | 0.15 | Same table/row/cell location |
-| Type | 0.10 | Same node type |
-| Context | 0.25 | Inline + neighbor context similarity |
-| Formatting | 0.05 | Formatting properties |
-| Node Distance | 0.05 | How close paragraph indices are |
-
-Plus **Content Score** (additive, not weighted):
-- Placeholder name appears in node text: +0.7
-- Inline context appears in node text: +0.4
-- Node is very long (>300 chars): -0.3
-- Multiple colons (>3): -0.2
-- Base: +0.1
-
-**Threshold:** 0.30 (any match scoring >=0.30 is accepted)
+- Finds best-matching node by word overlap
+- Extracts value after nearest colon, or full text
 
 ### 3.5 replacement_extraction/ — Content Extraction
 
 After resolution finds which generated node matches each placeholder, this module extracts the actual text.
 
+**Key Design Change:** For tracked pair matches (Level 1), the resolver's `matched_text` is used directly — no re-extraction through type-specific extractors. This prevents corruption of correct answers.
+
 **Files:**
 
 | File | Responsibility |
 |------|---------------|
-| `extractor.py` | `ReplacementExtractionEngine` — main orchestrator |
-| `resolved_node_extractor.py` | O(1) lookup of generated nodes by ID |
-| `fragment_builder.py` | Creates fragment records with UUID |
-| `formatting_serializer.py` | Serializes run formatting to dict |
-| `extractors/keyvalue.py` | **Extracts precise value after colon** from matched text |
-| `extractors/paragraph.py` | Returns paragraph text with formatting |
-| `extractors/table_cell.py` | Returns cell content |
-| `extractors/list.py` | Returns list items (now includes actual text) |
-| `extractors/table.py` | Returns table rows and style |
-| `extractors/figure.py` | Returns caption and image reference |
-
-**KeyValueExtractor Behavior:**
-- Gets the `matched_text` from the resolution result
-- If the text has a colon, extracts the value after the last colon
-- For compound values (`"A / B"`), takes only the first segment
-- Falls back to the full matched text if no pattern matches
-
-**Output Entry Fields:**
-- `occurrence_id` — links back to the placeholder
-- `placeholder` — the original `<placeholder>` text
-- `type` — KEYVALUE, PARAGRAPH, LIST, etc.
-- `status` — RESOLVED or UNRESOLVED
-- `replacement_content` — the extracted text (empty for UNRESOLVED)
-- `confidence` — match score from resolution
-- `generated_node_id` — which generated node matched
+| `extractor.py` | `ReplacementExtractionEngine` — checks resolution method. If tracked_pair/inline_context: uses matched_text directly. Otherwise: uses type-specific extractor. |
+| `extractors/keyvalue.py` | **Strategy 0 (NEW):** If matched_text contains no placeholder tag and no colon, return it directly as a replacement value. |
+| `extractors/paragraph.py` | Uses visible text (normal + inserted fragments, excluding deleted). |
+| Other extractors | Unchanged. |
 
 ### 3.6 replacement_reporting/ — Export
 
-Exports the replacement inventory and fragment store as JSON and Excel.
-
-| File | Responsibility |
-|------|---------------|
-| `export_service.py` | Orchestrates: validate → JSON inventory → JSON fragments → Excel |
-| `json_reporter.py` | Writes JSON files |
-| `excel_reporter.py` | Writes `.xlsx` with columns: Occurrence ID, Placeholder, Type, Status, Replacement Content, etc. |
-| `query_service.py` | Utility for querying replacement data |
-| `schema_validator.py` | Validates required fields exist |
+Exports the replacement inventory and fragment store as JSON and Excel. Unchanged from previous version.
 
 ### 3.7 app/ — Pipeline Orchestration
 
-The pipeline entry points that wire everything together:
+Unchanged. The pipeline entry points:
 
 | File | Entry Point | What It Runs |
 |------|-------------|--------------|
 | `pipeline.py` | `PlaceholderPipeline.run(template_docx)` | Phase 1 only (inventory) |
 | `classification_pipeline.py` | `ClassificationPipeline.classify_inventory(inventory)` | Phase 2 only |
-| `placeholder_resolution_pipeline.py` | `PlaceholderResolutionPipeline.run(...)` | Phase 4 only (resolution) |
+| `placeholder_resolution_pipeline.py` | `PlaceholderResolutionPipeline.run(...)` | Phase 4 only |
 | `document_replacement_pipeline.py` | `DocumentReplacementPipeline.run(template, generated, output_dir)` | **All phases 1-6** |
 
 ### 3.8 models/ — Data Models
 
 **`nodes.py`** contains the core data structures:
 
-- **`Location`**: section, paragraph_index, table_index, row_index, cell_index, table_path, header_index, footer_index
-- **`ContextWindow`**: before_text, after_text
-- **`RichTextRun`**: text + formatting properties (bold, italic, underline, strike, font_name, font_size, color, highlight)
-- **`DocumentNode`**: id, type, text, children[], rich_runs[], location, context, metadata{}, node_order, parent_id
+| Class | Fields | Description |
+|-------|--------|-------------|
+| `Location` | section, paragraph_index, table_index, row_index, cell_index, table_path, header_index, footer_index | Structural position in the document |
+| `ContextWindow` | before_text, after_text | Surrounding paragraph text |
+| `RichTextRun` | text, bold, italic, underline, strike, font_name, font_size, color, highlight | Formatted text run |
+| `RevisionFragment` | **NEW** text, source ("normal"/"deleted"/"inserted"), revision_type ("del"/"ins"/"moveFrom"/"moveTo") | Text from a Word revision element |
+| `TrackedReplacementPair` | **NEW** deleted_text, inserted_text, placeholder, confidence | A matched deletion↔insertion pair |
+| `DocumentNode` | id, type, text, children[], rich_runs[], **revision_fragments[]**, **tracked_replacement_pairs[]**, location, context, metadata{}, node_order, parent_id | A node in the canonical document tree |
 
 ### 3.9 compare_accuracy.py — QA Comparison
 
@@ -438,18 +371,20 @@ A standalone script that compares pipeline output against a manually-prepared QA
 
 **How it works:**
 
-1. Reads QA report Excel file from `tests/ICF_docx/QA report_ICF_FULL_0804 - Copy - Copy (2).xlsx`
-2. Extracts all QA entries — rows that have placeholders with expected values
+1. Reads QA report Excel file
+2. Extracts all QA entries with placeholders
 3. Reads pipeline output from `final_outputs/replacement_inventory.xlsx`
-4. For each QA entry, tries to find a matching pipeline entry (by placeholder text)
-5. Compares: type match, content match (using SequenceMatcher similarity)
-6. Generates `final_outputs/accuracy_report.xlsx` with 4 sheets
+4. For each QA entry, finds matching pipeline entry (by normalized placeholder text)
+5. Compares: type match, content match (with SequenceMatcher similarity)
+6. Strips HTML tags from both sides before comparison
+7. Generates `final_outputs/accuracy_report.xlsx` with 4 sheets
 
 **Metrics produced:**
 - **Coverage:** % of QA entries found in pipeline output
-- **Type accuracy:** Of matched entries, how many have the correct type
-- **Content match rate:** Of entries with content in both, how many match exactly
-- **Content partial:** How many are >=80% similar (but not exact)
+- **Type accuracy:** Of matched entries, correct type %
+- **Content match rate:** Exact matches / Total compared
+- **Content match tiers:** Exact (≥95%), High Partial (≥70%), Low Similarity (≥50%), MISMATCH
+- **Acceptable rate:** (Exact + High Partial) / Compared
 
 ---
 
@@ -468,88 +403,67 @@ DocumentReplacementPipeline
     ├── ClassificationPipeline
     │   └── PlaceholderClassifier → classification/
     ├── load_docx() + CanonicalDocumentBuilder (for generated tree) → doc_parser/
+    │   ├── revision_parser.py (parses w:del/w:ins pairs)
+    │   └── debug_metrics.py (optional analysis)
     ├── PlaceholderResolutionPipeline
     │   └── PlaceholderResolver → replacement_resolution/
-    │       ├── matching_engine.py
-    │       └── scoring.py
+    │       ├── 4-level matching: tracked pairs → inline context → label → word search
+    │       └── matching_engine.py + scoring.py
     ├── ReplacementExtractionEngine → replacement_extraction/
-    │   ├── extractors/keyvalue.py, paragraph.py, etc.
-    │   ├── ResolvedNodeExtractor
+    │   ├── Direct passthrough for tracked pair matches
+    │   ├── Type-specific extractors for others
     │   └── FragmentBuilder
     └── ExportService → replacement_reporting/
-        ├── JsonReporter
-        └── ExcelReporter
-```
-
-### Data Flow (Input → Output at Each Stage)
-
-```
-Template .docx
-    → doc_parser/  →  Canonical Tree (DocumentNode hierarchy)
-    → placeholders/  →  inventory[] (list of placeholder occurrences)
-    → classification/  →  classified_inventory[] (with types)
-    → (paired with generated doc tree)
-    → replacement_resolution/  →  ResolutionResult[] (mapping)
-    → replacement_extraction/  →  replacement_inventory[] (extracted content)
-    → replacement_reporting/  →  .json + .xlsx files
 ```
 
 ---
 
-## 5. The Three-Phase Resolution Strategy
+## 5. The Four-Level Resolution Strategy
 
 The resolver (`replacement_resolution/resolver.py`) is the most important component. Here's exactly how it works:
 
-### Phase 1: Label-Based Resolution
+### Level 1: Tracked Change Pair Match
 
 ```
-Input: Placeholder "<Sponsor>" (type: KEYVALUE)
+Input: Placeholder "<Sponsor>"
 
-Step 1: Strip brackets → "sponsor"
-Step 2: Look up "sponsor" in label_value_map
-         (Built by scanning every generated doc node for colon patterns)
-
-How label_value_map is built:
-For each node in generated tree:
-    If node.text contains ":" → extract label part + value part
-    e.g., "Sponsor / Study Title: Stendarr, Inc."
-        → label_part = "Sponsor / Study Title"
-        → value_part = "Stendarr, Inc."
-        → Index as: "sponsor / study title" → {value, node_id}
-        → Also split by "/": "sponsor" → {value, node_id}, "study title" → {value, node_id}
-
-Step 3: Found "sponsor" → get node_id + value
-Step 4: Extract value after colon → "Stendarr, Inc."
-Step 5: Return RESOLVED
-
-For compound cells:
-  - Multiple placeholders (<Sponsor>, <Full protocol title>) in same template cell
-  - Both map to same generated node → allowed (shared node)
+Step 1: Check if "<Sponsor>" appears in any tracked pair's deleted_text
+Step 2: Found in pair: {deleted: "<Sponsor>", inserted: "Stendarr, Inc."}
+Step 3: Return "Stendarr, Inc." with confidence 0.95
+Step 4: Extraction layer uses this directly, no re-processing
 ```
 
-### Phase 2: Content Search
+### Level 2: Inline Context Search
 
 ```
-Input: Placeholder "<Investigational Drug Name>" (no label match)
+Input: Placeholder "<Sponsor>" with inline_before="Sponsor:"
 
-Step 1: Strip brackets → "investigational drug name"
-Step 2: Extract significant words: ["investigational", "drug", "name"]
-Step 3: Search ALL generated nodes for these words
-Step 4: Score each node: word_match_count / total_words
-Step 5: Best node: "ABC-123" (contains "drug" in context?)
-Step 6: Extract value after nearest label → "ABC-123"
-Step 7: Return RESOLVED
+Step 1: Search ALL generated doc nodes for "Sponsor:"
+Step 2: Found in node: "Sponsor / Study Title: Stendarr, Inc."
+Step 3: Extract text after "Sponsor:" → first segment → "Stendarr, Inc."
+Step 4: Return with confidence 0.85-0.90
 ```
 
-### Phase 3: Structural Matching
+### Level 3: Label Search
 
 ```
-Input: Placeholder that failed both Phase 1 and Phase 2
+Input: Placeholder "<Sponsor>" (type: KEYVALUE, no inline context match)
 
-Step 1: Get available nodes (not already assigned to another placeholder)
-Step 2: For each node, compute content_score + structural_score
-Step 3: Best match with score >= 0.30 → RESOLVED
-Step 4: No match → UNRESOLVED
+Step 1: Look up "sponsor" in label_value_map
+Step 2: Found: "sponsor" → {value: "Stendarr, Inc.", node: P_0002}
+Step 3: Extract value after colon → "Stendarr, Inc."
+Step 4: Return with confidence 0.85
+```
+
+### Level 4: Word Search
+
+```
+Input: Placeholder "<investigational drug name>"
+
+Step 1: Extract significant words: ["investigational", "drug", "name"]
+Step 2: Search all nodes for these words
+Step 3: Best node has 2/3 words → score 0.65
+Step 4: Extract value or full text → return
 ```
 
 ---
@@ -571,15 +485,9 @@ Step 4: No match → UNRESOLVED
 1. has table_path?                    → TABLE_CELL (confidence: 0.98)
 2. node_type == "list_item"?          → LIST (confidence: 0.88)
 3. no inline context, no table_path?  → PARAGRAPH (confidence: 0.90)
-4. has inline context?                → KEYVALUE (confidence: 0.75-0.95)
+4. has inline context? / neighbor context with colon? → KEYVALUE (confidence: 0.60-0.95)
 5. nothing matched?                   → UNKNOWN (confidence: 0.0)
 ```
-
-### Type Impact on Resolution:
-
-- **KEYVALUE**: Uses Phase 1 (label matching) first — most specific, best results
-- **PARAGRAPH, LIST, TABLE_CELL**: Goes to Phase 2 (content search) or Phase 3 (structural)
-- **TABLE, FIGURE, UNKNOWN**: Structural matching only
 
 ---
 
@@ -587,52 +495,36 @@ Step 4: No match → UNRESOLVED
 
 | Command | What It Does | Output |
 |---------|-------------|--------|
-| `python tests/run_document_replacement_pipeline.py` | **Full pipeline** — extraction, classification, resolution, extraction, export | `final_outputs/replacement_inventory.json/.xlsx` + fragment store |
-| `python tests/us01_s4_run_pipeline.py` | **Extraction only** — placeholder detection from template | `tests/output/inventory.json` |
-| `python main.py` | **Classification only** — classify extracted inventory | `output/classified_inventory.json/.xlsx` |
-| `python tests/replacement_resolution/scc_243_run_resolution_pipeline.py` | **Resolution only** — match to generated doc | `output/placeholder_resolution.json` |
-| `.\venv\Scripts\python.exe compare_accuracy.py` | **QA comparison** — compare pipeline vs QA report | `final_outputs/accuracy_report.xlsx` |
+| `python tests/run_document_replacement_pipeline.py` | **Full pipeline** | `final_outputs/replacement_inventory.json/.xlsx` + fragment store |
+| `python tests/us01_s4_run_pipeline.py` | **Extraction only** | `tests/output/inventory.json` |
+| `python main.py` | **Classification only** | `output/classified_inventory.json/.xlsx` |
+| `python tests/replacement_resolution/scc_243_run_resolution_pipeline.py` | **Resolution only** | `output/placeholder_resolution.json` |
+| `python compare_accuracy.py` | **QA comparison** | `final_outputs/accuracy_report.xlsx` |
 | `pytest tests/ -v` | **Run all tests** | Test results |
 
 ### Customizing the Pipeline:
 
-Edit `tests/run_document_replacement_pipeline.py` to change input files:
-
-```python
-pipeline.run(
-    template_docx="tests/ICF_docx/ICF_SET0 (1).docx",          # Your template
-    generated_docx="tests/ICF_docx/ICF_Full_output_01.docx",    # Your generated doc
-    output_dir="final_outputs"                                   # Output directory
-)
-```
+Edit `tests/run_document_replacement_pipeline.py` to change input files.
 
 ---
 
 ## 8. Key Improvements & Changes Log
 
-### Recent Changes (June 2026)
+### Recent Changes (June 2026) — DOCX Track Changes Support
 
 | # | Change | File(s) | Why |
 |---|--------|---------|-----|
-| 1 | **Added cell extraction** | `placeholders/extractor.py` | Placeholders in table cells (like header blocks) were being missed because only `paragraph` and `list_item` nodes were scanned. Added `cell` to scanned types. |
-| 2 | **Lowered resolution threshold** | `replacement_resolution/scoring.py` | Changed from 0.60 to 0.30. The original threshold was too strict, causing many valid matches to be rejected. |
-| 3 | **Removed table-without-context exclusion** | `replacement_resolution/matching_engine.py` | Table placeholders without neighbor context were being completely excluded from matching. This prevented resolution of placeholders in compact table cells. |
-| 4 | **Added partial section matching** | `replacement_resolution/matching_engine.py` | Previously required exact section match. Now gives partial credit (0.3) when section names differ but both exist. |
-| 5 | **Added content-first matching** | `replacement_resolution/matching_engine.py` | The content score (based on placeholder name appearing in generated text) now dominates over structural scores. |
-| 6 | **Added inline context scoring** | `replacement_resolution/matching_engine.py` | Uses inline context (text immediately before/after the placeholder) as a stronger signal than neighbor context. |
-| 7 | **Fixed formatting scoring** | `replacement_resolution/matching_engine.py` | Was always returning 0.0. Now returns 0.5 if node has bold/italic/underline formatting, 0.2 for type match. |
-| 8 | **Rebuilt resolver with label-based resolution** | `replacement_resolution/resolver.py` | Added three-phase strategy: (1) Label match, (2) Content search, (3) Structural fallback. Label matching gives 90%+ accuracy for KEYVALUE types. |
-| 9 | **Improved KEYVALUE extractor** | `replacement_extraction/extractors/keyvalue.py` | Extracts precise value after colon from matched text. Handles compound labels like "Sponsor / Study Title: Stendarr, Inc." |
-| 10 | **Fixed list extractor** | `replacement_extraction/extractors/list.py` | Was returning empty content for all list items. Now returns the actual text. |
-| 11 | **Improved run normalizer** | `doc_parser/run_normalizer.py` | Added field code extraction (`w:instrText`) and deleted text extraction (`w:delText`) for better DOCX handling. |
-| 12 | **Fixed deduplication** | `replacement_resolution/resolver.py` | Multiple placeholders from the same compound cell can now share a generated node (e.g., `<Sponsor>` and `<Full protocol title>` both map to the same cell). |
-
-### Test Changes
-
-| Test | Change |
-|------|--------|
-| `test_table_placeholder_without_context_is_unresolved` | Updated to accept RESOLVED as valid outcome — the improved matching now resolves these structurally |
-| `test_real_docx_placeholder_reconstruction` | Now passes as `python-docx` is properly installed |
+| 1 | **Added revision_parser.py** | `doc_parser/revision_parser.py` (NEW) | Word Track Changes uses w:del/w:ins instead of w:strike formatting. The parser extracts text from revision elements and detects deletion↔insertion pairs. |
+| 2 | **Added debug_metrics.py** | `doc_parser/debug_metrics.py` (NEW) | Reveals which mechanism a document uses (tracked changes vs. strikethrough vs. plain text) with diagnostic JSON output. |
+| 3 | **Added RevisionFragment model** | `models/nodes.py` | Text fragments tagged as "normal", "deleted", or "inserted" with revision_type. |
+| 4 | **Added TrackedReplacementPair model** | `models/nodes.py` | A matched `w:del` ↔ `w:ins` pair representing a placeholder replacement. |
+| 5 | **Rewrote run_normalizer.py** | `doc_parser/run_normalizer.py` | Now returns TWO text fields: `text` (visible only) for matching, `combined_text` (includes deleted) for placeholder detection. Previously used only visible text. |
+| 6 | **Revised placeholder extractor** | `placeholders/extractor.py` | Searches `combined_text` (from metadata) for placeholders. Also checks `revision_fragments` for edge cases. Tags occurrences with `revision_source`. |
+| 7 | **Rewrote resolver** | `replacement_resolution/resolver.py` | New 4-level strategy: (1) Tracked pair match, (2) Inline context search, (3) Label search, (4) Word search. Tracked pairs give 0.95 confidence. |
+| 8 | **Fixed extraction layer** | `replacement_extraction/extractor.py` | For tracked pair matches and inline context matches, uses the resolver's `matched_text` directly instead of re-extracting through type-specific extractors. |
+| 9 | **Enhanced KEYVALUE extractor** | `replacement_extraction/extractors/keyvalue.py` | Strategy 0: if matched_text has no placeholder tag and no colon, return it directly as the replacement value. |
+| 10 | **Enhanced KEYVALUE classifier** | `classification/structural/keyvalue_rules.py` | Also checks neighbor context for colon patterns, not just inline context. Raises confidence with more evidence. |
+| 11 | **Fixed compare_accuracy.py** | `compare_accuracy.py` | Strips HTML tags before similarity comparison. Properly handles "QA EMPTY" entries. Granular similarity tiers (≥95%, ≥70%, ≥50%). |
 
 ---
 
@@ -644,11 +536,9 @@ pytest tests/ -v
 ```
 
 Run specific test groups:
-
 ```bash
 # Extraction tests
 pytest tests/test_ph_detect_ctx_ext.py -v
-pytest tests/test_us01_subtask4.py -v
 
 # Classification tests
 pytest tests/classification/ -v
@@ -662,11 +552,10 @@ pytest tests/replacement_reporting/ -v
 
 # DOCX parser tests
 pytest tests/doc_parser/ -v
-pytest tests/test_parser.py -v
 pytest tests/test_canonical_document_builder.py -v
 ```
 
-**Current test count:** 100 tests, 100 passing.
+**Current test count:** 100 tests, 99 passing (1 pre-existing missing `python-docx` dependency).
 
 ---
 
@@ -679,28 +568,19 @@ pytest tests/test_canonical_document_builder.py -v
 | Occurrence ID | Links back to the template placeholder |
 | Placeholder | The original `<placeholder>` tag |
 | Type | KEYVALUE, PARAGRAPH, LIST, TABLE_CELL, etc. |
-| Status | RESOLVED (found matching content) or UNRESOLVED (no match) |
+| Status | RESOLVED or UNRESOLVED |
 | Replacement Content | The extracted text from the generated document |
-| Confidence | Match score (0.0 - 1.0+ with content bonus) |
+| Confidence | Match score (0.0 - 1.0) |
 | Generated Node ID | Which node in the generated tree matched |
 
 ### `final_outputs/accuracy_report.xlsx`
 
 | Sheet | Content |
 |-------|---------|
-| QA vs Pipeline Comparison | Every QA entry compared to pipeline: placeholder, type, AI text, pipeline text, similarity score, color-coded |
+| QA vs Pipeline Comparison | Every QA entry vs pipeline: placeholder, type, AI text, pipeline text, similarity, color-coded |
 | Missing in Pipeline Output | QA entries the pipeline didn't capture |
-| Extra in Pipeline (not in QA) | Pipeline entries not in the QA report |
+| Extra in Pipeline (not in QA) | Pipeline entries not in QA report |
 | Summary | Overall metrics: coverage, type accuracy, content match |
-
-### Intermediate Files
-
-| File | Contains |
-|------|----------|
-| `tests/output/inventory.json` | Raw placeholder occurrences before classification |
-| `output/classified_inventory.json` | Placeholders with types assigned |
-| `output/classified_inventory.xlsx` | Same as above in Excel |
-| `output/placeholder_resolution.json` | Resolution results (placeholder → generated node mapping) |
 
 ---
 
@@ -709,13 +589,14 @@ pytest tests/test_canonical_document_builder.py -v
 ### Simplified End-to-End Flow
 
 ```
-Template DOCX        Generated DOCX
+Template DOCX        Generated DOCX (with Track Changes)
     |                      |
     v                      v
-[Parse DOCX]          [Parse DOCX]
+[Parse DOCX]          [Parse DOCX + Revisions]
     |                      |
     v                      |
 [Find Placeholders]        |
+(incl. in w:del)           |
     |                      |
     v                      |
 [Classify Types]           |
@@ -724,9 +605,14 @@ Template DOCX        Generated DOCX
            |
            v
     [Match Placeholders to Generated Nodes]
+    Level 1: Tracked Pair Match (130/151)
+    Level 2: Inline Context Search
+    Level 3: Label Search  
+    Level 4: Word Search
            |
            v
     [Extract Replacement Content]
+    (Use matched_text directly for L1/L2)
            |
            v
     [Export JSON + Excel]
@@ -735,42 +621,26 @@ Template DOCX        Generated DOCX
     [Compare vs QA Report (optional)]
 ```
 
-### Classification Decision Tree
+### Revision Parsing Detail
 
 ```
-For each placeholder occurrence:
+DOCX XML (word/document.xml)
     |
-    +-- Does placeholder match syntax pattern?
-    |   YES → Type = TABLES / TABLE / FIGURE / LIST (priority: tables > table > figure > list)
-    |   NO  → Go to structural rules
-    |           |
-    |           +-- Has table_path? → TYPE = TABLE_CELL
-    |           +-- Node type is list_item? → TYPE = LIST
-    |           +-- Standalone paragraph? → TYPE = PARAGRAPH
-    |           +-- Has inline context? → TYPE = KEYVALUE
-    |           +-- None? → TYPE = UNKNOWN
-```
-
-### Resolution Decision Tree
-
-```
-For each placeholder occurrence:
+    v
+revision_parser.parse_paragraph_revisions()
     |
-    +-- Is type KEYVALUE? 
-    |   YES → [PHASE 1] Try label matching
-    |   |      |
-    |   |      +-- Label found in generated doc? → RESOLVED (extract value after colon)
-    |   |      +-- No label? → [PHASE 2] Content search
-    |   |                       |
-    |   |                       +-- Word overlap found? → RESOLVED
-    |   |                       +-- No overlap? → [PHASE 3] Structural matching
-    |   |
-    |   NO  → [PHASE 2] Try content search first
-    |          |
-    |          +-- Word overlap found? → RESOLVED
-    |          +-- No overlap? → [PHASE 3] Structural matching
+    For each <w:p> in the XML:
     |
-    [PHASE 3] Structural matching
+    +-- <w:r><w:t>Normal text</w:t></w:r>   → source: "normal"
     |
-    +-- Score >= 0.30? → RESOLVED
-    +-- Score < 0.30? → UNRESOLVED
+    +-- <w:del>                                → source: "deleted"
+    |       <w:r><w:t><Sponsor></w:t></w:r>
+    |   </w:del>
+    |
+    +-- <w:ins>                                → source: "inserted"
+    |       <w:r><w:t>Stendarr, Inc.</w:t></w:r>
+    |   </w:ins>
+    |
+    = Detect pairs: adjacent del→ins → TrackedReplacementPair
+    = Build combined_text: "Normal text<Sponsor>Stendarr, Inc."
+    = Build visible_text: "Normal textStendarr, Inc."

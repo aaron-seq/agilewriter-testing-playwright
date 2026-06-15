@@ -19,6 +19,16 @@ class KeyValueExtractor:
         if not ph_name:
             return None
 
+        # Strategy 0: If the matched_text appears to be a direct replacement
+        # (e.g., from a tracked change insertion), return it directly
+        # This handles cases like <Patient_Name> → "John Doe"
+        # where matched_text IS the replacement value itself
+        if not re.search(r"<[^>]+>", matched_text) and ":" not in matched_text:
+            # If no placeholder tag and no colon pattern, this is likely
+            # a direct replacement value from a tracked change
+            if len(matched_text) < 200:
+                return matched_text
+
         # Strategy 1: Find the LAST colon in the text and take what's after it
         # This handles cases like "Label1 / Label2: Value1 / Value2"
         # where the value is always after the last colon

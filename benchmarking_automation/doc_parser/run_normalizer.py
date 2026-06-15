@@ -1,4 +1,5 @@
-from models.nodes import RichTextRun
+from models.nodes import RichTextRun, RevisionFragment, TrackedReplacementPair
+from doc_parser.revision_parser import parse_paragraph_revisions
 
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -35,6 +36,8 @@ def extract_deleted_text(paragraph):
     """
     Extract text from w:delText elements (tracked deletions).
     Sometimes the placeholder text remains as deleted text in the generated doc.
+    NOTE: This function is maintained for backward compatibility.
+    The newer revision_parser module provides richer revision data.
     """
     del_text_nodes = paragraph.xpath(".//w:delText", namespaces=NS)
     parts = [t.text for t in del_text_nodes if t.text]
@@ -183,20 +186,38 @@ def build_rich_run(run):
 def normalize_runs(paragraph):
     """
     Merge fragmented Word runs into logical text.
-    Handles field codes, deleted text, tab/break characters.
+    Handles field codes, revision markup, tab/break characters.
+    
+    CRITICAL DESIGN:
+    - "text" is the VISIBLE text (normal + inserted runs, EXCLUDING deleted).
+      This is what the user sees and what resolution/extraction should match against.
+    - "combined_text" is ALL text INCLUDING deleted revisions.
+      This is ONLY used for placeholder detection (so placeholders in w:del are found).
+    
+    Returns:
+    {
+        "text": str,  # VISIBLE text (normal + inserted, no deleted)
+        "combined_text": str,  # ALL text including deleted (for placeholder detection)
+        "rich_runs": [RichTextRun, ...],
+        "revision_fragments": [RevisionFragment, ...],
+        "tracked_replacement_pairs": [TrackedReplacementPair, ...]
+    }
     """
 
     # First check for field codes (w:instrText) which may contain the placeholder
     field_text = extract_field_code_text(paragraph)
     if field_text:
-        # Field code text may contain the placeholder -- keep it as context
-        # The actual display text will be in regular runs, but we also capture
-        # field instructions for matching purposes
         pass
 
-    # Check for deleted text (tracked changes) that may contain placeholders
-    deleted = extract_deleted_text(paragraph)
+    # =========================================================
+    # Parse revision elements (Track Changes)
+    # This handles w:del, w:ins, w:moveFrom, w:moveTo
+    # =========================================================
+    revision_data = parse_paragraph_revisions(paragraph)
 
+    # =========================================================
+    # Extract regular runs for formatting info
+    # =========================================================
     runs = paragraph.xpath(".//w:r", namespaces=NS)
 
     rich_runs = []
@@ -215,12 +236,24 @@ def normalize_runs(paragraph):
 
         merged_text.append(text)
 
-    # Check for tab and break special characters
-    # Word inserts <w:tab/> and <w:br/> between runs
-    tab_nodes = paragraph.xpath(".//w:tab", namespaces=NS)
-    br_nodes = paragraph.xpath(".//w:br", namespaces=NS)
+    #: Use visible_text as the primary "text" field
+    #: This ensures resolution matching sees clean text like
+    #: "Patient Name: John Doe" instead of
+    #: "Patient Name: <Patient_Name>John Doe"
+    visible_text = revision_data.get("visible_text", "")
+
+    # Fall back to regular merged text if no revision data
+    primary_text = visible_text or "".join(merged_text)
+
+    #: combined_text INCLUDES deleted text so placeholders
+    #: inside w:del elements are still detected by the
+    #: placeholder extraction phase
+    combined_text = revision_data.get("combined_text", "") or primary_text
 
     return {
-        "text": "".join(merged_text),
-        "rich_runs": rich_runs
+        "text": primary_text,
+        "combined_text": combined_text,
+        "rich_runs": rich_runs,
+        "revision_fragments": revision_data["fragments"],
+        "tracked_replacement_pairs": revision_data["paired_replacements"],
     }
