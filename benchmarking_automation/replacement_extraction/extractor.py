@@ -74,47 +74,67 @@ class ReplacementExtractionEngine:
 
                 continue
 
-            node = self.node_extractor.get_node(
-                resolution["generated_node_id"]
-            )
+            # CRITICAL: If the resolver already produced matched_text
+            # (e.g., via tracked pair matching), use it directly
+            # instead of re-extracting from the node
+            matched_text = resolution.get("matched_text") or resolution.get("matched_text")
+            score_breakdown = resolution.get("score_breakdown", {})
+            resolution_method = score_breakdown.get("method", "") if isinstance(score_breakdown, dict) else ""
 
-            if node is None:
-                inventory.append(
-                    {
-                        "occurrence_id": occurrence_id,
-                        "placeholder": classification["placeholder"],
-                        "generated_node_id": resolution[
-                            "generated_node_id"
-                        ],
-                        "type": placeholder_type,
-                        "replacement_found": False,
-                        "status": "UNRESOLVED",
-                        "fragment_id": None,
-                        "confidence": resolution.get(
-                            "match_confidence"
-                        )
-                    }
-                )
-
-                continue
-
-            extractor = EXTRACTORS.get(
-                placeholder_type
-            )
-
-            if extractor is None:
-                raise ValueError(
-                    f"Unsupported placeholder type: "
-                    f"{placeholder_type}"
-                )
-
-            if placeholder_type == "KEYVALUE":
-                extracted = extractor.extract(
-                    node,
-                    resolution
-                )
+            # For high-confidence resolver matches (tracked pairs),
+            # use the matched_text directly
+            if matched_text and resolution_method in (
+                "tracked_pair", "tracked_change", "tracked_change_revision",
+                "tracked_change_direct_match", "tracked_change_placeholder_match",
+                "inline_before", "inline_after", "inline_context_before",
+                "inline_context_after",
+            ):
+                extracted = {
+                    "content": matched_text,
+                    "formatting": [],
+                }
             else:
-                extracted = extractor.extract(node)
+                node = self.node_extractor.get_node(
+                    resolution["generated_node_id"]
+                )
+
+                if node is None:
+                    inventory.append(
+                        {
+                            "occurrence_id": occurrence_id,
+                            "placeholder": classification["placeholder"],
+                            "generated_node_id": resolution[
+                                "generated_node_id"
+                            ],
+                            "type": placeholder_type,
+                            "replacement_found": False,
+                            "status": "UNRESOLVED",
+                            "fragment_id": None,
+                            "replacement_content": None,
+                            "confidence": resolution.get(
+                                "match_confidence"
+                            )
+                        }
+                    )
+                    continue
+
+                extractor = EXTRACTORS.get(
+                    placeholder_type
+                )
+
+                if extractor is None:
+                    raise ValueError(
+                        f"Unsupported placeholder type: "
+                        f"{placeholder_type}"
+                    )
+
+                if placeholder_type == "KEYVALUE":
+                    extracted = extractor.extract(
+                        node,
+                        resolution
+                    )
+                else:
+                    extracted = extractor.extract(node)
 
             fragment = FragmentBuilder.build(
                 placeholder_type,
@@ -134,6 +154,7 @@ class ReplacementExtractionEngine:
                 "replacement_found": True,
                 "status": "RESOLVED",
                 "fragment_id": fragment["fragment_id"],
+                "replacement_content":extracted.get("content"),
                 "confidence": resolution.get(
                     "match_confidence"
                 )
