@@ -1,0 +1,52 @@
+# docker-compose.local.yml — SCC-460: Local Deployment
+#
+# Purpose:   Single-command local deployment for the Automation Testing platform.
+# Usage:     docker compose -f docker-compose.local.yml up --build
+# Consumed:  By develop.sh (SCC-461) via explicit -f flag.
+# Requires:  .env file in project root (see .env.example)
+#            playwright/.auth/user.json (generate with: npx playwright test --project=setup)
+#
+# NOTE: This file does NOT replace docker-compose.yml.
+#       The existing docker-compose.yml is preserved for backward compatibility.
+# ----------------------------------------------------------------------------------
+
+name: agilewriter-local
+
+services:
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agilewriter-test-runner
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      # Session output (test traces, step-results, screenshots)
+      - ./sessions:/app/sessions
+      # Generated reports (accuracy reports, Playwright HTML reports)
+      - ./reports:/app/reports
+      # Auth state — MUST pre-exist on host before starting
+      # Generate with: npx playwright test --project=setup
+      - ./playwright/.auth:/app/playwright/.auth
+      # Reference files for accuracy scoring
+      - ./reference_files:/app/reference_files
+      # Raw QA files for accuracy scoring (watched for live updates)
+      - ./raw_qa_files:/app/raw_qa_files
+    env_file:
+      - .env
+    healthcheck:
+      # Liveness check: verifies Express server is accepting HTTP connections.
+      # Uses root endpoint (/) which returns 302 → /ui/. The -L flag ensures curl
+      # follows the redirect to verify the UI itself is served successfully.
+      # Configuration validation is handled separately by develop.sh (SCC-461)
+      # via /api/env-status — intentionally NOT part of the container healthcheck
+      # because a misconfigured .env should not trigger container restart loops.
+      test: ["CMD", "curl", "-fLsS", "-o", "/dev/null", "http://localhost:${PORT:-3000}/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    # init: true ensures Node.js receives SIGTERM cleanly on docker compose down.
+    # Without it, the container relies on the 10-second SIGKILL timeout.
+    init: true
