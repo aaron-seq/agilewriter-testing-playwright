@@ -1,203 +1,121 @@
-Document Status: Canonical
-Canonical Scope: Standardized workflow for extending health validation capabilities with new document configurations
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/AgileWriter_Automation_Handbook.md
-
-Last Reviewed: 2026-05-27
-
-Source Documents:
-- Repository source tree
-- onboarding review sessions
-
 # Adding a New Health Script
 
-> **MANDATORY RULE:**
-> Development explains change.
-> Architecture explains ownership.
-> Execution explains behavior.
+## 1. Why This Exists
 
-## Document Purpose
+When AgileWriter adds support for a new document type (e.g., an Investigator's Brochure), QA needs a way to automatically verify that the new document generation path works in every deployment.
 
-This document defines the process for safely introducing a new health validation workflow into the repository.
+This guide explains how to safely add a new Health Test to the repository without breaking existing tests, without polluting the UI dashboard, and while maintaining strict environment validation.
 
-The workflow supports extension while preserving existing validation behavior and historical continuity.
+## 2. Mental Model
 
-**Confidence**: Observed
+Adding a new test is a three-step process:
+1. **The Lock**: You define the exact environment variables your test requires in `validateHealthEnv.ts`. If they aren't provided, your test refuses to run.
+2. **The Key**: You add those variables to `runtime-config.ts` so the system knows how to read them from `.env`.
+3. **The Engine**: You create the actual `.spec.ts` file in the `tests/` directory.
 
-## Prerequisites
+Because the UI dynamically interrogates the `tests/` folder for files matching `health_*.spec.ts`, you **do not** need to update the UI dashboard manually. Once you create the spec file, it automatically appears in the dropdown.
 
-Configuration awareness
-→ identify required templates and sources
+## 3. Real Example: Step-by-Step Workflow
 
-Target environment
-→ confirm available validation scope
+Let's assume you are adding a new test for an "Investigator's Brochure" (IB).
 
-**Confidence**: Observed
+### Step 1: Extend the Environment Validator (`utils/validateHealthEnv.ts`)
 
-## Extension Purpose
-
-New health scripts exist to:
-
-Extend Coverage
-→ validate additional scenarios
-
-Preserve Existing Scope
-→ avoid changing existing validation intent
-
-Maintain Isolation
-→ introduce change without expanding ownership
-
-**Confidence**: Observed
-
-## Configuration Updates
-
-Add required configuration
-→ support new validation scope
-
-Preserve existing configuration
-→ avoid impacting established workflows
-
-Review environment guidance
-→ maintain centralized configuration ownership
-
-**Confidence**: Observed
-
-## Script Creation
-
-Follow existing health script conventions
-→ preserve repository consistency
-
-Create isolated validation paths
-→ reduce unintended coupling
-
-Avoid modifying shared execution paths
-→ minimize regression risk
-
-**Confidence**: Observed
-
-## Validation Steps
-
-Validate new workflow
-→ confirm expected behavior
-
-Validate existing workflows
-→ identify regressions
-
-Review generated outcomes
-→ confirm interpretation remains possible
-
-Update canonical documentation
-→ preserve contributor understanding
-
-**Confidence**: Observed
-
-## Extension Boundaries
-
-Supported Extension
-→ isolated validation expansion
-
-Escalation Required
-→ shared workflow modification
-
-Unsupported Extension
-→ undocumented responsibility changes
-
-**Confidence**: Observed
-
-## Validation Expectations
-
-Before considering a new health script complete:
-
-Execute
-→ new workflow
-
-Compare
-→ existing workflow behavior
-
-Document
-→ extension guidance
-
-Preserve
-→ historical references
-
-**Confidence**: Observed
-
-## Environment Validation Guard
-
-Every health spec MUST invoke the centralized environment validator as the very first operation inside its `beforeAll` block, prior to `initTracker()` or any client interactions.
-
-### Step 1: Map Required Variables (`HealthConfigKey`)
-
-When adding a new script, you must first extend the validation framework by defining its required environment variables.
-
-1. Open the environment validation map (e.g., `tests/helpers/validateHealthEnv.ts`).
-2. Add a new `HealthConfigKey` literal for your script.
-3. Map this key to its corresponding `REQUIRED_VARS` array to enforce strict presence checks at startup.
-
-### Step 2: Invoke the Guard
+Every health test is protected by a guard. You must register your new test here first.
 
 ```typescript
-import { validateHealthEnv } from './helpers/validateHealthEnv';
+// 1. Add your new key to the type
+export type HealthConfigKey =
+  | 'csr'
+  | 'icfFull'
+  | 'ib'; // <-- ADDED
 
-test.beforeAll(async () => {
-  validateHealthEnv('yourNewConfigKey'); // <-- MUST BE FIRST LINE
-  // ...
+// 2. Define the required variables
+const REQUIRED_VARS: Record<HealthConfigKey, string[]> = {
+  // ... existing configs
+  ib: [ // <-- ADDED
+    'HEALTH_TEMPLATE_IB',
+    'HEALTH_TEMPLATE_FOLDER_IB',
+    'HEALTH_SOURCES_IB',
+    'HEALTH_SOURCE_FOLDER_IB',
+  ],
+};
+```
+
+### Step 2: Update the Runtime Configuration (`runtime-config.ts`)
+
+Next, map those raw `.env` strings into a typed configuration object that Playwright will use.
+
+```typescript
+export const runtimeConfig = {
+  health: {
+    // ... existing configs
+    ib: { // <-- ADDED
+      templateName: process.env.HEALTH_TEMPLATE_IB || '',
+      templateFolder: process.env.HEALTH_TEMPLATE_FOLDER_IB || '',
+      sources: (process.env.HEALTH_SOURCES_IB || '').split(','),
+      sourceFolder: process.env.HEALTH_SOURCE_FOLDER_IB || '',
+    }
+  }
+}
+```
+
+### Step 3: Create the Spec File (`tests/health_IB.spec.ts`)
+
+Finally, create the test. Use the standard template below. 
+
+```typescript
+import { test } from '@playwright/test';
+import { runtimeConfig } from '../runtime-config';
+import { initTracker, saveResults } from './helpers/step-tracker';
+import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
+import { validateHealthEnv } from '../utils/validateHealthEnv';
+
+test.describe('Health Report: IB', () => {
+  // Set a timeout appropriate for IB generation (e.g. 20 minutes)
+  test.describe.configure({ timeout: 1_200_000 });
+
+  test.beforeAll(() => {
+    initTracker();
+    // THE GUARD: This MUST be the first thing your test does
+    validateHealthEnv('ib');  
+  });
+
+  test.afterAll(() => {
+    saveResults();
+  });
+
+  test('IB - Full Health Check', async ({ page }) => {
+    const config: HealthReportConfig = runtimeConfig.health.ib;
+    await runHealthReport(page, config);
+  });
 });
 ```
-This ensures execution aborts immediately with a clear error format if the `.env` is incomplete, protecting against silent failures or dangling execution states.
 
-**Confidence**: Verified
+## 4. Common Mistakes
 
-## Rollback Expectations
+* **Forgetting `validateHealthEnv`**: If you forget to add the guard in `beforeAll()`, and an environment variable is missing, the test will launch Chromium, log in to Microsoft, open AgileWriter, and then crash halfway through when it tries to type `undefined` into the search box. The guard prevents this by failing instantly in 0.01 seconds.
+* **Hardcoding values**: Never hardcode folder paths or file names in the `.spec.ts` file. Always route them through `.env` and `runtime-config.ts` so they can be changed without modifying code.
+* **Naming convention**: Your file MUST be named `health_<SOMETHING>.spec.ts`. If you name it `ib_health.spec.ts`, the CLI and the UI Dashboard will ignore it.
 
-If unexpected instability is observed:
+## 5. Troubleshooting
 
-Revert script addition
-→ remove introduced changes
+**Symptom**: You added the script, but it doesn't show up in the UI dropdown.
+* **Diagnosis**: The server caches the test list briefly, or your file is not named correctly.
+* **Fix**: Ensure the file is in the `tests/` directory and matches the regex `/health_.*\.spec\.ts/`. Restart the `npm run server` process to force a re-discovery.
 
-Revert configuration
-→ restore configuration state
+**Symptom**: `npm run server` crashes when someone clicks your test.
+* **Diagnosis**: You have a syntax error in your new spec file. The `npx playwright test --list` command used by the server to discover tests actually compiles the TypeScript files. If one file fails to compile, the whole discovery process crashes.
+* **Fix**: Run `npx playwright test tests/health_IB.spec.ts --project=health` locally to see the compilation error.
 
-Revalidate
-→ revalidate existing workflows
+## 6. Key Takeaways
 
-**Confidence**: Observed
-
-## Change Boundaries
-
-Supported Change
-→ allowed modifications preserving boundaries
-
-Unsupported Change
-→ outside scope
-
-**Confidence**: Observed
-
-## Change Confidence Model
-
-Verified
-→ directly confirmed
-
-Observed
-→ visible behavior
-
-Inferred
-→ interpreted repository behavior
-
-**Confidence**: Observed
-
-## Historical Notes
-
-Canonical documentation defines current development guidance.
-
-Historical documentation preserves:
-- prior development guidance
-- historical modification approaches
-- migration context
+* Map your environment variables in `validateHealthEnv.ts` first.
+* Route configuration through `runtime-config.ts`.
+* Name the file `health_*.spec.ts` to ensure the dynamic UI dropdown finds it automatically.
 
 ---
 
-Next:
-
-[Extension_Points.md](Extension_Points.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17
