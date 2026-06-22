@@ -1,0 +1,31 @@
+# docker-compose.production.yml - SCC-464 production deployment topology
+#
+# This file is the production Compose entrypoint for deploy.sh. It is separate
+# from the local SCC-460/SCC-461 Compose workflow and is intentionally guarded by
+# deploy.sh validation before use.
+
+name: agilewriter-production
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agilewriter-production-runner
+    env_file:
+      - .env.production
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ./sessions:/app/sessions
+      - ./reports:/app/reports
+      - ./reference_files:/app/reference_files
+      - ./raw_qa_files:/app/raw_qa_files
+    healthcheck:
+      test: ["CMD", "curl", "-fLsS", "-o", "/dev/null", "http://localhost:${PORT:-3000}/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    init: true
