@@ -1,221 +1,94 @@
-Document Status: Canonical
-Canonical Scope: Execute first health script successfully
-Owner: Documentation Team
-Related Legacy Docs:
-- benchmarking_automation/_docs/cmds.md
-
-Last Reviewed: 2026-05-22
-
-Source Documents:
-- README.md
-- cmds.md
-- onboarding review sessions
-
 # Quick Start
 
-## First Mental Model
+## 1. Why This Exists
 
-If you are new, understand this path first:
+If you are a new engineer or QA tester joining the AgileWriter Automation team, you need to prove your local environment actually works before you start writing code or running daily checks.
 
-`Execute via Docker → OR → Start Local Server → Discover Suites → Execute → Success Signal`
+This document gets you from "I just cloned the repo" to "I successfully ran a test" in under 5 minutes.
 
-Then come back and read details.
+## 2. Mental Model
 
-## What This Component Does NOT Do
-* **Does NOT explain accuracy scoring:** This guide focuses solely on executing a basic health script to prove immediate functionality.
-* **Does NOT explain environment setup:** It assumes you have already completed the prerequisites in [Setup.md](Setup.md).
-* **Does NOT provide test execution debugging:** See [Troubleshooting.md](../04_Operations/Troubleshooting.md) for validation run failures.
+You have two choices for running this project:
+1. **The Hard Way (Local Node)**: Install Node.js, install Playwright, download Chromium binaries, deal with local OS path issues, and start the server.
+2. **The Easy Way (Docker)**: Run one command, and let Docker build a completely isolated, pre-configured box that has everything installed.
 
-## What You Are NOT Learning Yet
-* accuracy scoring
-* report internals
-* adding tests
+We strongly recommend Docker.
 
-> Decision: Dashboard-First Onboarding
-> 
-> Why this exists:
-> The local execution dashboard reduces onboarding friction and encapsulates orchestration concerns.
-> 
-> Consequence:
-> New contributors should start with execution dashboard validation runs before moving to direct Playwright execution.
+## 3. Step-by-Step Workflow
 
-### 1. Start the Validation Environment
+Follow these steps exactly to run your first Health Check.
 
-Ensure you are in the root directory of the repository (`Agile-Writer-Playwright-testing`).
+### Step 1: Start the Validation Environment
 
-You can choose either the **Containerized** (Recommended) or **Local Node.js** execution path.
+Ensure you are in the root directory of the repository (`Agile-Writer-Playwright-testing`). You must already have your `.env` file configured (see [Setup.md](Setup.md)).
 
-#### Path A: Containerized Execution (Recommended)
-
-WHY:
-Docker isolates all dependencies, provides a pre-configured Playwright environment, and ensures consistent volume mounts for reports.
-
-HOW:
-
+Run the following command:
 ```bash
 docker-compose up --build
 ```
 
-#### Path B: Local Orchestration Server
+**What is happening?**
+Docker is pulling the official Microsoft Playwright image, installing Node.js dependencies, and starting the Express web server on port 3000. 
 
-WHY:
-For local development or environments without Docker, the Node.js server acts as an execution broker.
+### Step 2: Access the Execution Dashboard
 
-WHEN:
-Every time you want to execute health scripts against AgileWriter via the execution dashboard.
-
-HOW:
-
-```bash
-npm run server
-```
-
-Expected Startup Output:
-
-- server process starts
-- execution dashboard endpoint becomes reachable
-- no immediate exit
-
-Expected Result:
-
-- orchestration server process remains active
-- no startup exceptions
-- localhost reachable
-
-If this step fails:
-→ Stop
-→ Fix the issue
-→ Retry
-
-See:
-
-[Troubleshooting.md](../04_Operations/Troubleshooting.md)
-
-CONSEQUENCE:
-If the orchestration server is not running, the execution dashboard is inaccessible and health scripts cannot be dispatched.
-
-### 2. Access the Execution Dashboard
-
-WHY:
-Provides a visual interface to select and trigger automated workflows without needing to memorize Playwright CLI arguments.
-
-WHEN:
-After confirming the orchestration server started successfully without port-binding errors.
-
-HOW:
-
-1. Open a web browser.
-2. Navigate to:
-
+Once the terminal settles down, open your web browser and go to:
 ```text
 http://localhost:3000/ui
 ```
 
-Expected Result:
+**What is happening?**
+You should see the AgileWriter Test Runner dashboard. If the site cannot be reached, Docker failed to start or port 3000 is blocked.
 
-- execution dashboard visible
-- health scripts available
+### Step 3: Run the Preflight Check
 
-If this step fails:
-→ Stop
-→ Fix the issue
-→ Retry
+We are going to run the `health_Ideaya_preflight.spec.ts` script. We choose this one for your first run because it takes 2 minutes (instead of the 30 minutes a full document takes). It stops right before AI training starts, which is perfect for validating your setup without burning expensive AI credits.
 
-See:
+1. Type your name in the Tester Name box.
+2. Select an environment (e.g., QA).
+3. Select `health_Ideaya_preflight.spec.ts` from the test dropdown.
+4. Click **Run Test**.
 
-[Troubleshooting.md](../04_Operations/Troubleshooting.md)
+### Step 4: Watch the Execution
 
-CONSEQUENCE:
-You are presented with the primary QA automation control panel.
+A black terminal window will appear in the browser. You should see:
+```text
+Running test: health_Ideaya_preflight.spec.ts
+[validateHealthEnv] Checks passed.
+Logging into AgileWriter via Microsoft SSO...
+Navigating to SharePoint folder...
+Preflight complete. Exiting before training.
+```
 
-### 3. Execute Your First Health Script
+If the terminal turns green and says "Test execution completed successfully", your local environment is perfect.
 
-WHY:
-Validates that AgileWriter can successfully generate a specific document type end-to-end, proving both the application and the testing pipeline are functional.
+### Step 5: Download the Report
 
-WHEN:
-Immediately after setup to prove your environment configuration is correct.
+Click the blue **Download Report** button. A Word document (`_Report.docx`) will download. Open it to verify that your name and the test steps were recorded correctly.
 
-HOW:
+## 4. Common Mistakes
 
-1. Scroll to the **Run Health Scripts** section in the execution dashboard.
-2. Select a target document from the dynamically populated dropdown. To see the full list of available suites from the CLI, run: `npx playwright test --project=health --list`
-3. Click **Run Selected Script**.
+* **Running a 30-minute test first**: Don't run `health_Ideaya.spec.ts` as your first test. If your `.env` is misconfigured, you might not find out until 29 minutes into the run. Always use a preflight or a trimmed test first to prove mechanical connectivity.
+* **Forgetting the `.env` file**: The server will start even without a `.env` file, but the moment you click "Run", the `validateHealthEnv` guard will instantly crash the test.
 
-Observable Signals:
+## 5. Troubleshooting
 
-- browser launches
-- login completes
-- progress updates appear
-- generation completes
+**Symptom**: `docker-compose up` fails with "port is already allocated".
+* **Diagnosis**: You have another service (like a local React app or a rogue Node process) running on port 3000.
+* **Fix**: Find the process and kill it, or change the port mapping in `docker-compose.yml`.
 
-Expected Duration:
+**Symptom**: The test fails immediately with `Missing required env vars`.
+* **Diagnosis**: You skipped the [Setup.md](Setup.md) step and didn't copy `.env.example` to `.env`.
+* **Fix**: Create your `.env` file and populate the `HEALTH_*_IDEAYA_PREFLIGHT` variables.
 
-Health scripts may take several minutes depending on:
+## 6. Key Takeaways
 
-- document type
-- training duration
-- SharePoint responsiveness
+* Docker is the recommended way to run this repository.
+* Always use `localhost:3000/ui` to run tests.
+* Run the preflight test first to validate your setup quickly.
 
-Expected Result:
+---
 
-- validation run starts
-- progress visible
-- terminal updates
-
-If this step fails:
-→ Stop
-→ Fix the issue
-→ Retry
-
-See:
-
-[Troubleshooting.md](../04_Operations/Troubleshooting.md)
-
-CONSEQUENCE:
-Playwright will spawn in the background, log into AgileWriter, navigate SharePoint, and wait for the AI generation to complete. 
-
-### 4. Confirm Execution Success
-
-WHY:
-Confirms the local environment, test script, and the AgileWriter application successfully completed a full end-to-end cycle.
-
-WHEN:
-After the terminal indicates the Playwright execution has concluded.
-
-HOW:
-
-1. Observe the terminal output.
-2. Observe the execution dashboard completion status.
-
-Expected Result:
-
-- orchestration server remains alive
-- automation process reaches terminal completion state
-- terminal shows completed validation run
-- execution dashboard reports successful completion
-- no immediate failures
-
-If this step fails:
-→ Stop
-→ Fix the issue
-→ Retry
-
-See:
-
-[Troubleshooting.md](../04_Operations/Troubleshooting.md)
-
-CONSEQUENCE:
-You have reached the onboarding success milestone and confirmed your local execution environment is operational.
-
-## Onboarding Complete
-
-You can now:
-
-- run existing health scripts
-- explore repository structure
-- continue to developer onboarding
-
-Continue:
-
-[User_Execution_Guide.md](../02_User_Guides/User_Execution_Guide.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17
