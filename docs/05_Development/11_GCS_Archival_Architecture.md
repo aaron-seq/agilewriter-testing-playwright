@@ -7,6 +7,8 @@ All reports and accuracy outputs are generated on the local filesystem first. Th
 
 Once an artifact is fully generated on the local disk, a secondary detached process uploads the file to a GCS bucket.
 
+**GCS is archival only.** It is not a synchronous UI data source. Local writes remain the source of truth. The UI continues to serve files from local disk via Express endpoints.
+
 ## Managed Artifacts
 The following durable outputs are uploaded to GCS:
 - `.docx` Test Reports
@@ -16,24 +18,88 @@ The following durable outputs are uploaded to GCS:
 
 Transient testing artifacts (e.g., screenshots, Playwright traces, intermediate test results) and local input files (e.g., `reference_files`, `raw_qa_files`) are **never** uploaded to GCS.
 
+## IAM Prerequisites
+
+Before uploads will succeed, the GCS service account must have the correct bucket-level IAM role.
+
+**Minimum required role:** `Storage Object Creator` (`roles/storage.objectCreator`)
+
+To grant this permission:
+```bash
+gcloud storage buckets add-iam-policy-binding gs://agilewriter-automation-testing-reports \
+  --member="serviceAccount:YOUR_SA_EMAIL@YOUR_PROJECT.iam.gserviceaccount.com" \
+  --role="roles/storage.objectCreator"
+```
+
+If this role is missing, uploads will fail with a `403 Permission Denied` error. The fail-soft design ensures this does **not** break local report generation or accuracy scoring — the upload simply logs a warning and the workflow continues.
+
 ## Fail-Soft Guarantees
-GCS uploads are strictly designed to be **fail-soft**.
-If the `GOOGLE_APPLICATION_CREDENTIALS` or `GCS_BUCKET` are missing, unreachable, or invalid:
-1. The GCS SDK will log a safe warning to the console.
+
+GCS upload failure must be **fail-soft and non-blocking**. This is an architectural invariant, not a suggestion.
+
+If `GOOGLE_APPLICATION_CREDENTIALS` or `GCS_BUCKET` are missing, unreachable, or invalid:
+1. The GCS SDK will log a sanitized warning to the console.
 2. The report generation process will **continue** and exit with code `0`.
 3. The Express `/api/accuracy/score` endpoint will **continue** and return the local path immediately.
 
-This ensures that the local repository workflow is completely immune to GCS network outages or authentication failures.
+### Execution Context Rules
+
+| Context | Upload behavior | Why |
+|---|---|---|
+| `generate-word-report.js` (standalone script) | `await` the upload, wrapped in `try/catch` | Prevents Node from exiting before the upload socket completes. The `try/catch` guarantees exit code stays `0` on failure. |
+| `server/test-runner-server.js` (Express route) | Fire-and-forget (`Promise.all(...).catch(...)`) | Prevents the HTTP response from being blocked by cloud latency. The UI receives its response immediately. |
+
+### What "fail-soft" means in practice
+
+- Local DOCX is generated → ✅ always
+- Local accuracy XLSX/JSON is generated → ✅ always
+- Upload to GCS succeeds → only if IAM, network, and credentials are all correct
+- Upload to GCS fails → log warning, return `null`, continue
+
+**The local workflow must never fail because of GCS.** If it does, that is a bug.
+
+## Security Rules
+
+Three rules that must remain enforced:
+
+1. **The service-account key must stay out of the build context.** The `.dockerignore` file excludes `sc-nlx-*.json` because `COPY . .` in the Dockerfile would otherwise bake a local key file into an image layer.
+
+2. **Logs must only print a sanitized summary of GCS failures.** Google SDK error messages (especially 403 responses) embed the service account email in the error body. The uploader uses regex redaction to replace `*.iam.gserviceaccount.com` addresses with `[REDACTED_SA]` before logging.
+
+3. **The service-account file name must remain generic in docs and config.** Repository files should say `your-service-account-key.json`, not the actual key filename. The real filename is known only to `.gitignore` and `.dockerignore` via the pattern `sc-nlx-*.json`.
+
+> **CRITICAL SECURITY WARNING**: The service account JSON contains a private key. It MUST remain tracked by `.gitignore` (`sc-nlx-*.json`) and `.dockerignore` and MUST NEVER be committed to the repository, baked into Docker images, or logged in terminal outputs.
 
 ## Signed URLs
 Currently, signed URLs are treated as a **future enhancement**. The UI continues to use local download endpoints (`/download-report` and `/api/accuracy/download/:filename`). GCS acts entirely as a post-generation backend archival process.
 
 ## Local Configuration
-To configure GCS locally, the following environment variables are required in your `.env` file:
+To configure GCS locally, add the following environment variables to your `.env` file:
 ```ini
 GCS_BUCKET=agilewriter-automation-testing-reports
 GCS_ENV_PREFIX=dev/
 GOOGLE_APPLICATION_CREDENTIALS=./your-service-account-key.json
 ```
 
-> **CRITICAL SECURITY WARNING**: The service account JSON contains a private key. It MUST remain tracked by `.gitignore` (`sc-nlx-*.json`) and MUST NEVER be committed to the repository or logged in terminal outputs.
+If these variables are absent, the uploader silently skips. Local development works without GCS credentials.
+
+## Troubleshooting
+
+### PowerShell shows `NativeCommandError` but the script succeeded
+
+PowerShell treats any output to stderr as an error, even when the Node process exit code is `0`. If you see a `NativeCommandError` alongside `[GCS] Upload failed`, check the actual exit code:
+
+```powershell
+node generate-word-report.js; echo "Exit code: $LASTEXITCODE"
+```
+
+If `$LASTEXITCODE` is `0`, the script succeeded. The GCS upload failed gracefully and the local report was generated correctly. The stderr output is a warning, not a failure.
+
+### Uploads fail with 403
+
+The service account does not have `storage.objects.create` permission on the bucket. See the [IAM Prerequisites](#iam-prerequisites) section above.
+
+### Uploads silently skip
+
+The `GCS_BUCKET` or `GOOGLE_APPLICATION_CREDENTIALS` environment variable is missing from `.env`. This is expected behavior for local development without GCS credentials.
+
