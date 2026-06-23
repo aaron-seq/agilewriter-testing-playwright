@@ -18,6 +18,25 @@ The following durable outputs are uploaded to GCS:
 
 Transient testing artifacts (e.g., screenshots, Playwright traces, intermediate test results) and local input files (e.g., `reference_files`, `raw_qa_files`) are **never** uploaded to GCS.
 
+## Bucket Object Layout
+
+Objects are stored under the environment prefix set by `GCS_ENV_PREFIX` (e.g. `dev/`). The actual object-key tree looks like this:
+
+```
+gs://agilewriter-automation-testing-reports/
+└── dev/                                        ← GCS_ENV_PREFIX
+    ├── <session-uuid>/                         ← from generate-word-report.js
+    │   ├── run_YYYYMMDD_HHMM_Report.docx
+    │   └── report_manifest.json
+    └── accuracy/                               ← from /api/accuracy/score
+        ├── accuracy-report-YYYYMMDD-HHMMSS.xlsx
+        └── accuracy-report-YYYYMMDD-HHMMSS.json
+```
+
+DOCX reports and manifests are partitioned by session UUID because each test run produces a unique session. Accuracy artifacts are grouped under `accuracy/` because they are not session-scoped.
+
+This layout is intentional. It mirrors the local filesystem structure and avoids an extra abstraction layer. Since GCS is archival only, the bucket tree does not need to match a user-facing folder hierarchy.
+
 ## IAM Prerequisites
 
 Before uploads will succeed, the GCS service account must have the correct bucket-level IAM role.
