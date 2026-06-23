@@ -48,9 +48,14 @@ async function uploadToGcs(localPath, remotePath) {
     return finalDestination;
     
   } catch (err) {
-    // We log the message only. We MUST NOT log the full error object, as Google API 
-    // Auth errors contain the full config object, which includes the private key.
-    console.error(`[GCS] Upload failed for ${remotePath}: ${err.message || String(err)}`);
+    // SECURITY: Google API 403 errors embed the service account email in err.message.
+    // We must strip identifiable information before logging.
+    const rawMessage = err.message || String(err);
+    const safeMessage = rawMessage
+      .replace(/[\w.-]+@[\w.-]+\.iam\.gserviceaccount\.com/g, '[REDACTED_SA]')
+      .replace(/"private_key":\s*"[^"]*"/g, '"private_key": "[REDACTED]"')
+      .replace(/"client_email":\s*"[^"]*"/g, '"client_email": "[REDACTED]"');
+    console.error(`[GCS] Upload failed for ${remotePath}: ${safeMessage}`);
     return null;
   }
 }
