@@ -33,7 +33,7 @@ To configure GCS locally, the following environment variables are required in yo
 ```ini
 GCS_BUCKET=agilewriter-automation-testing-reports
 GCS_ENV_PREFIX=dev/
-GOOGLE_APPLICATION_CREDENTIALS=./sc-nlx-3a769a1deae5.json
+GOOGLE_APPLICATION_CREDENTIALS=./your-service-account-key.json
 ```
 
 > **CRITICAL SECURITY WARNING**: The service account JSON contains a private key. It MUST remain tracked by `.gitignore` (`sc-nlx-*.json`) and MUST NEVER be committed to the repository or logged in terminal outputs.
