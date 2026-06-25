@@ -54,10 +54,36 @@ module.exports = defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
     },
+    // SCC-556: Infrastructure tests — shell/bash scripts, no browser, no auth.
+    //   npx playwright test tests/infrastructure/deploy.spec.ts
+    {
+      name: 'infrastructure',
+      testDir: 'tests/infrastructure',
+    },
+    // SCC-556: Unit / helper tests — file I/O, xlsx, string functions, no browser.
+    //   npx playwright test tests/helpers/__tests__/accuracyScorer.spec.ts
+    {
+      name: 'unit',
+      testDir: 'tests/helpers/__tests__',
+    },
+    // SCC-556: Standalone tests — on-demand scoring and Docker integration,
+    // no browser, no auth. Run explicitly by file path.
+    //   npx playwright test tests/accuracy.spec.ts
+    //   npx playwright test tests/integration/develop.integration.spec.ts
+    {
+      name: 'standalone',
+      testMatch: /(accuracy\.spec\.ts|integration\/)/,
+    },
+    // E2E tests that require authenticated browser sessions (AW_11_to_20*).
+    // All other test categories are carved out via testIgnore and routed to
+    // their own dependency-free projects above.
+    //
+    // SCC-556: Expanded testIgnore to prevent AW_00_10 from running when
+    // non-E2E tests are targeted. Follows the SCC-174 health isolation pattern.
     {
       name: 'smarter-tests',
       dependencies: ['setup'],
-      testIgnore: /(health_.*\.spec\.ts|diagnostics\/)/,
+      testIgnore: /(health_.*\.spec\.ts|diagnostics\/|infrastructure\/|helpers\/__tests__\/|integration\/|accuracy\.spec\.ts)/,
       use: {
         storageState: 'playwright/.auth/user.json',
       },
