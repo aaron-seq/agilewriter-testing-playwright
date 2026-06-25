@@ -89,6 +89,12 @@ Three rules that must remain enforced:
 
 > **CRITICAL SECURITY WARNING**: The service account JSON contains a private key. It MUST remain tracked by `.gitignore` (`sc-nlx-*.json`) and `.dockerignore` and MUST NEVER be committed to the repository, baked into Docker images, or logged in terminal outputs.
 
+### Docker Container Behavior
+
+Inside Docker containers, GCS uploads will log `[GCS] Upload failed` warnings and return `null`. This is expected. The `.dockerignore` correctly excludes the service account key file from the image, but the `env_file` directive in `docker-compose.local.yml` still injects `GOOGLE_APPLICATION_CREDENTIALS` from the host's `.env`. As a result, `isGcsConfigured()` returns `true` inside the container, the uploader attempts the upload, and the Google SDK throws an authentication error because the credentials file does not exist at the expected path inside the container. The fail-soft `try/catch` catches this error, logs a redacted warning, and returns `null`. The container continues to operate normally.
+
+This is not a bug. Production containers should receive credentials via workload identity or a mounted secret (SCC-464 scope), not by baking key files into the image.
+
 ## Signed URLs
 Currently, signed URLs are treated as a **future enhancement**. The UI continues to use local download endpoints (`/download-report` and `/api/accuracy/download/:filename`). GCS acts entirely as a post-generation backend archival process.
 

@@ -67,7 +67,7 @@ test.describe('SCC-592: GCS Uploader Unit Tests', () => {
     expect(result).toBeNull(); 
   });
 
-  test('uploadToGcs returns the remote path on success', async () => {
+  test('uploadToGcs fails gracefully and returns null when credentials are invalid', async () => {
     // We cannot easily test a real GCS upload here without network and real credentials.
     // In a real implementation we would mock the @google-cloud/storage module.
     // For now, we will verify it gracefully handles the AuthError because it tries to reach Google.
