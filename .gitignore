@@ -55,3 +55,6 @@ __pycache__/
 
 # GCS service account keys — NEVER commit (contains private keys)
 sc-nlx-*.json
+*service-account*.json
+*gcp*.json
+*.credentials.json
