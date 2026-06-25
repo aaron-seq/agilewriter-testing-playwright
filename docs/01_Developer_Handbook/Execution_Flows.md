@@ -1,198 +1,101 @@
-Document Status: Canonical
-Canonical Scope: Define repository execution paths, models, and lifecycles
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/AgileWriter_Automation_Handbook.md
-- docs/legacy/historical_walkthroughs/benchmarking-setup.md
-
-Last Reviewed: 2026-05-25
-
-Source Documents:
-- Repository source tree (`package.json`, `server/`, `benchmarking_automation/`)
-- onboarding review sessions
+> [!WARNING]
+> **DEPRECATED DOCUMENT**
+> This document is deprecated. Please refer to the new Testing and Developer Handbook located in `docs/05_Development/`.
+> 
+> * For codebase map/navigation, see `docs/05_Development/01_Navigation_Guide.md` and `02_Test_Folder_Guide.md`
+> * For environment configuration, see `docs/05_Development/03_Local_Development.md`
+> * For testing strategy, see `docs/05_Development/05_TDD_Guide.md` and `06_Creating_Tests.md`
+> * For execution flows, see `docs/05_Development/07_Health_Scripts.md` and `09_Examples_and_Gotchas.md`
 
 # Execution Flows
 
-## Execution Philosophy
+## 1. Why This Exists
 
-The AgileWriter Automation Suite operates on a dual-ecosystem execution model. Frontend validation (Playwright) is decoupled from backend accuracy scoring (Python). Execution flows prioritize clear entry points, strict environmental isolation, and deterministic reporting. 
+There is more than one way to run tests in this repository. 
 
-If changing execution:
-→ update docs
-→ validate one health script
-→ validate report generation
+Sometimes you want the easiest possible path (clicking a button on a dashboard). Other times, you need deep visibility into why a test is failing, so you want to run it from the command line. Sometimes you already have a generated document and just want to score its accuracy without launching a browser at all.
 
-## Execution Models
+This document explains the four primary execution flows, when to use each one, and exactly what happens behind the scenes.
 
-The suite supports four primary models of execution:
+## 2. Mental Model
 
-Interactive Execution
-→ Dashboard-driven
+Think of this repository as having three distinct engines that can be run independently or chained together:
 
-Direct Execution
-→ Command-driven
+1. **The Orchestration Server (Node.js)**: A middleman that serves a web UI and translates your clicks into Playwright commands.
+2. **The Browser Engine (Playwright)**: The engine that actually opens Chromium, logs in, and drives the AgileWriter UI.
+3. **The Scoring Engine (Python)**: A backend pipeline that reads generated documents and scores them against known-good baselines.
 
-Artifact Validation
-→ Existing outputs
+Depending on what you're trying to accomplish, you'll engage different engines.
 
-Report Generation
-→ Aggregation workflow
+## 3. The Four Execution Flows
 
-**Confidence**: Inferred
+### Flow 1: Interactive Execution (The Dashboard)
+* **What it is**: Running a health check or test from `http://localhost:3000/ui`.
+* **When to use it**: This is the default path for QA engineers and daily health checks. It's the most user-friendly.
+* **How to run it**: 
+  1. Start the server: `npm run server` (or via Docker: `docker-compose up`)
+  2. Open the UI, select a script like `health_CSR.spec.ts`, and click Run.
+* **Behind the scenes**: The UI sends a POST request to the server's `/run-test` endpoint. The server spawns a hidden Playwright child process (`npx playwright test`) and streams the terminal logs back to your browser via Server-Sent Events (SSE). 
 
-## Execution Boundaries
+### Flow 2: Direct Execution (The CLI)
+* **What it is**: Running Playwright directly from your terminal.
+* **When to use it**: When you are actively developing a new test or debugging a failure. It gives you raw terminal output and lets you run in "headed" mode (where you can actually watch the browser move).
+* **How to run it**:
+  `npx playwright test tests/health_CSR.spec.ts --project=health`
+* **Behind the scenes**: Bypasses the Node.js server entirely. Playwright reads `.env`, launches the browser, executes the spec file, and writes `step-results.json` directly to the file system.
 
-Playwright execution:
-→ interactive validation
+### Flow 3: Artifact Validation (Accuracy Scoring)
+* **What it is**: Running the Python accuracy pipeline on documents that have *already* been generated.
+* **When to use it**: When you want to re-score a document against a new baseline, or when you generated a document manually and just want the automation to grade it.
+* **How to run it**:
+  `python benchmarking_automation/main.py`
+* **Behind the scenes**: No browser is launched. The Python script (`ClassificationPipeline`) reads the raw QA files from your file system, compares them to the expected output, and writes a color-coded Excel report using `compare_accuracy.py`.
 
-Python execution:
-→ artifact analysis
+### Flow 4: Report Generation
+* **What it is**: Bundling the results of a test run into a stakeholder-friendly DOCX file.
+* **When to use it**: After a test run finishes, to generate the artifact required for compliance. (Note: Flow 1 usually triggers this automatically).
+* **How to run it**:
+  `npm run report`
+* **Behind the scenes**: `generate-word-report.js` reads the `step-results.json` file from your session, builds an HTML table with pass/fail badges, and converts it to a DOCX file using `html-to-docx`.
 
-Reporting:
-→ output summarization
+## 4. Server API Reference (For Developers)
 
-Rule:
+If you are working on the Orchestration Server (`server/test-runner-server.js`), these are the key routes you need to understand:
 
-Execution domains should remain independently operable where possible.
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/ui` | GET | Serves the browser dashboard |
+| `/list-tests` | GET | Dynamically discovers all `.spec.ts` files |
+| `/api/env-status` | GET | Checks `validateHealthEnv` to warn the UI if `.env` is missing vars |
+| `/run-test` | POST | Spawns the Playwright child process |
+| `/stream` | GET | Server-Sent Events (SSE) endpoint that streams logs to the UI |
+| `/download-report` | GET | Downloads the DOCX generated by `generate-word-report.js` |
+| `/api/accuracy/score` | POST | Triggers the Python Accuracy Pipeline (`Flow 3`) |
 
-**Confidence**: Observed
+## 5. Common Mistakes
 
-## Execution Entry Points
+* **Mixing Execution Flows**: Don't try to run `npm run report` (Flow 4) if you haven't actually run a test yet (Flow 1 or 2). The report generator will crash because `step-results.json` doesn't exist.
+* **Forgetting to start the server**: If you try to open `localhost:3000/ui` and get "Site cannot be reached", you forgot `npm run server` or your Docker container isn't running.
+* **Running CLI tests while the server is running a test**: This can cause file locking issues if both try to write to the same session directory. Wait for one to finish before starting the other.
 
-* **Orchestration Server:** `npm run server`
-* **Local UI Dashboard:** `http://localhost:3000/ui`
-* **Accuracy Pipeline:** `python benchmarking_automation/main.py`
-* **Report Generator:** `npm run report`
+## 6. Troubleshooting
 
-**Confidence**: Verified
+**Symptom**: You ran a test via the UI (Flow 1), but the report download button is greyed out or fails.
+* **Diagnosis**: The Playwright process likely crashed before `step-results.json` was written, so Flow 4 (Report Generation) had nothing to parse.
+* **Fix**: Check the terminal running `npm run server` for hard crashes. Run the test via Flow 2 (CLI) to see the raw error.
 
-## Example Validation Lifecycle
+**Symptom**: The UI dropdown for "Select Test" is empty.
+* **Diagnosis**: The server's `/list-tests` endpoint failed to discover the files.
+* **Fix**: Ensure your Playwright tests are actually in the `tests/` directory and end with `.spec.ts`.
 
-The suite supports multiple execution paths.
+## 7. Key Takeaways
 
-The lifecycle below illustrates a common validation sequence and is not required for all workflows.
-
-1. **Initialization:** Server starts, loading configuration.
-2. **Execution:** Health scripts are dispatched via the UI dashboard.
-3. **Extraction:** Python pipeline extracts data from generated artifacts.
-4. **Scoring:** Accuracy is validated against models.
-5. **Reporting:** Node scripts generate the final compliance document.
-
-**Confidence**: Inferred
-
-## Execution Checkpoints
-
-Checkpoint
-→ Observable Success Signal
-
-Server Start
-→ dashboard reachable
-
-Health Execution
-→ execution completes
-
-Accuracy Scoring
-→ accuracy metric emitted
-
-Report Generation
-→ output artifact present
-
-**Confidence**: Observed
-
-## Health Execution Flow
-
-Dashboard receives request
-→ browser automation executes
-→ result returned
-
-**Confidence**: Observed
-
-## Accuracy Execution Flow
-
-Artifacts provided
-→ extraction and normalization scores payload against expected schema
-→ result returned
-
-**Confidence**: Observed
-
-## Report Generation Flow
-
-Command executed
-→ execution results collected and metadata attached
-→ output artifact generated
-
-**Confidence**: Observed
-
-## Failure Recovery Paths
-
-Training timeout
-→ Observable Signal: execution stalls
-→ Validation Step: verify inputs
-→ Next Action: review configuration
-
-Accuracy script fails
-→ Observable Signal: parser error
-→ Validation Step: verify generated output integrity
-→ Next Action: inspect output
-
-Reporting script fails
-→ Observable Signal: missing report
-→ Validation Step: verify execution trace availability
-→ Next Action: escalate investigation
-
-**Confidence**: Observed
-
-## Runtime Signals
-
-* terminal
-* dashboard
-* progress indicators
-
-## Generated Artifacts
-
-* reports
-* logs
-* generated outputs
-
-**Confidence**: Verified
-
-## Execution Decision Records
-
-Decision:
-- UI Dashboard Over CLI
-
-Why:
-- Execution was shifted to a UI dashboard to reduce QA engineer onboarding friction.
-
-Consequence:
-- Commands are primarily invoked indirectly rather than directly via Playwright CLI.
-
-Confidence:
-- Inferred
-
-Decision:
-- Python Decoupling
-
-Why:
-- Accuracy scoring was decoupled from Playwright to allow independent execution on pre-generated documents.
-
-Consequence:
-- The validation suite requires two separate runtime environments.
-
-Confidence:
-- Inferred
-
-## Historical Execution Notes
-
-Canonical documentation defines current execution guidance.
-
-Historical documentation preserves:
-- prior workflows
-- migration context
-- operational history
+* **Use the UI Dashboard** for daily execution and QA verification.
+* **Use the CLI** when writing or debugging tests.
+* **Python handles accuracy**, Playwright handles execution. They are fundamentally decoupled.
 
 ---
 
-Next:
-
-[Testing_Strategy.md](Testing_Strategy.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17

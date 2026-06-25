@@ -2,6 +2,10 @@
 node_modules/
 # Secrets — NEVER bake into image
 .env
+sc-nlx-*.json
+*service-account*.json
+*gcp*.json
+*.credentials.json
 # Auth state — machine-specific, must be regenerated on cloud
 playwright/.auth/
 # Generated output — mount as volumes instead
@@ -17,3 +21,4 @@ benchmarking-automation/
 # OS files
 .DS_Store
 Thumbs.db
+

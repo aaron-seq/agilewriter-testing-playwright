@@ -2,6 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const htmlToDocx = require('html-to-docx');
+const { uploadToGcs } = require('./utils/gcs-uploader');
 
 // ── Session-scoped paths ──────────────────────────────────────────────────────
 const SESSION_ID = process.env.SESSION_ID || null;
@@ -579,6 +580,25 @@ async function runWithFailureGuard() {
         if (reportStatus !== 'generated') {
           fs.writeFileSync(textPath, textReport);
         }
+
+        // --- SCC-592: GCS Upload Phase (Durable Artifacts Only) ---
+        // We await the upload so the script doesn't exit prematurely, 
+        // but we wrap in a try/catch so a failure doesn't flip the exit code to 1.
+        try {
+          if (reportStatus === 'generated') {
+            const reportName = path.basename(OUTPUT_FILE);
+            const relativeDir = path.basename(outDir);
+            
+            // Upload DOCX
+            await uploadToGcs(OUTPUT_FILE, `${relativeDir}/${reportName}`);
+            // Upload Manifest
+            await uploadToGcs(manifestPath, `${relativeDir}/report_manifest.json`);
+          }
+        } catch (uploadErr) {
+          console.error('[GCS] Unhandled upload error:', uploadErr.message);
+        }
+        // --- End GCS Upload Phase ---
+
       } catch (manifestErr) {
         console.error('CRITICAL: Failed to write report_manifest.json', manifestErr);
       }

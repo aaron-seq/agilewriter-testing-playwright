@@ -53,3 +53,8 @@ __pycache__/
 # Pytest
 .pytest_cache/
 
+# GCS service account keys — NEVER commit (contains private keys)
+sc-nlx-*.json
+*service-account*.json
+*gcp*.json
+*.credentials.json

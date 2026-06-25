@@ -1,189 +1,97 @@
-Document Status: Canonical
-Canonical Scope: Define system responsibilities, boundaries, and architectural principles
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/AgileWriter_Automation_Handbook.md
-
-Last Reviewed: 2026-05-25
-
-Source Documents:
-- Repository source tree
-- onboarding review sessions
-
 # System Architecture Deep Dive
 
-> **MANDATORY RULE:**
-> Architecture explains responsibilities.
-> Execution explains behavior.
+## 1. Why This Exists
 
-## System Purpose
+`Architecture.md` covers the 10,000-foot view. This document is the 100-foot view. 
 
-The AgileWriter Automation Suite organizes validation responsibilities outside the primary AgileWriter application.
+If you need to debug why a test result isn't showing up in the UI, or why the Python pipeline can't find your generated document, you need to understand exactly how data flows between the Node.js server, the Playwright process, and the Python backend.
 
-The suite separates execution, evaluation, and reporting concerns into distinct operational domains.
+## 2. Mental Model
 
-**Confidence**: Observed
+The architecture is strictly decoupled. The UI does not know how to run tests. Playwright does not know how to score accuracy. 
 
-## Architectural Principles
+Think of it as an assembly line where each station only communicates by dropping files into a shared basket (the `sessions/` directory).
 
-Responsibility Separation
-→ execution and evaluation remain independent
+1. **The Server (Node.js)** receives requests and spawns isolated Playwright processes.
+2. **Playwright** does the heavy lifting, dumping its logs and telemetry (`step-results.json`) into the basket.
+3. **The Report Generator (Node.js)** picks up the basket and turns the raw telemetry into a Word Document.
+4. **The Accuracy Pipeline (Python)** picks up the generated document and scores it against an answer key.
 
-Observable Boundaries
-→ systems expose outputs that can be reviewed
+## 3. Real Example: The Request Lifecycle
 
-Operational Independence
-→ domains are organized to reduce coupling
+When a user clicks "Run Test" on `localhost:3000/ui`, here is the exact architectural chain reaction:
 
-**Confidence**: Observed
+```mermaid
+sequenceDiagram
+    participant UI as Browser (index.html)
+    participant Server as Node.js (test-runner-server.js)
+    participant PW as Playwright Process
+    participant FS as File System
+    
+    UI->>Server: POST /run-test { script: 'health_CSR.spec.ts' }
+    Server->>Server: Generate unique SESSION_ID
+    Server->>PW: spawn('npx playwright test...')
+    
+    rect rgb(240, 248, 255)
+        Note right of PW: Test Execution Phase
+        PW->>FS: Create sessions/<SESSION_ID>
+        PW->>PW: Run validateHealthEnv()
+        PW->>PW: Drive AgileWriter UI
+        PW->>FS: Write step-results.json
+    end
+    
+    PW-->>Server: exit 0
+    Server->>FS: run generate-word-report.js
+    FS-->>Server: _Report.docx created
+    Server-->>UI: Download Link Ready
+```
 
-## System Boundaries
+## 4. Component Deep Dives
 
-Execution Domain
-→ workflow coordination
+### 4.1 Test Runner Server (`server/test-runner-server.js`)
 
-Validation Domain
-→ output evaluation
+This is an Express application that acts as an execution broker. It has three main jobs:
 
-Reporting Domain
-→ outcome summarization
+1. **Session Management**: It assigns a `SESSION_ID` to every run. This ID is passed to Playwright via environment variables (`process.env.SESSION_ID`). This guarantees that concurrent runs do not overwrite each other's files.
+2. **Subprocess Orchestration**: It uses Node's `child_process.spawn()` to run Playwright. It listens to `stdout` and `stderr`.
+3. **Log Streaming**: It uses Server-Sent Events (SSE) via the `/stream` endpoint to pipe the `stdout` from the child process directly to the user's browser in real-time. Before sending, it scrubs PII (emails, passwords) from the logs.
 
-Boundary Rule:
-Responsibilities should remain owned by a single domain whenever possible.
+### 4.2 Playwright Telemetry (`helpers/step-tracker.ts`)
 
-**Confidence**: Observed
+Playwright does not return a JSON object to the server when it finishes. Instead, it writes to disk. 
+The `step-tracker.ts` helper maintains an array of steps (e.g., `[ { step: "Login", status: "PASS" } ]`). In the `test.afterAll()` hook, it dumps this array to `sessions/<SESSION_ID>/step-results.json`.
 
-## Container Boundaries and Persistence
+### 4.3 Report Generator (`generate-word-report.js`)
 
-With the introduction of Docker, the system architecture includes strict container boundaries.
+This is a standalone Node script. It expects to find `step-results.json`. It converts the JSON array into an HTML table with colored badges, and uses `html-to-docx` to generate a Word file.
 
-Container Execution Boundary
-→ isolated runtime environment
-→ independent of local ecosystem
+**Crucial Architecture Feature: Atomic Writes**
+To prevent the server from trying to serve a half-written DOCX file, the generator writes to a `.tmp` file first. Once the file is 100% written, it uses `fs.renameSync()` to instantly swap it to the `.docx` extension.
 
-Persistence Boundary
-→ state is ephemeral by default
-→ artifacts require explicit volume mounts
+### 4.4 Accuracy Scoring (`benchmarking_automation/main.py`)
 
-Ownership of Mounted Outputs:
-* `sessions/` → owned by Execution Domain (Playwright traces/states)
-* `reports/` → owned by Reporting Domain (aggregated run reports)
-* `Generated DOCX Artifacts` → owned by Validation Domain (raw output for accuracy scoring)
+The accuracy pipeline is written in Python, not TypeScript. It is intentionally isolated.
+It reads the `inventory.json` file and the generated artifacts, comparing them against the "Raw QA Files" (the answer keys). It outputs a color-coded Excel file (`accuracy_report.xlsx`) via `compare_accuracy.py`.
 
-**Confidence**: Verified
+## 5. Common Mistakes
 
-## Node Execution Layer
+* **Assuming state is shared in memory**: The UI, the Server, and Playwright run in completely different processes. You cannot use a global variable to pass data from a test back to the UI. You *must* write it to a file.
+* **Hardcoding paths**: Never hardcode `./reports/output.json` in a test. Always use the `SESSION_ID` directory, or your test will fail randomly when run concurrently with another test.
 
-Responsibility
-→ coordinate validation execution
+## 6. Troubleshooting
 
-Observable Input
-→ execution request
+**Symptom**: The UI says "Execution Completed", but the Word report contains zero steps and says "Environment Failure".
+* **Diagnosis**: The Playwright child process crashed violently before `afterAll()` could run, meaning `step-results.json` was never written.
+* **Fix**: Check the `sessions/<SESSION_ID>` folder. If it is completely empty, Playwright failed to initialize. Check the server logs to see the raw `stderr` output from the `spawn()` call.
 
-Observable Output
-→ execution outcome
+## 7. Key Takeaways
 
-**Confidence**: Observed
-
-## Python Validation Layer
-
-Responsibility
-→ evaluate outputs
-
-Observable Input
-→ generated artifacts
-
-Observable Output
-→ interpreted outcomes
-
-**Confidence**: Observed
-
-## Reporting Layer
-
-Responsibility
-→ summarize outcomes
-
-Observable Input
-→ execution interpretation
-
-Observable Output
-→ report artifact
-
-**Confidence**: Observed
-
-## Cross-System Contracts
-
-Execution
-→ Validation
-→ outcomes available for evaluation
-
-Validation
-→ Reporting
-→ interpretation available for summarization
-
-**Confidence**: Observed
-
-## Architecture Ownership Model
-
-Execution
-→ workflow coordination
-
-Validation
-→ output interpretation
-
-Reporting
-→ outcome communication
-
-**Confidence**: Observed
-
-## Operational Constraints
-
-Independent domains
-→ coordination effort
-
-Sequential dependencies
-→ staged completion
-
-**Confidence**: Observed
-
-## Architecture Confidence Model
-
-Verified
-→ explicitly documented or directly confirmed
-
-Observed
-→ directly visible
-
-Inferred
-→ interpreted from system structure
-
-**Confidence**: Observed
-
-## Architecture Decisions
-
-Decision:
-- Strict Environment Separation
-
-Why:
-- Combining Python accuracy analysis inside Playwright tests increased complexity and execution fragility.
-
-Architectural Tradeoff:
-- Domain separation introduces additional coordination while preserving responsibility clarity.
-
-Confidence:
-- Inferred
-
-## Historical Architecture Notes
-
-Canonical documentation defines current architectural guidance.
-
-Historical documentation preserves:
-- prior architectural guidance
-- historical ownership decisions
-- migration context
+* Components communicate via the **file system**, not memory.
+* `SESSION_ID` is the glue that connects a UI click to a specific set of logs and reports.
+* The system is asynchronous: the server spawns Playwright and then just waits for it to exit.
 
 ---
 
-Next:
-
-[Health_Pipeline_Deep_Dive.md](Health_Pipeline_Deep_Dive.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17

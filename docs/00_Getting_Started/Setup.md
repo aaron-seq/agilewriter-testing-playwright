@@ -1,203 +1,86 @@
-Document Status: Canonical
-Related Legacy Docs: TBD
-
 # Setup
 
-## First Mental Model
+## 1. Why This Exists
 
-If you are new, understand this path first:
+This repository does not contain AgileWriter itself. It contains the testing automation that acts like a robot user.
 
-`Clone Repository → Install Node.js Ecosystem → Configure .env → Verify UI Loads → Ready to Execute`
+Because it acts like a real user, it needs a real environment: it needs a browser, a server to organize the runs, and credentials to log in. This document explains how to set up your local machine so you can run the robot.
 
-Then come back and read details.
+## 2. Mental Model
 
-## What This Component Does NOT Do
-* **Does NOT install AgileWriter:** This repository only contains the validation suite; it tests an externally hosted AgileWriter application.
-* **Does NOT provision credentials:** You must manually obtain valid SharePoint and Microsoft login credentials.
-* **Does NOT configure CI/CD:** Setup is optimized purely for local execution.
+You have two paths to get running:
 
-> Decision: Local-Only Execution
-> Why this exists: AgileWriter validation currently requires complex manual Microsoft authentication and SharePoint interaction that is not yet fully headless or service-account ready.
-> Consequence: Developers must set up their local environment to execute tests.
+1. **The Docker Path (Recommended)**: You install Docker. You run `docker-compose up`. Docker downloads an isolated Linux container, installs Node.js, installs Playwright, downloads Chromium, maps your `.env` file, and starts the server. It is completely clean and reproducible.
+2. **The Local Path**: You install Node.js manually. You run `npm install`. You run `npx playwright install` to download Chromium. You start the server manually.
 
-## Prerequisites
+Choose Docker unless you have a specific reason to run locally (e.g., you are developing new Playwright test logic and want to use the VS Code debugger).
 
-Ensure you have the following installed on your local workstation:
+## 3. Real Example: The Docker Setup (Recommended)
 
-1. **Node.js** (v18 or higher)
-2. **Git**
-
-## Required Installation Paths
-
-You must choose ONE execution path:
-* **Path A: Containerized (Recommended)**: Uses Docker to isolate dependencies and guarantee environment consistency.
-* **Path B: Local Node.js**: Uses your local machine's Node.js and browser binaries.
-
-### Path A: Containerized Setup (Recommended)
-
-#### 1. Clone Repository
+### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/aaron-seq/Agile-Writer-Playwright-testing.git
-cd "Agile-Writer-Playwright-testing"
+git clone https://aarons8@bitbucket.org/smartercodes-repo/automation-validation-tests.git
+cd Agile-Writer-Playwright-testing
 ```
 
-#### 2. Install Docker
+### Step 2: Install Docker
 
-Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running on your machine.
 
-#### 3. Configure Environment
+### Step 3: Configure the Environment
 
-Copy the example environment file:
+The system needs to know where AgileWriter lives and how to log in. We keep this out of Git using a `.env` file.
 
 ```bash
-# Mac/Linux
+# Copy the template to create your local copy
 cp .env.example .env
-
-# Windows
-copy .env.example .env
 ```
 
-Ensure you configure the `.env` file according to [Environment_Configuration.md](../01_Developer_Handbook/Environment_Configuration.md).
+Open `.env` and fill in your Microsoft credentials and the target `BASE_URL`. (See [Environment_Configuration.md](../01_Developer_Handbook/Environment_Configuration.md) for details).
 
-#### 4. First Run
-
-Build and start the container:
+### Step 4: Build and Run
 
 ```bash
 docker-compose up --build
 ```
 
-If successful, the validation UI will be available at `http://localhost:3000/ui` and Playwright will be ready to execute headless tests.
+This will take a few minutes the first time. Once it finishes, the server will be running on port 3000.
 
----
+## 4. Alternative: The Local Setup
 
-### Path B: Local Node.js Setup
+If you prefer not to use Docker, follow these steps:
 
-This prepares the frontend UI and Playwright automation suite locally.
-
-### 1. Clone Repository
-
-WHY:
-Creates a local working copy of the repository.
-
-WHEN:
-Only once for a new workstation.
-
-HOW:
+### Step 1: Clone and Configure
 
 ```bash
 git clone https://github.com/aaron-seq/Agile-Writer-Playwright-testing.git
-cd "Agile-Writer-Playwright-testing"
-```
-
-CONSEQUENCE:
-Without a local repository checkout, no setup step can proceed.
-
-### 2. Install Node Dependencies
-
-#### `npm install`
-
-WHY:
-Installs repository dependencies declared in `package.json`, including Playwright, Express, TypeScript packages, reporting utilities, and supporting libraries.
-
-WHEN:
-Run once immediately after cloning. Re-run only after dependency changes (`package.json` or lockfile updates).
-
-HOW:
-
-```bash
-npm install
-```
-
-CONSEQUENCE:
-If skipped, the local server cannot start and imports will fail with module resolution errors.
-
-#### Install Playwright Browser Runtime
-
-WHY:
-Downloads browser binaries required for automation execution. Playwright does not use your locally installed browser.
-
-WHEN:
-Run once after `npm install`. Re-run after Playwright upgrades.
-
-HOW:
-
-```bash
-npx playwright install --with-deps
-```
-
-CONSEQUENCE:
-Health scripts and browser-driven validation fail immediately with executable-not-found errors.
-
-### 3. Configure Environment
-
-#### Create Local Environment File
-
-WHY:
-Creates your personal local configuration file. `.env` remains untracked so credentials are never committed.
-
-WHEN:
-Run once after cloning. Do NOT overwrite an already-configured `.env`.
-
-HOW:
-
-Mac/Linux:
-
-```bash
+cd Agile-Writer-Playwright-testing
 cp .env.example .env
 ```
 
-Windows:
+*(Remember to fill in your `.env` file)*
+
+### Step 2: Install Dependencies
 
 ```bash
-copy .env.example .env
+# 1. Install Node.js libraries (Express, TypeScript, etc.)
+npm install
+
+# 2. Install the Playwright browser binaries
+npx playwright install --with-deps
 ```
 
-CONSEQUENCE:
-If skipped, tests fail at startup due to missing runtime configuration.
+### Step 3: Start the Server
 
-Environment variable definitions belong ONLY here:
-[Environment_Configuration.md](../01_Developer_Handbook/Environment_Configuration.md)
+```bash
+npm run server
+```
 
-Do not duplicate variables in Setup.md.
+## 5. Optional: Python Setup
 
-### 4. Setup Gate
-
-Do not continue until ALL are true:
-
-✅ Repository cloned  
-✅ `node_modules/` directory exists  
-✅ Playwright completed successfully with no install errors  
-✅ `.env` created
-
-If any check fails:
-
-Stop.
-
-Resolve the missing prerequisite before continuing.
-
-> Warning:
-> Do not install Python unless you specifically intend to work on `benchmarking_automation/`.
-> 
-> Python is not required to run health checks or accuracy scoring.
-
-### 5. Optional: Python Benchmarking
-
-For benchmarking architecture:
-
-See:
-[Repository_Overview.md](Repository_Overview.md)
-
-Requires: **Python 3.9+**
-
-WHY:
-Sets up a dedicated virtual environment for Automap validation and XML extraction tools.
-
-WHEN:
-Only if you are maintaining or executing Python benchmarking tests.
-
-HOW:
+> [!NOTE]
+> You only need to do this if you are working on the Accuracy Scoring pipeline in `benchmarking_automation/`. You do not need Python to run Health Tests.
 
 ```bash
 cd benchmarking_automation
@@ -212,67 +95,28 @@ pip install -r requirements.txt
 cd ..
 ```
 
-CONSEQUENCE:
-If skipped, Python benchmarking scripts cannot be executed, but the primary Node.js frontend automation remains entirely unaffected.
+## 6. Common Mistakes
 
-### 6. Verify Your Setup
+* **Skipping `npx playwright install`**: If you use the Local Setup and skip this step, Playwright will crash immediately because it has no browser to drive. Playwright does not use your normal Google Chrome installation.
+* **Forgetting to update `.env`**: Copying the example file isn't enough; you must put real credentials inside it.
+* **Installing Python unnecessarily**: Do not install Python if you are just a QA engineer running daily health checks.
 
-WHY:
-Validates that the Node server can start, bind to a port, and serve the UI dashboard without crashing.
+## 7. Troubleshooting
 
-WHEN:
-Run once to verify successful installation, and every time you want to execute health scripts via the UI.
+**Symptom**: You ran `npm run server` or `docker-compose up`, but you get a `port already in use` error.
 
-HOW:
+* **Diagnosis**: Another process is already using port 3000 (usually a rogue Node.js process or another React app).
+* **Fix**: Find and kill the process.
+  * Windows: `netstat -ano | findstr :3000`
+  * Mac/Linux: `lsof -i :3000`
 
-```bash
-npm run server
-```
+**Symptom**: Docker builds successfully, but tests immediately fail saying "Microsoft SSO blocked".
 
-Open your browser to:
-`http://localhost:3000/ui`
+* **Diagnosis**: Your company firewall or conditional access policies might be blocking headless logins from Docker IP ranges.
+* **Fix**: Use the Local Setup instead, and change `headless: false` in `playwright.config.js` so you can manually approve the Microsoft 2FA prompt once.
 
-Success means:
+---
 
-- server process remains alive
-- UI opens
-- script selector visible
-- no startup exceptions
-
-Failure means:
-
-- server exits immediately
-- blank page
-- missing scripts
-- authentication/config errors
-
-If the UI does not load:
-
-Mac/Linux:
-
-```bash
-lsof -i :3000
-```
-
-Windows:
-
-```bash
-netstat -ano | findstr :3000
-```
-
-Then:
-
-* confirm another process is not using port 3000
-* inspect terminal startup output
-* review:
-[Troubleshooting.md](../04_Operations/Troubleshooting.md)
-
-### 7. Setup Complete
-
-If verification succeeded:
-
-You are ready to run your first health script.
-
-Continue:
-
-[Quick_Start.md](Quick_Start.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17
