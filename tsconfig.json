@@ -8,8 +8,9 @@
     "skipLibCheck": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
   },
-  "include": ["tests/**/*.ts"],
+  "include": ["tests/**/*.ts", "*.spec.ts"],
   "exclude": ["node_modules"]
 }
