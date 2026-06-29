@@ -59,6 +59,14 @@ Every step is tracked by a telemetry logger. When the run finishes, the Reportin
 **Current behavior:**
 Report generation writes synchronously and relies on deterministic output handling.
 
+## 7. Container Boundaries and Persistence
+With the introduction of Docker, the system architecture includes strict container boundaries. The Node.js server runs inside an isolated container (`mcr.microsoft.com/playwright:v1.58.2-noble`) and state is ephemeral by default.
+
+Data must be explicitly mounted out of the container to survive:
+* `sessions/` → Mounted to preserve Playwright traces and `step-results.json`. Owned by the Orchestration Layer.
+* `reports/` → Mounted to preserve final DOCX files. Owned by the Output Layer.
+* `playwright/.auth/` → Mounted to preserve Microsoft SSO login state across test runs.
+
 ## Future Considerations
 Introduce atomic write (`.tmp` rename) + newest-file selection to definitively eliminate read/write race conditions during report download.
 

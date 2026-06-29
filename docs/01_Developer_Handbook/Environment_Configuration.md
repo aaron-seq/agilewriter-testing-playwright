@@ -1,175 +1,103 @@
-Document Status: Canonical
-Canonical Scope: Define environment variables, source of truth rules, and rotation processes
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/Environment_Variables_Reference.md
-- docs/legacy/original_docs/baseurl-usage.md
-
-Last Reviewed: 2026-05-25
-
-Source Documents:
-- .env.example
-- legacy reference files
+> [!WARNING]
+> **DEPRECATED DOCUMENT**
+> This document is deprecated. Please refer to the new Testing and Developer Handbook located in `docs/05_Development/`.
+> 
+> * For codebase map/navigation, see `docs/05_Development/01_Navigation_Guide.md` and `02_Test_Folder_Guide.md`
+> * For environment configuration, see `docs/05_Development/03_Local_Development.md`
+> * For testing strategy, see `docs/05_Development/05_TDD_Guide.md` and `06_Creating_Tests.md`
+> * For execution flows, see `docs/05_Development/07_Health_Scripts.md` and `09_Examples_and_Gotchas.md`
 
 # Environment Configuration
 
-> **MANDATORY RULE:**
-> `Environment_Configuration.md` is the ONLY canonical location for environment variables.
+## 1. Why This Exists
 
-## Environment Philosophy
+AgileWriter tests run against multiple environments (QA, UAT, Production) and require access to secure Microsoft SharePoint folders. We cannot hardcode URLs or passwords into the repository.
 
-The AgileWriter Automation Suite relies heavily on environment variables to control execution targets, supply credentials, and define expected outputs. The `.env` file isolates state from the repository and provides runtime flexibility.
+Instead, we use a local `.env` file. This file acts as the universal remote control for the test suite. This document explains what variables exist, how to set them up, and what happens when they are wrong.
 
-In containerized environments (Docker), the `.env` file is injected directly into the container at runtime.
+> [!IMPORTANT]
+> **Source of Truth Rule**
+> `Environment_Configuration.md` is the ONLY canonical location for explaining environment variables. If you add a new variable to the codebase, you must document it here and add an empty stub to `.env.example`.
 
-## Source of Truth Rules
+## 2. Mental Model
 
-Environment variable changes require:
+Think of the environment configuration as a strict bouncer at the door of a club:
 
-1. Update `.env.example`
-2. Update `Environment_Configuration.md`
-3. Validate `Setup.md`
-4. Validate one health script
+1. **The Bouncer (`validateHealthEnv.ts`)**: Before any test runs, the bouncer checks your `.env` file against a strict list of requirements.
+2. **The VIP List (`.env.example`)**: The template showing exactly what credentials you need to provide.
+3. **Your ID (`.env`)**: Your local, secret file containing real passwords and URLs. This file is ignored by Git and never committed.
 
-**Confidence**: Verified
+If your ID doesn't match the VIP list exactly, the bouncer rejects you instantly (in 0.01 seconds) rather than letting you into the club (launching the browser) and kicking you out 20 minutes later when a document upload fails.
 
-## Variable Lifecycle
+## 3. Real Example: The Configuration Pipeline
 
-Variables follow this operational progression:
+Here is how a variable flows from your local file into the test logic:
 
-Create → Document → Validate → Consume → Rotate → Migrate → Deprecate → Archive
+```mermaid
+flowchart TD
+    A[.env (Local File)] -->|Loads into| B[process.env]
+    B -->|Validated by| C[validateHealthEnv.ts]
+    C -->|Mapped by| D[runtime-config.ts]
+    D -->|Consumed by| E[Playwright Test Spec]
+```
 
-Rules:
-* new variables require `.env.example` presence
-* variables must appear in this document
-* removal requires migration notes
-* Deprecated variables remain documented until migration completes.
+## 4. Step-by-Step Workflow: Managing Variables
 
-## Verified Variables
+### Setting Up Your Environment
+1. Copy the template: `cp .env.example .env`
+2. Open `.env` and fill in the required base variables:
+   * `MS_EMAIL`: Your Microsoft SSO email
+   * `MS_PASSWORD`: Your Microsoft SSO password
+   * `BASE_URL`: The AgileWriter environment URL (e.g., `https://qa.agilewriter.com`)
+3. Fill in the specific document variables for the tests you intend to run (e.g., `HEALTH_TEMPLATE_CSR`).
 
-Variables explicitly present in `.env.example`.
+### Adding a New Variable
+If you are developing a new feature and need a new variable:
+1. Add the variable usage to your test or server code.
+2. Add the variable to the strict validation mapping in `tests/helpers/validateHealthEnv.ts`.
+3. Add a placeholder stub to `.env.example`.
+4. Document the variable in the table below.
+
+## 5. Verified Variables Reference
 
 ### Baseline Execution Variables
+Required for *any* test to run.
 
-These variables are commonly required for baseline local execution workflows. Specific scripts may require additional variables.
-
-| Variable | Purpose | Example | Primary Consumer | Confidence |
-| :--- | :--- | :--- | :--- | :--- |
-| `MS_EMAIL` | Microsoft SSO username for AgileWriter authentication. | `<MICROSOFT_EMAIL>` | Playwright authentication | Verified |
-| `MS_PASSWORD` | Microsoft SSO password. | `<MICROSOFT_PASSWORD>` | Playwright authentication | Verified |
-| `BASE_URL` | The target AgileWriter environment API and backend routing URL. | `<AGILEWRITER_BASE_URL>` | Playwright navigation | Verified |
+| Variable | Purpose | Example | Primary Consumer |
+| :--- | :--- | :--- | :--- |
+| `MS_EMAIL` | Microsoft SSO username | `jane.doe@company.com` | Playwright Auth |
+| `MS_PASSWORD` | Microsoft SSO password | `SuperSecret123!` | Playwright Auth |
+| `BASE_URL` | Target AgileWriter environment | `https://qa.agilewriter.com` | Playwright Navigation |
+| `APP_URL` | Specific sign-in routing URL | `https://login.agilewriter.com` | Playwright Auth |
 
 ### Context-Specific Variables
+Required only for specific document types or reporting features.
 
-These variables configure metadata or override health check targets. If omitted, specific tests may fail without affecting the baseline local execution workflows.
-
-| Variable | Purpose | Example | Primary Consumer | Confidence |
-| :--- | :--- | :--- | :--- | :--- |
-| `PLACEHOLDER_REGEX` | Regex pattern matching text placeholders in documents. | `<REGEX_PATTERN>` | Execution parsing | Verified |
-| `TESTER_NAME` | Name injected into generated QA reports. | `<TESTER_NAME>` | Reporting | Verified |
-| `TEST_ENV` | Environment tag for the generated reports. | `<ENVIRONMENT_TAG>` | Reporting | Verified |
-| `APP_URL` | Specific sign-in URL for AgileWriter frontend. | `<APP_URL>` | Playwright authentication | Verified |
-
-#### Configuration Validation Pattern
-
-Health configuration variables are strictly governed by a centralized pattern to prevent silent runtime failures and configuration drift:
-
-1. **Configuration Key**: A specific suite key is defined in `runtime-config.ts` (e.g., `configKeyName`).
-2. **Validation Mapping**: The `tests/helpers/validateHealthEnv.ts` file maps the key to its exact required environment variables.
-3. **Environment Variables**: The required variables are stubbed in `.env.example` to ensure all developers understand the requirements, and set in the local `.env`.
-4. **Runtime Consumption**: The health spec invokes `validateHealthEnv('configKeyName')` as its very first action. If any mapped variables are missing, execution aborts immediately with a clear error listing the missing variables.
-
-**MANDATORY**: Any variables whose absence causes a *functional silent failure* (such as incorrect source selection resulting in an empty report) MUST be classified as required in the validation mapping, rather than remaining optional.
-
-## Derived Configuration Concepts
-
-Concepts inferred from execution patterns.
-
-* **Playwright Dynamic Timeouts**: Timeout limits often inferred by `process.env.TIMEOUT_OVERRIDE` or similar ad-hoc environment variables.
-  * **Confidence**: Inferred
-* **Accuracy Scoring Targets**: Path offsets and expected accuracy baselines configured locally.
-  * **Confidence**: Inferred
-
-## Variable Consumers
-
-| Variable | Consumer | Failure Signal | Confidence |
+| Variable | Purpose | Example | Primary Consumer |
 | :--- | :--- | :--- | :--- |
-| `BASE_URL` | Playwright execution | navigation failure | Verified |
-| `MS_EMAIL` / `MS_PASSWORD` | Playwright authentication layer | SSO login failure | Verified |
-| `HEALTH_TEMPLATE_*` | Playwright health scripts | SharePoint document not found | Verified |
-| `TESTER_NAME` / `TEST_ENV` | Reporting scripts | Missing metadata in generated reports | Verified |
+| `TESTER_NAME` | Name injected into generated QA reports | `Jane Doe` | Report Generator |
+| `TEST_ENV` | Environment tag for the generated reports | `QA` | Report Generator |
+| `HEALTH_TEMPLATE_*` | Name of the template in SharePoint | `CSR_Template_v2.docx` | Health Scripts |
+| `HEALTH_SOURCE_*` | Name of the source folder in SharePoint | `Study_101_Data` | Health Scripts |
 
-## Configuration Resolution Principles
+## 6. Common Mistakes
 
-* local configuration takes precedence
-* runtime configuration may override defaults
-* consumers should not assume resolution order
+* **Trailing Spaces**: `BASE_URL=https://qa.com ` (notice the space) will cause Playwright navigation to fail with a malformed URL error.
+* **Committing `.env`**: Never use `git add .env`. It contains your raw Microsoft password.
+* **Stale Configuration**: When pulling `main`, if a teammate added a new required variable to `.env.example`, your existing `.env` won't automatically update. Your tests will start failing until you manually copy the new variable over.
 
-**Confidence**: Verified
+## 7. Troubleshooting
 
-## Environment Validation Checklist
+**Symptom**: `[validateHealthEnv] Missing required env vars`
+* **Diagnosis**: You tried to run a test that requires specific folder paths, but your `.env` doesn't have them.
+* **Fix**: Open `.env.example`, find the variables for the test you are trying to run, copy them to your `.env`, and fill them in.
 
-Check `.env` baseline values
-→ Populated
-
-Server starts
-→ Dashboard reachable
-
-Health script executes
-→ Generated output completes
-
-**Confidence**: Verified
-
-## Local Development
-
-For local development:
-1. Clone the repository.
-2. Run `cp .env.example .env`.
-3. Fill in the required `<MICROSOFT_EMAIL>`, `<MICROSOFT_PASSWORD>`, and `<AGILEWRITER_BASE_URL>`.
-4. Do NOT commit the `.env` file.
-
-Do not share `.env`.
-Do not copy another developer's environment blindly.
-Use `.env.example` as initialization only.
-Local environments should remain reproducible.
-Avoid preserving undocumented local overrides.
-
-## Common Misconfigurations
-
-* **Missing BASE_URL** → navigation failure
-* **Incorrect HEALTH_TEMPLATE paths** → script timeout searching SharePoint
-* **Trailing Spaces** → authentication or navigation failure
-* **Copied values from wrong environment** → unexpected execution targets
-* **Stale `.env` after repository update** → missing variables or execution failures
-* **Incorrect placeholder replacement** → script errors
-* **Editing `.env.example` locally** → accidental commit of credentials
-
-## Safe Rotation Process
-
-Recommended after updates:
-
-- restart orchestration server
-- rerun verification flow
-
-## Environment Governance
-
-Environment variables:
-
-- belong in `.env.example`
-- belong in this document
-- should not exist only in code
-- require migration notes before removal
-
-## Historical Environment Decisions
-
-Environment guidance was historically distributed across multiple documents.
-
-Canonical documentation now centralizes guidance.
-
-Historical documents remain preserved for migration and debugging context.
+**Symptom**: Playwright launches but immediately fails to log in to Microsoft.
+* **Diagnosis**: Your `MS_EMAIL` or `MS_PASSWORD` is incorrect, or your password expired.
+* **Fix**: Update the values in `.env`. Note that if you use Docker, you do not need to rebuild the container for `.env` changes to take effect, but you do need to restart it (`docker-compose down && docker-compose up`).
 
 ---
 
-Next:
-
-[Execution_Flows.md](Execution_Flows.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17

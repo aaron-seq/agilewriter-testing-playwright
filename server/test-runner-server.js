@@ -8,6 +8,7 @@ const XLSX = require('xlsx');
 const { normalizeBaseUrl } = require('./normalizeBaseUrl');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { getMissingHealthEnvVars, HEALTH_SPEC_CONFIG_MAP } = require('../utils/validateHealthEnv');
+const { uploadToGcs } = require('../utils/gcs-uploader');
 
 const app = express();
 app.use(cors());
@@ -791,6 +792,17 @@ app.post('/api/accuracy/score', async (req, res) => {
     const excelPath = path.join(ACCURACY_REPORTS_DIR, excelFile);
     const jsonPath = path.join(ACCURACY_REPORTS_DIR, jsonFile);
     const summary = generateReport(scored, excelPath, jsonPath);
+
+    // --- SCC-592: GCS Upload Phase (Durable Artifacts Only) ---
+    // Fire-and-forget so we don't block the UI response timeout
+    Promise.all([
+      uploadToGcs(excelPath, `accuracy/${excelFile}`),
+      uploadToGcs(jsonPath, `accuracy/${jsonFile}`)
+    ]).catch(err => {
+      console.error('[GCS] Unhandled upload error in accuracy route:', err.message || String(err));
+    });
+    // --- End GCS Upload Phase ---
+
 
     const missingCount = scored.filter((row) => row.status === 'Missing Reference').length;
     const warningMessages = [];

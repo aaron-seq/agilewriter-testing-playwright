@@ -1,165 +1,91 @@
-Document Status: Canonical
-Canonical Scope: Define operational troubleshooting, signal collection, and recovery guidance
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/AgileWriter_Automation_Handbook.md
-
-Last Reviewed: 2026-05-25
-
-Source Documents:
-- Repository source tree
-- onboarding review sessions
-
 # Troubleshooting Guide
 
-> **MANDATORY RULE:**
-> Never retry before collecting signals.
+## 1. Why This Exists
 
-## Troubleshooting Philosophy
+When the automation suite breaks, you need to know whether the problem is your local environment, the test script itself, or the AgileWriter application being down. 
 
-Troubleshooting in the AgileWriter Automation Suite prioritizes rapid signal collection and deterministic recovery over root-cause implementation debugging. QA operators are expected to observe failures, collect context, execute known recovery paths, and escalate if issues persist.
+This guide provides concrete, copy-pasteable commands and diagnostic steps to identify and fix the most common errors.
 
-**Confidence**: Observed
+> [!WARNING]
+> **Never blindly retry a failing test.**
+> If a test fails, you must collect the error message first. Blindly retrying often masks the root cause and clutters the session logs.
 
-## Failure Classification
+## 2. Mental Model
 
-Failures are grouped by the first observable symptom rather than underlying cause.
+When troubleshooting, isolate the failure by walking down the stack:
 
-* **Startup Failures**: The server or dashboard cannot be initialized.
-* **Execution Failures**: A validation workflow stalls or errors during the run.
-* **Environment Failures**: Missing or invalid configuration prevents workflows from succeeding.
-* **Report Failures**: Aggregation scripts fail to produce expected artifacts.
-* **Container Failures**: Docker lifecycle or volume mounting issues.
+1. **The Container**: Is Docker actually running the Node server?
+2. **The Environment**: Did `validateHealthEnv` reject your `.env` configuration?
+3. **The Browser**: Did Playwright crash while trying to log in?
+4. **The Application**: Did AgileWriter hang during AI training?
+5. **The Reporting**: Did the Word document fail to compile?
 
-**Confidence**: Observed
+Find the layer where the error occurred and apply the fixes below.
 
-## Startup Failures
+## 3. Real Example: Troubleshooting a Missing Environment Variable
 
-Startup Failure
-→ Observable Signal: service unavailable
-→ First Validation Step: verify startup completed
-→ Candidate Recovery Path: collect startup signals
+Here is the most common error you will see:
 
-**Confidence**: Observed
+```text
+Error: [validateHealthEnv] Missing required env vars for 'csr': HEALTH_TEMPLATE_CSR
+    at validateHealthEnv (/app/utils/validateHealthEnv.ts:70:11)
+```
 
-## Execution Failures
+**How to read this:**
+The test never even launched a browser. The environment guard (`validateHealthEnv.ts`) checked your `.env` file for `HEALTH_TEMPLATE_CSR` and found it empty or missing. 
+**The fix:** Open `.env`, populate the variable, and rerun.
 
-Workflow Stall
-→ Observable Signal: observable activity stops
-→ First Validation Step: verify expected waiting periods
-→ Candidate Recovery Path: safely interrupt and collect signals
+## 4. Troubleshooting by Symptom
 
-Execution Interruption
-→ Observable Signal: execution stops abruptly
-→ First Validation Step: verify workflow continuity
-→ Candidate Recovery Path: collect signals and restart session
+### Symptom: Docker Container Fails to Start or Exits Immediately
+* **Error**: `docker-compose up` fails, or `localhost:3000` is unreachable.
+* **Diagnosis**: Usually a port conflict (port 3000 is in use) or a stale container volume.
+* **Fix**: 
+  1. Check logs: `docker-compose logs`
+  2. If the port is in use, kill the process using it.
+  3. Hard restart Docker: 
+     ```bash
+     docker-compose down -v
+     docker-compose up --build
+     ```
 
-**Confidence**: Observed
+### Symptom: Playwright Fails to Launch ("browserType.launch: Executable doesn't exist")
+* **Error**: The system complains it cannot find Chromium.
+* **Diagnosis**: The Playwright browsers were not installed in the container or on your local machine.
+* **Fix**: Run `npx playwright install --with-deps` inside the container (or locally if not using Docker).
 
-## Environment Failures
+### Symptom: The Test Hangs Forever on "Waiting for training completion"
+* **Diagnosis**: Either AgileWriter is under heavy load, or the UI changed (e.g., the spinner element was renamed) and Playwright doesn't know the training finished.
+* **Fix**: 
+  1. If running locally, change `headless: true` to `headless: false` in `playwright.config.js` to watch the browser.
+  2. Look at the AgileWriter UI. Is it still training? If yes, wait. If it's done but Playwright is still waiting, the DOM selector in `helpers/training-setup.ts` needs to be updated.
 
-Configuration Missing
-→ Observable Signal: authentication unavailable
-→ First Validation Step: verify environment configuration presence
-→ Candidate Recovery Path: review environment guidance
+### Symptom: The Generated Report is Missing or Empty
+* **Error**: You clicked "Download Report" but nothing happens, or the report says "0 Steps".
+* **Diagnosis**: The Playwright process crashed so violently that the `step-results.json` file was never saved to the `sessions/` folder.
+* **Fix**: Check the `sessions/` folder on your host machine. If it is empty, you must check the terminal where the Node server is running for the raw crash stack trace.
 
-Configuration Unexpected
-→ Observable Signal: execution cannot proceed
-→ First Validation Step: verify execution context
-→ Candidate Recovery Path: review environment guidance
+### Symptom: Playwright Fails Because of "No display server"
+* **Error**: `browserType.launch: undefined missing X server or $DISPLAY`
+* **Diagnosis**: You tried to run Playwright in `headed` mode inside a Docker container. Docker containers do not have screens.
+* **Fix**: Set `PLAYWRIGHT_HEADLESS=true` in your `.env` file when running in Docker.
 
-**Confidence**: Observed
+## 5. Escalation Guidance
 
-## Report Failures
+If you cannot resolve the issue using this guide:
 
-Missing Report
-→ Observable Signal: no new document produced
-→ First Validation Step: verify at least one execution completed successfully
-→ Candidate Recovery Path: review report generation workflow
+1. **Save the Session Logs**: Zip the entire `sessions/<SESSION_ID>` folder.
+2. **Screenshot the Terminal**: Capture the raw error output.
+3. **Escalate**: Provide the logs, the environment you targeted (`BASE_URL`), and the exact test name to the Automation Engineering team.
 
-**Confidence**: Observed
+## 6. Key Takeaways
 
-## Containerization Issues
-
-Docker Lifecycle Failure
-→ Observable Signal: container exits prematurely or fails to start
-→ First Validation Step: check `docker-compose logs`
-→ Candidate Recovery Path: execute a full restart procedure (`docker-compose down -v` followed by `docker-compose up --build`)
-
-Orphaned Volumes / State Corruption
-→ Observable Signal: stale reports or old session data persist across fresh runs
-→ First Validation Step: inspect mounted host directories
-→ Candidate Recovery Path: manually clear local volume directories (`sessions/`, `reports/`)
-
-Artifact Troubleshooting Locations
-→ When troubleshooting generated artifacts or session states from a container, retrieve data from the local host directories mounted by Docker:
-* **Session Traces**: Check local `sessions/`
-* **Run Summaries**: Check local `reports/`
-* **Raw DOCX Files**: Check local `reports/` (or designated validation output dir)
-
-**Confidence**: Verified
-
-## Recovery Playbooks
-
-Standard Recovery Scenario
-→ Signals: unexpected non-fatal workflow interruption
-→ Validation: check recent repository updates
-→ Candidate Recovery: review configuration and restart session
-
-**Confidence**: Observed
-
-## Signal Collection
-
-When an issue occurs, collect the following operational captures:
-
-Execution status
-→ reproduce sequence
-
-Visible output
-→ compare outcomes
-
-Workflow context
-→ identify scope
-
-**Confidence**: Observed
-
-## Escalation Guidance
-
-If a candidate recovery path fails to resolve the issue:
-
-1. Compile the collected signals.
-2. Note the failed recovery path attempted.
-3. Escalate for backend investigation.
-
-**Confidence**: Observed
-
-## Known Limitations
-
-Known limitations represent observed operational constraints and may evolve.
-
-Long-running workflows
-→ delayed feedback
-
-Historical visibility
-→ limited availability
-
-Headed Browser Execution in Containers
-→ Headed execution fails because no display server exists in the container.
-→ Resolution: Set `PLAYWRIGHT_HEADLESS=true`. Do not classify this as a defect.
-
-**Confidence**: Observed
-
-## Historical Incident Notes
-
-Canonical documentation defines the current recommended recovery paths.
-
-Historical documentation preserves:
-- prior recovery guidance
-- historical operational practices
-- migration context
+* Start debugging by checking `docker-compose logs`.
+* The `validateHealthEnv` error is your friend—it saves you from 20-minute silent failures.
+* If you are in Docker, you cannot watch the browser natively (use `headless: true`).
 
 ---
 
-Next:
-
-[Report_Interpretation_Guide.md](../02_User_Guides/Report_Interpretation_Guide.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17

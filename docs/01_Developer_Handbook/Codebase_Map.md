@@ -1,142 +1,86 @@
-Document Status: Canonical
-Canonical Scope: Define repository structure, maintainership, and modification rules
-Owner: Documentation Team
-Related Legacy Docs: 
-- docs/legacy/original_docs/AgileWriter_Automation_Handbook.md
-- docs/legacy/original_docs/Ideaya_Health_Automation_Documentation.md
-
-Last Reviewed: 2026-05-25
-
-Source Documents:
-- Repository source tree
-- onboarding review sessions
+> [!WARNING]
+> **DEPRECATED DOCUMENT**
+> This document is deprecated. Please refer to the new Testing and Developer Handbook located in `docs/05_Development/`.
+> 
+> * For codebase map/navigation, see `docs/05_Development/01_Navigation_Guide.md` and `02_Test_Folder_Guide.md`
+> * For environment configuration, see `docs/05_Development/03_Local_Development.md`
+> * For testing strategy, see `docs/05_Development/05_TDD_Guide.md` and `06_Creating_Tests.md`
+> * For execution flows, see `docs/05_Development/07_Health_Scripts.md` and `09_Examples_and_Gotchas.md`
 
 # Codebase Map
 
-## Architecture Philosophy
+## 1. Why This Exists
 
-This repository is not a single application. It is a dual-ecosystem validation suite:
-1. **Node.js/Playwright:** Frontend orchestration, UI, and browser automation.
-2. **Python:** Backend accuracy scoring and DOCX/XML extraction.
+If you are asked to "fix the timeout issue on the health check" or "add a new UI button," where do you even start looking?
 
-This document maps folders to responsibilities, identifies execution entry points, and provides safe modification rules.
+This document provides a guided tour of the folders and files in this repository so you don't get lost. It also explicitly tells you which files are highly dangerous to touch, and which are safe to modify.
 
-## Repository Structure and Ownership
+## 2. Mental Model
 
-| Folder | Responsibility | Primary Entry Point | Primary Maintainer | Change Frequency | Modification Difficulty | Risk Level | Notes | Confidence |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `server/` | Express orchestration backend | `test-runner-server.js` | Repository Maintainers | Low | Expert | High | Execution boundary for UI payloads | Inferred |
-| `ui/` | Local QA execution dashboard | `index.html` | Shared | Medium | Moderate | Medium | Onboarding relevance | Inferred |
-| `tests/` | Playwright automation specs | `health_*.spec.ts` | Automation Contributors | High | Moderate | Medium | Core automation suite | Inferred |
-| `benchmarking_automation/` | Python accuracy pipeline | `main.py` | Shared | Medium | Difficult | Low | Isolated ecosystem | Inferred |
-| `reports/` | Transient output storage | Generated output only | TBD | High | Easy | None | Git-ignored local output only | Verified |
+Think of this repository as a restaurant:
 
-## Cross-Folder Dependencies
+* **The Dining Room (`ui/`)**: Where the customer sits. It just shows the menu (the tests) and takes orders.
+* **The Waiter (`server/`)**: Takes the order from the UI and hands it to the kitchen.
+* **The Kitchen (`tests/`)**: The actual cooks (Playwright scripts) that do the work of driving the browser.
+* **The Back Office (`benchmarking_automation/`)**: Completely separate from the restaurant. Analysts (Python scripts) reviewing the receipts (generated documents) to score accuracy.
 
-Dependency Direction:
-A → B means A depends on B.
+## 3. The Folder Structure
 
-* `ui/`
-  → server execution layer
-* `server/`
-  → runtime configuration
-* `tests/`
-  → helper utilities
-  → reporting pipeline
-* `benchmarking_automation/`
-  → independent execution
+Here is the 10,000-foot view of the repository:
 
-## If You Need To Change X
+| Folder                       | What it does                                                          | Who usually touches it? | Danger Level |
+| :--------------------------- | :-------------------------------------------------------------------- | :---------------------- | :----------- |
+| `tests/`                   | The actual Playwright automation scripts (`health_*.spec.ts`).      | Automation Engineers    | Medium       |
+| `server/`                  | The Express backend (`test-runner-server.js`) that runs Playwright. | Core Maintainers        | High         |
+| `ui/`                      | The HTML/JS for the `localhost:3000` dashboard.                     | Anyone                  | Low          |
+| `benchmarking_automation/` | The Python Accuracy pipeline. Completely isolated from Playwright.    | Data Scientists         | Low          |
+| `reports/`                 | Where generated `.docx` files are saved locally. (Git-ignored).     | Nobody (Auto-generated) | None         |
+| `sessions/`                | Where Playwright writes raw telemetry JSON. (Git-ignored).            | Nobody (Auto-generated) | None         |
 
-Use this matrix before changing code to understand dependencies, testing requirements, impact scope, and rollback strategy.
+## 4. The Global "Danger" Files
 
-| Task | Files | Validation Required | Failure Risk | Blast Radius | Rollback Strategy |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Change timeout behavior** | `playwright.config.js`, `runtime-config.ts` | Verify a health script completes without premature termination. | High | Repository-wide | Restore previous config |
-| **Add reporting capability** | `tests/helpers/`, `server/` | Run an existing script and verify report output formatting. | Medium | High | Revert reporting helper changes |
-| **Modify training synchronization** | `tests/*.spec.ts` | Execute script and ensure Playwright correctly waits for AI generation. | High | Medium | Revert spec modifications |
-| **Add dashboard action** | `ui/index.html`, `ui/script.js`, `server/test-runner-server.js` | Click UI action and verify backend routes request without errors. | Medium | Medium | Revert dashboard assets and server routes |
-| **Add environment variable** | `.env`, `.env.example`, `Environment_Configuration.md` | Start server and execute script to ensure variable resolves. | High | Repository-wide | Revert `.env.example` and documentation |
-| **Add health script** | `tests/`, `.env` | Discover script via CLI and trigger for end-to-end success. | Medium | Medium | Remove spec file |
-| **Add Python benchmark** | `benchmarking_automation/models/`, `benchmarking_automation/main.py` | Run benchmark script against known test documents. | Low | Low | Remove benchmark schema and logic |
+If you touch these files, you can easily break the entire automation suite.
 
-## Safe Extension Points
+* **`.env.example`**
+  * **What it is**: The template for local configuration.
+  * **Why it's dangerous**: If you add a variable here but forget to add it to `validateHealthEnv.ts`, you create silent failures.
+* **`playwright.config.js`**
+  * **What it is**: The core engine configuration.
+  * **Why it's dangerous**: It sets `workers: 1`. If you change this to run tests in parallel, session folders will collide and the server will crash.
+* **`global-setup.js`**
+  * **What it is**: Runs before any test starts. Handles Microsoft SSO login.
+  * **Why it's dangerous**: If you break this, absolutely zero tests will be able to start.
+* **`utils/validateHealthEnv.ts`**
+  * **What it is**: The strict configuration gatekeeper.
+  * **Why it's dangerous**: If you map the wrong required variables for a test, the test will abort immediately.
 
-These locations are areas designed to minimize expected cross-impact.
+## 5. If You Need To Change X, Go To Y
 
-Changes still require validation.
-Extension safety is not guaranteed.
+Use this matrix to know exactly where to make your changes:
 
-* `tests/`
-  → Run at least one existing health script.
-* `ui/styles.css`
-  → Verify execution dashboard usability.
-* `benchmarking_automation/models/`
-  → Validate benchmark output.
+| If you want to...                                      | You need to edit...                                                                          |
+| :----------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **Change how long a test waits for AgileWriter** | `playwright.config.js` (Global) or `tests/health_*.spec.ts` (Local override)             |
+| **Change the style of the Word report**          | `utils/generate-word-report.js`                                                            |
+| **Add a new test to the dropdown**               | You don't! Just add a `health_*.spec.ts` file in `tests/`. The server auto-discovers it. |
+| **Fix a Python parsing error**                   | `benchmarking_automation/doc_parser/`                                                      |
+| **Change the UI colors**                         | `ui/styles.css`                                                                            |
 
-## Global Files (High Blast Radius)
+## 6. Common Mistakes
 
-Do not touch these files lightly. Modifying them alters the baseline behavior of the entire health suite.
+* **Editing historical documentation**: If you find a document in `docs/legacy/`, do not edit it. Legacy docs are preserved as read-only historical context. Always edit the Canonical documents in `00` through `05`.
+* **Hardcoding credentials in code**: Never put an email or password in `global-setup.js`. Always use `process.env`.
+* **Committing the `reports/` folder**: Generated output should never be committed to Git. `reports/` and `sessions/` are explicitly added to `.gitignore`.
 
-* **`global-setup.js`**: Repository-wide initialization behavior.
-* **`runtime-config.ts`**: Global execution parameters affecting all active test runs.
-* **`playwright.config.js`**: Baseline behavior for browser contexts, retries, and worker orchestration.
-* **`package.json` / `package-lock.json`**: Dependency versions that govern execution environment determinism.
+## 7. Key Takeaways
 
-## Common Anti-Patterns
-
-* hardcoding credentials
-* bypassing runtime config
-* writing reports outside `reports/`
-* modifying generated outputs
-* duplicating environment variables
-* editing generated artifacts
-* editing legacy docs instead of canonical docs
-* storing credentials in repository
-* changing runtime config inside tests
-* committing generated reports
-
-## Read This Before Editing
-
-* Need execution? → [Quick_Start.md](../00_Getting_Started/Quick_Start.md)
-* Need architecture? → [Architecture.md](../00_Getting_Started/Architecture.md)
-* Need env? → [Environment_Configuration.md](Environment_Configuration.md)
-* Need failures? → [Troubleshooting.md](../04_Operations/Troubleshooting.md)
-
-## Repository Change Rules
-
-Repository changes should:
-
-- preserve historical context
-- keep environment variables centralized
-- prefer extension over mutation
-- avoid introducing hidden configuration
-- update docs alongside code
-- maintain onboarding path integrity
-
-## Historical Context
-
-Historical docs remain preserved but are not canonical.
-Canonical docs define current behavior.
-Historical docs explain historical behavior.
-
-Historical docs preserve:
-- implementation decisions
-- failed experiments
-- migration context
-- historical debugging knowledge
-
-Use legacy docs for:
-* debugging old behavior
-* understanding migration decisions
-* investigating historical failures
-* analyzing race conditions
-
-* `docs/legacy/original_docs/AgileWriter_Automation_Handbook.md`
-* `docs/legacy/original_docs/Ideaya_Health_Automation_Documentation.md`
+* Playwright logic lives in `tests/`.
+* Python logic lives in `benchmarking_automation/`.
+* The server acts as the glue.
+* Respect the `.env` template rules.
 
 ---
 
-Next:
-
-[Environment_Configuration.md](Environment_Configuration.md)
+Document Status: Canonical
+Owner: Documentation Team
+Last Reviewed: 2026-06-17
