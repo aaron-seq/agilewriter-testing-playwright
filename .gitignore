@@ -45,6 +45,11 @@ sessions/
 
 #benchmarking_automation
 benchmarking_automation/venv/
+# Pipeline artifacts — regenerate with `python main.py` / the tests/ runner
+# scripts. tests/output/inventory*.json are checked in: they are test inputs.
+benchmarking_automation/output/
+benchmarking_automation/final_outputs/
+benchmarking_automation/tests/output/generated_document_tree.json
 
 # Python cache
 __pycache__/

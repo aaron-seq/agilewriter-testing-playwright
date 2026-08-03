@@ -58,6 +58,19 @@ test.describe('SCC-556: Project Isolation — Non-E2E tests must not trigger AW_
     expect(output).not.toContain('AW_00_10_consolidated_flow');
     expect(output).not.toContain('[setup]');
   });
+
+  test('utils unit tests do not trigger AW_00_10 setup', () => {
+    const output = listTests('utils/__tests__/gcs-uploader.spec.ts');
+    expect(output).not.toContain('AW_00_10_consolidated_flow');
+    expect(output).not.toContain('[setup]');
+  });
+
+  test('api tests do not trigger AW_00_10 setup', () => {
+    const output = listTests('tests/api/server-routes.spec.ts');
+    expect(output).toContain('[api]');
+    expect(output).not.toContain('AW_00_10_consolidated_flow');
+    expect(output).not.toContain('[setup]');
+  });
 });
 
 // ──────────────────────────────────────────────
@@ -85,6 +98,13 @@ test.describe('SCC-556: Project Routing — Files assigned to correct project', 
   test('infrastructure tests route to infrastructure project, not smarter-tests', () => {
     const output = listTests('tests/infrastructure/deploy.spec.ts');
     expect(output).toContain('[infrastructure]');
+    expect(output).not.toContain('[smarter-tests]');
+  });
+
+  test('every __tests__ spec routes to the unit project, not smarter-tests', () => {
+    const output = listTests('--project=unit');
+    expect(output).toContain('utils\\__tests__\\gcs-uploader.spec.ts');
+    expect(output).toContain('server\\__tests__\\normalizeBaseUrl.spec.ts');
     expect(output).not.toContain('[smarter-tests]');
   });
 });

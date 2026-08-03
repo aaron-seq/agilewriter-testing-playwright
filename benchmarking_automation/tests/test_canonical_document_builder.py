@@ -300,7 +300,10 @@ def test_real_docx_placeholder_reconstruction():
     from docx import Document
 
     doc = Document(
-        "tests/Adv_Sample_Template.docx"
+        str(
+            Path(__file__).resolve().parent
+            / "Adv_Sample_Template.docx"
+        )
     )
 
     found = False

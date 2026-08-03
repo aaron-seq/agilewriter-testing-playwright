@@ -4,8 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "playwright test --project=unit --project=infrastructure --project=api",
+    "test:py": "benchmarking_automation\\venv\\Scripts\\python -m pytest benchmarking_automation -q",
+    "test:e2e": "playwright test --project=smarter-tests",
+    "test:health": "playwright test --project=health",
     "report": "node generate-word-report.js",
-    "server": "node server/test-runner-server.js"
+    "server": "node server/test-runner-server.js",
+    "smoke:accuracy": "node scripts/test-accuracy-routes.js"
   },
   "keywords": [],
   "author": "",

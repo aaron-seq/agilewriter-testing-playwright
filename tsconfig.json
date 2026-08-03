@@ -11,6 +11,6 @@
     "lib": ["ES2022", "DOM"],
     "types": ["node"]
   },
-  "include": ["tests/**/*.ts", "*.spec.ts"],
+  "include": ["tests/**/*.ts", "utils/**/*.ts", "server/**/*.ts", "*.ts"],
   "exclude": ["node_modules"]
 }

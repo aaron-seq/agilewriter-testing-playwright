@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
-sys.path.insert(0, str(ROOT_DIR))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
 
@@ -11,11 +11,18 @@ from classification.classifier import (
     PlaceholderClassifier
 )
 
+INVENTORY = (
+    PROJECT_ROOT
+    / "tests"
+    / "output"
+    / "inventory.json"
+)
+
 
 def test_deterministic_output():
 
     with open(
-        "tests/output/inventory.json",
+        INVENTORY,
         "r",
         encoding="utf-8"
     ) as file:

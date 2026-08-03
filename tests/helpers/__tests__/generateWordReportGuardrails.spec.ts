@@ -119,7 +119,7 @@ test.describe('Report Generation Failure Guardrails (QA Guardian)', () => {
       
       // Mock fs.renameSync to throw specifically for the DOCX file
       const originalRenameSync = fs.renameSync;
-      fs.renameSync = (oldPath, newPath) => {
+      fs.renameSync = (oldPath: any, newPath: any) => {
         if (String(oldPath).endsWith('.docx.tmp')) {
           throw new Error('Mock rename DOCX error');
         }
@@ -151,7 +151,7 @@ test.describe('Report Generation Failure Guardrails (QA Guardian)', () => {
       fs.writeFileSync(path.join(TEST_REPORT_DIR, 'step-results.json'), JSON.stringify([{ status: 'PASS', duration: 100 }]));
       
       const originalRenameSync = fs.renameSync;
-      fs.renameSync = (oldPath, newPath) => {
+      fs.renameSync = (oldPath: any, newPath: any) => {
         if (String(oldPath).endsWith('report_manifest.json.tmp')) {
           throw new Error('Mock rename MANIFEST error');
         }
@@ -185,7 +185,7 @@ test.describe('Report Generation Failure Guardrails (QA Guardian)', () => {
       fs.mkdirSync(TEST_REPORT_DIR, { recursive: true });
       // We will mock fs.writeFileSync to fail if writing to TEST_REPORT_DIR's .write_test
       const originalWriteFileSync = fs.writeFileSync;
-      fs.writeFileSync = (file, data) => {
+      fs.writeFileSync = (file: any, data: any) => {
         if (String(file).includes('.write_test')) {
           if (!String(file).includes('agility-reports')) {
             throw new Error('Mock permissions error');

@@ -1,8 +1,9 @@
 // utils/validateHealthEnv.js
-// CommonJS wrapper for server/test-runner-server.js
-// TypeScript source of truth: utils/validateHealthEnv.ts
-// ⚠️  Keep REQUIRED_VARS in sync with validateHealthEnv.ts
-//     when adding new health configs
+// Single source of truth for health-suite env requirements.
+// Consumed by server/test-runner-server.js directly and by the health specs
+// through the typed wrapper in validateHealthEnv.ts.
+// Adding a health suite = add one REQUIRED_VARS entry + one
+// HEALTH_SPEC_CONFIG_MAP entry, here only.
 'use strict';
 
 const REQUIRED_VARS = {

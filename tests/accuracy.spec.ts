@@ -6,7 +6,9 @@ import { generateReport } from './helpers/accuracy-report-writer';
 
 test.describe('AI Placeholder Verification Accuracy Scorer', () => {
   test('generates QA accuracy Excel and JSON reports', async () => {
-    const rawQAPath = process.env.ACCURACY_RAW_QA_PATH || 'QA report_ICF_FULL_new version.xlsx';
+    const rawQAPath =
+      process.env.ACCURACY_RAW_QA_PATH ||
+      path.join('raw_qa_files', 'QA report_ICF_FULL_new version.xlsx');
     const referencePath = process.env.ACCURACY_REF_PATH || path.join('reference_files', 'ref_ICF_Full.xlsx');
     const outputDir = process.env.ACCURACY_OUTPUT_DIR || 'reports';
     const rawBase = path.basename(rawQAPath).toLowerCase();
