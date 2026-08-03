@@ -7,29 +7,147 @@ let startTime = 0;
 let currentSessionId = null;
 let accuracyHistoryLoaded = false;
 
-const scriptsWithManualConfig = [
-  'AW_00_10_consolidated_flow.spec.ts',
-  'AW_11_to_20_manual_input.spec.ts'
-];
+// AW_11_to_20_manual_input is the ONLY spec that reads the Template/Source
+// form — it maps onto runtimeConfig.manualTemplate* / manualSourceFiles.
+// AW_00_10 used to be listed here too, which showed the form for a spec that
+// ignores every field in it.
+const scriptsWithManualConfig = ['AW_11_to_20_manual_input.spec.ts'];
+
+// What each script actually does, so the dropdown isn't a list of filenames.
+// Keep in step with tests/ — a missing entry falls back to the raw name.
+const SCRIPT_INFO = {
+  'AW_00_10_consolidated_flow.spec.ts': {
+    label: 'AW_01–AW_10 · Login & document setup',
+    duration: '~6 min',
+    summary:
+      'Signs in through Microsoft SSO, then walks client selection, Agile Mapping, ' +
+      'file-name validation, destination template and source pickers. Also saves the ' +
+      'login session every other browser test reuses.',
+    needs: 'MS_EMAIL, MS_PASSWORD, BASE_URL',
+  },
+  'AW_11_to_20_QA_folder.spec.ts': {
+    label: 'AW_11–AW_20 · QA folder run',
+    duration: '~40–70 min',
+    summary:
+      'Full training and generation using whatever is sitting in the QA folder — ' +
+      'both destination template and source documents. Covers training, the three ' +
+      'generation stages, mapping controls, transform, reset, final doc and save.',
+    needs: 'A populated QA folder',
+  },
+  'AW_11_to_20_manual_input.spec.ts': {
+    label: 'AW_11–AW_20 · Pick your own documents',
+    duration: '~40–70 min',
+    summary:
+      'Same pipeline as the QA folder run, but against the exact template and sources ' +
+      'you choose below. On success it writes a reusable health_<name>.spec.ts.',
+    needs: 'Template and source fields below',
+  },
+  'style_trainer.spec.ts': {
+    label: 'Style trainer',
+    duration: '~5 min',
+    summary: 'Exercises the style-training flow (SCC-198).',
+    needs: 'A signed-in session',
+  },
+};
+
+const HEALTH_SUMMARY =
+  'One full document-generation run for this format, end to end, producing a DOCX ' +
+  'report in sessions/. Fails in about a second if its .env variables are missing.';
+
+function scriptInfoFor(fileName) {
+  if (SCRIPT_INFO[fileName]) {
+    return SCRIPT_INFO[fileName];
+  }
+
+  if (fileName.startsWith('health_')) {
+    const format = fileName.replace(/^health_/, '').replace(/\.spec\.ts$/, '').replace(/_/g, ' ');
+    return {
+      label: `Health check · ${format}`,
+      duration: '~20–45 min',
+      summary: HEALTH_SUMMARY,
+      needs: 'Its HEALTH_* variables in .env',
+    };
+  }
+
+  return { label: fileName, duration: '', summary: '', needs: '' };
+}
+
+function renderScriptInfo() {
+  const panel = document.getElementById('script-info');
+  if (!panel) {
+    return;
+  }
+
+  const info = scriptInfoFor(document.getElementById('testFile').value);
+
+  // Built as DOM nodes rather than innerHTML: the health_* branch derives its
+  // label from a filename, and textContent can't be coaxed into markup.
+  panel.textContent = '';
+
+  if (info.summary) {
+    const summary = document.createElement('p');
+    summary.className = 'script-info-summary';
+    summary.textContent = info.summary;
+    panel.appendChild(summary);
+  }
+
+  for (const [shown, value] of [['⏱ ', info.duration], ['Needs: ', info.needs]]) {
+    if (!value) {
+      continue;
+    }
+    const chip = document.createElement('span');
+    chip.className = 'script-chip';
+    chip.textContent = shown + value;
+    panel.appendChild(chip);
+  }
+
+  panel.style.display = panel.childNodes.length ? 'block' : 'none';
+}
 
 function toggleManualConfig() {
   const selectedScript = document.getElementById('testFile').value;
   const manualConfig = document.getElementById('manual-config');
 
-  if (scriptsWithManualConfig.includes(selectedScript)) {
-    manualConfig.style.display = 'block';
-  } else {
-    manualConfig.style.display = 'none';
+  manualConfig.style.display = scriptsWithManualConfig.includes(selectedScript) ? 'block' : 'none';
+}
+
+function onScriptChange() {
+  toggleManualConfig();
+  renderScriptInfo();
+}
+
+/**
+ * The URL a given Environment choice points at.
+ * Returns '' for "Default", meaning "leave BASE_URL from .env alone".
+ */
+function selectedEnvironmentUrl() {
+  const choice = document.getElementById('environment').value;
+
+  if (choice === 'custom') {
+    return document.getElementById('customUrl').value.trim();
   }
+  if (choice === 'dev') {
+    return 'https://dev.agilewriter.com';
+  }
+  if (choice === 'sandbox') {
+    return 'https://sandbox.agilewriter.com';
+  }
+  if (choice === 'prod') {
+    return 'https://prod.agilewriter.com';
+  }
+  return '';
 }
 
 function toggleCustomUrl() {
   const envSelect = document.getElementById('environment');
   const customGroup = document.getElementById('customUrlGroup');
-  if (envSelect.value === 'custom') {
-    customGroup.style.display = 'block';
-  } else {
-    customGroup.style.display = 'none';
+  customGroup.style.display = envSelect.value === 'custom' ? 'block' : 'none';
+
+  const warning = document.getElementById('env-warning');
+  if (warning) {
+    // Running the suite against prod is destructive-adjacent — it creates real
+    // documents in the real SharePoint. Say so before they click Run.
+    warning.style.display = envSelect.value === 'prod' ? 'block' : 'none';
   }
 }
 
@@ -41,8 +159,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   startAccuracyWatcher();
 
   const testSelect = document.getElementById('testFile');
-  testSelect.addEventListener('change', toggleManualConfig);
-  toggleManualConfig();
+  testSelect.addEventListener('change', onScriptChange);
+  onScriptChange();
 
   if (historySection) {
     historySection.addEventListener('toggle', async () => {
@@ -71,13 +189,33 @@ async function loadTestList() {
       return;
     }
 
-    testSelect.innerHTML = '';
-    tests.forEach((testFile) => {
-      const option = document.createElement('option');
-      option.value = testFile;
-      option.textContent = testFile;
-      testSelect.appendChild(option);
-    });
+    testSelect.textContent = '';
+
+    // Group so the list reads as choices, not a directory listing.
+    const groups = [
+      { label: 'End-to-end flows', match: (f) => f.startsWith('AW_') },
+      { label: 'Health checks', match: (f) => f.startsWith('health_') },
+      { label: 'Other', match: () => true },
+    ];
+
+    const remaining = [...tests];
+    for (const group of groups) {
+      const members = remaining.filter(group.match);
+      if (!members.length) {
+        continue;
+      }
+      members.forEach((f) => remaining.splice(remaining.indexOf(f), 1));
+
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = group.label;
+      for (const testFile of members) {
+        const option = document.createElement('option');
+        option.value = testFile;
+        option.textContent = scriptInfoFor(testFile).label;
+        optgroup.appendChild(option);
+      }
+      testSelect.appendChild(optgroup);
+    }
   } catch (error) {
     console.error('Could not load test list:', error);
   }
@@ -163,68 +301,54 @@ function showAccuracyWatchBanner(message) {
   banner.style.display = 'block';
 }
 
+/** One labelled field in a source row. */
+function docField(labelText, control) {
+  const wrap = document.createElement('div');
+  wrap.className = 'form-group';
+  const label = document.createElement('label');
+  label.textContent = labelText;
+  wrap.appendChild(label);
+  wrap.appendChild(control);
+  return wrap;
+}
+
+function selectWith(className, values) {
+  const select = document.createElement('select');
+  select.className = className;
+  for (const value of values) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  }
+  return select;
+}
+
+function textInputWith(className, placeholder) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = className;
+  input.placeholder = placeholder;
+  return input;
+}
+
 function addSourceInput() {
-  const container = document.getElementById('source-files-container');
-
   const group = document.createElement('div');
-  group.className = 'source-input-group';
-  group.style.display = 'grid';
-  group.style.gridTemplateColumns = '1.3fr 2fr 2fr 1.5fr auto';
-  group.style.gap = '0.5rem';
-  group.style.marginBottom = '0.5rem';
+  group.className = 'source-input-group doc-row';
 
-  const platformSelect = document.createElement('select');
-  platformSelect.className = 'source-platform-input';
-  platformSelect.style.marginBottom = '0';
-
-  const sharePointOpt = document.createElement('option');
-  sharePointOpt.value = 'SharePoint';
-  sharePointOpt.textContent = 'SharePoint';
-
-  const veevaOpt = document.createElement('option');
-  veevaOpt.value = 'Veeva';
-  veevaOpt.textContent = 'Veeva';
-
-  platformSelect.appendChild(sharePointOpt);
-  platformSelect.appendChild(veevaOpt);
-
-  const fileInput = document.createElement('input');
-  fileInput.type = 'text';
-  fileInput.className = 'source-input';
-  fileInput.placeholder = 'Source Name (e.g. Protocol.docx)';
-  fileInput.style.marginBottom = '0';
-
-  const folderInput = document.createElement('input');
-  folderInput.type = 'text';
-  folderInput.className = 'source-folder-input';
-  folderInput.placeholder = 'Source Folder (e.g. Protocol)';
-  folderInput.style.marginBottom = '0';
-  folderInput.style.maxWidth = 'none';
-
-  const tabSelect = document.createElement('select');
-  tabSelect.className = 'source-tab-input';
-  tabSelect.style.marginBottom = '0';
-  const clinicalOpt = document.createElement('option');
-  clinicalOpt.value = 'Clinical';
-  clinicalOpt.textContent = 'Clinical';
-  const nonClinicalOpt = document.createElement('option');
-  nonClinicalOpt.value = 'Non-Clinical';
-  nonClinicalOpt.textContent = 'Non-Clinical';
-  tabSelect.appendChild(clinicalOpt);
-  tabSelect.appendChild(nonClinicalOpt);
+  group.appendChild(docField('Platform', selectWith('source-platform-input', ['SharePoint', 'Veeva'])));
+  group.appendChild(docField('File name', textInputWith('source-input', 'Protocol.docx')));
+  group.appendChild(docField('Folder', textInputWith('source-folder-input', 'Protocol')));
+  group.appendChild(docField('Tab', selectWith('source-tab-input', ['Clinical', 'Non-Clinical'])));
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
-  removeBtn.className = 'btn-icon btn-remove';
-  removeBtn.textContent = '-';
+  removeBtn.className = 'btn-remove';
+  removeBtn.textContent = 'Remove';
   removeBtn.onclick = () => group.remove();
+  group.appendChild(docField(' ', removeBtn));
 
-  group.appendChild(platformSelect);
-  group.appendChild(fileInput);
-  group.appendChild(folderInput);
-  group.appendChild(tabSelect);
-  group.appendChild(removeBtn);
-  container.appendChild(group);
+  document.getElementById('source-files-container').appendChild(group);
 }
 
 function formatTime(ms) {
@@ -265,27 +389,28 @@ async function runTest() {
 
   const testFile = document.getElementById('testFile').value;
   
-  const envSelect = document.getElementById('environment').value;
-  let agileWriterUrl = '';
-  if (envSelect === 'custom') {
-    agileWriterUrl = document.getElementById('customUrl').value.trim();
-  } else if (envSelect === 'dev') {
-    agileWriterUrl = 'https://dev.agilewriter.com';
-  } else if (envSelect === 'sandbox') {
-    agileWriterUrl = 'https://sandbox.agilewriter.com';
-  } else if (envSelect === 'prod') {
-    agileWriterUrl = 'https://prod.agilewriter.com';
-  }
+  const agileWriterUrl = selectedEnvironmentUrl();
+  const envName = document.getElementById('environment').value;
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
 
   const data = {
     testerName: document.getElementById('tester').value,
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
     testFile,
     agileWriterUrl,
-    baseUrl: 'https://app-v2-rc1-aw.smarter.codes',
-    appUrl: 'https://app-v2-rc1-aw.smarter.codes/signin',
-    envName: 'QA',
+    envName,
+    // baseUrl/appUrl used to be hardcoded to the QA host here. The server writes
+    // this payload into sessions/<id>/runtime-config.json, and runtime-config.ts
+    // merges it OVER the environment defaults — so the hardcoded value silently
+    // beat whatever the Environment dropdown said, and every run went to QA.
+    // Only send them when a non-default environment was actually chosen.
+    ...(agileWriterUrl
+      ? { baseUrl: agileWriterUrl, appUrl: `${agileWriterUrl}/signin` }
+      : {}),
+    // Same trap: an empty string here would override MS_EMAIL / MS_PASSWORD
+    // from .env with '' and break the login. Send only what was actually typed.
+    ...(email ? { email } : {}),
+    ...(password ? { password } : {}),
     templatePlatform: document.getElementById('templatePlatform').value,
     templateName: document.getElementById('templateName').value.trim(),
     templateFolder: document.getElementById('templateFolder').value.trim(),

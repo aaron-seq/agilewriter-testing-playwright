@@ -63,3 +63,6 @@ sc-nlx-*.json
 *service-account*.json
 *gcp*.json
 *.credentials.json
+
+# Playwright MCP scratch output
+.playwright-mcp/

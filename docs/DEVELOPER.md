@@ -182,6 +182,26 @@ about never letting a test reach a route that starts real work.
 `npm run smoke:accuracy` exercises the accuracy routes against a running
 server. It needs `npm run server` in another terminal.
 
+### The config-merge trap
+
+The server writes the UI's whole POST body to `sessions/<id>/runtime-config.json`,
+and `runtime-config.ts` does `{ ...defaults, ...overrides }`. **Any key the UI
+sends wins over `.env` — including empty strings and stale hardcoded values.**
+
+Two live bugs came from exactly this, both fixed:
+
+- The UI hardcoded `baseUrl` to the QA host on every request, so it beat
+  whatever the Environment dropdown said. Picking Dev/Sandbox/Prod ran against
+  QA anyway. The server compounded it by exporting the override as `BASEURL`,
+  which nothing reads — `playwright.config.js` and `runtime-config.ts` both
+  read `BASE_URL`.
+- The empty Email/Password fields sent `''`, overriding `MS_EMAIL` and
+  `MS_PASSWORD` from `.env` with nothing.
+
+The rule: **the UI must omit a key entirely rather than send a blank or assumed
+value for it.** `runTest()` in `ui/script.js` spreads keys in conditionally for
+this reason. Do the same for anything you add.
+
 ---
 
 ## Benchmarking automation

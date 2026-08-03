@@ -395,10 +395,13 @@ app.get('/list-tests', (_req, res) => {
     return res.status(404).json({ error: 'Tests directory not found.' });
   }
 
+  // accuracy.spec.ts is excluded because it needs file arguments — the
+  // Accuracy Scorer panel drives it instead. AW_11_to_20_* used to be excluded
+  // too, which hid the only spec the Template/Source form actually configures.
   const specFiles = fs
     .readdirSync(TESTING_DIR)
     .filter((fileName) => fileName.endsWith('.spec.ts'))
-    .filter((fileName) => fileName !== 'accuracy.spec.ts' && !fileName.startsWith('AW_11_to_20'));
+    .filter((fileName) => fileName !== 'accuracy.spec.ts');
 
   return res.json(specFiles);
 });
@@ -560,7 +563,11 @@ app.post('/run-test', (req, res) => {
       cwd: ROOT_DIR,
       env: {
         ...process.env,
+        // Both names: nothing actually reads BASEURL — playwright.config.js and
+        // runtime-config.ts both read BASE_URL. Setting only BASEURL made the
+        // UI's Environment dropdown silently do nothing.
         BASEURL: customBaseUrl,
+        BASE_URL: customBaseUrl,
         SESSION_ID: sessionId,
       },
     });

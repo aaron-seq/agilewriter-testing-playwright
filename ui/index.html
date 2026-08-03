@@ -21,97 +21,140 @@
         <p>Configure and trigger automated validations</p>
       </div>
 
-      <div class="grid">
-        <div class="form-group">
-          <label for="tester">Tester Name</label>
-          <input id="tester" type="text" placeholder="John Doe">
-        </div>
+      <div class="step">
+        <div class="step-head"><span class="step-num">1</span> What do you want to run?</div>
+
         <div class="form-group">
           <label for="testFile">Test Script</label>
-          <select id="testFile">
-            <option value="AW_00_10_consolidated_flow.spec.ts">AW_00_10_consolidated_flow.spec.ts</option>
-            <option value="AW_11_to_20.spec.ts">AW_11_to_20.spec.ts</option>
-            <option value="AW_11_to_20_QA_folder.spec.ts">AW_11_to_20_QA_folder.spec.ts</option>
-            <option value="AW_11_to_20_manual_input.spec.ts">AW_11_to_20_manual_input.spec.ts</option>
-            <option value="accuracy.spec.ts">accuracy.spec.ts</option>
-            <option value="health_CSR.spec.ts">health_CSR.spec.ts</option>
-            <option value="health_ICF_full.spec.ts">health_ICF_full.spec.ts</option>
-            <option value="health_ICF_trimmed.spec.ts">health_ICF_trimmed.spec.ts</option>
-            <option value="health_Ideaya.spec.ts">health_Ideaya.spec.ts</option>
-            <option value="health_M264.spec.ts">health_M264.spec.ts</option>
-          </select>
+          <select id="testFile"></select>
         </div>
+
+        <div id="script-info" class="script-info" style="display: none;"></div>
       </div>
 
-      <div class="grid">
+      <div class="step">
+        <div class="step-head"><span class="step-num">2</span> Where should it run?</div>
+
         <div class="form-group">
           <label for="environment">Environment</label>
           <select id="environment" onchange="toggleCustomUrl()">
-            <option value="default">Default (.env)</option>
-            <option value="dev">Dev</option>
-            <option value="sandbox">Sandbox</option>
-            <option value="prod">Prod</option>
-            <option value="custom">Custom URL...</option>
+            <option value="default">Default — use BASE_URL from .env</option>
+            <option value="dev">Dev — dev.agilewriter.com</option>
+            <option value="sandbox">Sandbox — sandbox.agilewriter.com</option>
+            <option value="prod">Prod — prod.agilewriter.com</option>
+            <option value="custom">Custom URL…</option>
           </select>
         </div>
+
         <div class="form-group" id="customUrlGroup" style="display: none;">
           <label for="customUrl">Custom URL</label>
           <input id="customUrl" type="url" placeholder="https://app.example.com">
         </div>
-      </div>
 
-      <div class="grid">
-        <div class="form-group">
-          <label for="email">Microsoft Email</label>
-          <input id="email" type="email" placeholder="email@synterex.com">
-        </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="Password">
+        <div id="env-warning" class="callout callout-warn" style="display: none;">
+          This runs the full flow against <strong>production</strong>. It creates real
+          documents in the real SharePoint. Make sure that is what you want.
         </div>
       </div>
 
-      <div id="manual-config">
-
-        <div class="section-divider">Template Configuration</div>
+      <div class="step">
+        <div class="step-head">
+          <span class="step-num">3</span> Who is running it?
+          <span class="step-optional">optional</span>
+        </div>
 
         <div class="form-group">
-          <label>Template Setup</label>
-          <div style="display: grid; grid-template-columns: 1.3fr 2fr 2fr 1.5fr; gap: 0.5rem;">
-            <select id="templatePlatform" style="margin-bottom: 0;">
+          <label for="tester">Tester Name <span class="hint">— shown on the report</span></label>
+          <input id="tester" type="text" placeholder="John Doe">
+        </div>
+
+        <details class="cred-override">
+          <summary>Sign in as a different account</summary>
+          <p class="callout-muted">
+            Leave this closed to use <code>MS_EMAIL</code> and <code>MS_PASSWORD</code>
+            from <code>.env</code>, which is what you normally want.
+          </p>
+          <div class="grid">
+            <div class="form-group">
+              <label for="email">Microsoft Email</label>
+              <input id="email" type="email" placeholder="from .env" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input id="password" type="password" placeholder="from .env" autocomplete="new-password">
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div id="manual-config" class="step">
+        <div class="step-head">
+          <span class="step-num">4</span> Which documents?
+        </div>
+        <p class="callout-muted">
+          Only this script uses these fields — they map to the destination template
+          and the sources it trains against.
+        </p>
+
+        <div class="section-divider">Destination template</div>
+
+        <div class="doc-row">
+          <div class="form-group">
+            <label for="templatePlatform">Platform</label>
+            <select id="templatePlatform">
               <option value="SharePoint">SharePoint</option>
               <option value="Veeva">Veeva</option>
             </select>
-            <input id="templateName" type="text" placeholder="Template File Name (e.g. Destination_Template.docx)" style="margin-bottom: 0;">
-            <input id="templateFolder" type="text" placeholder="Template Folder (e.g. QA Testing)" style="margin-bottom: 0;">
-            <select id="templateTab" style="margin-bottom: 0;">
+          </div>
+          <div class="form-group">
+            <label for="templateName">File name</label>
+            <input id="templateName" type="text" placeholder="Destination_Template.docx">
+          </div>
+          <div class="form-group">
+            <label for="templateFolder">Folder</label>
+            <input id="templateFolder" type="text" placeholder="QA Testing">
+          </div>
+          <div class="form-group">
+            <label for="templateTab">Tab</label>
+            <select id="templateTab">
               <option value="Clinical">Clinical</option>
               <option value="Non-Clinical">Non-Clinical</option>
             </select>
           </div>
         </div>
 
-        <div class="section-divider">Source Files Configuration</div>
+        <div class="section-divider">Source documents</div>
 
-        <div class="form-group" id="source-files-container">
-          <label>Source File(s)</label>
-
-          <div class="source-input-group" style="display: grid; grid-template-columns: 1.3fr 2fr 2fr 1.5fr auto; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <select class="source-platform-input" style="margin-bottom: 0;">
-              <option value="SharePoint">SharePoint</option>
-              <option value="Veeva">Veeva</option>
-            </select>
-            <input type="text" class="source-input" placeholder="Source Name (e.g. Protocol.docx)" style="margin-bottom: 0;">
-            <input type="text" class="source-folder-input" placeholder="Source Folder (e.g. Protocol)" style="margin-bottom: 0; max-width: none;">
-            <select class="source-tab-input" style="margin-bottom: 0;">
-              <option value="Clinical">Clinical</option>
-              <option value="Non-Clinical">Non-Clinical</option>
-            </select>
-            <button type="button" class="btn-icon" onclick="addSourceInput()">+</button>
+        <div id="source-files-container">
+          <div class="source-input-group doc-row">
+            <div class="form-group">
+              <label>Platform</label>
+              <select class="source-platform-input">
+                <option value="SharePoint">SharePoint</option>
+                <option value="Veeva">Veeva</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>File name</label>
+              <input type="text" class="source-input" placeholder="Protocol.docx">
+            </div>
+            <div class="form-group">
+              <label>Folder</label>
+              <input type="text" class="source-folder-input" placeholder="Protocol">
+            </div>
+            <div class="form-group">
+              <label>Tab</label>
+              <select class="source-tab-input">
+                <option value="Clinical">Clinical</option>
+                <option value="Non-Clinical">Non-Clinical</option>
+              </select>
+            </div>
           </div>
-
         </div>
 
+        <button type="button" class="btn-add-source" onclick="addSourceInput()">
+          + Add another source
+        </button>
       </div>
 
       <div class="actions">

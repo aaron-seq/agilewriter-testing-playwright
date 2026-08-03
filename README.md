@@ -230,8 +230,15 @@ Run health checks from a browser instead of the CLI:
 npm run server     # http://localhost:3000/ui
 ```
 
-Pick a suite → **Execute** → download the DOCX. A hosted instance exists too;
-ask your team lead for the URL.
+A four-step form: pick a script, pick an environment, name yourself, and — for
+the manual-input run only — choose the documents. Each script shows what it
+does, roughly how long it takes, and what it needs before you start it.
+
+Leave **Environment** on *Default* to use `BASE_URL` from `.env`, and leave the
+credentials section closed to use `MS_EMAIL` / `MS_PASSWORD` from `.env`. Both
+only need touching when you want to override them.
+
+A hosted instance exists too; ask your team lead for the URL.
 
 ---
 

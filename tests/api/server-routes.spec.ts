@@ -57,12 +57,20 @@ test.describe('GET /list-tests', () => {
     expect(files).toContain('health_CSR.spec.ts');
   });
 
-  test('excludes specs the UI must not offer', async ({ request }) => {
+  test('excludes accuracy.spec.ts, which the Accuracy panel drives instead', async ({ request }) => {
     const files = await (await request.get(`${BASE}/list-tests`)).json();
 
-    // accuracy.spec.ts needs file arguments, AW_11_to_20* need a browser login.
+    // It needs file arguments, so it cannot be launched from the script dropdown.
     expect(files).not.toContain('accuracy.spec.ts');
-    expect(files.filter((f: string) => f.startsWith('AW_11_to_20'))).toHaveLength(0);
+  });
+
+  test('offers the manual-input spec the Template/Source form configures', async ({ request }) => {
+    const files = await (await request.get(`${BASE}/list-tests`)).json();
+
+    // This spec is the ONLY consumer of the Template/Source fields in the UI.
+    // It used to be filtered out, leaving that form permanently unreachable.
+    expect(files).toContain('AW_11_to_20_manual_input.spec.ts');
+    expect(files).toContain('AW_11_to_20_QA_folder.spec.ts');
   });
 });
 
