@@ -259,44 +259,36 @@ the local one. `tests/infrastructure/deploy.spec.ts` asserts that.
 
 ## Maintenance
 
-### Shrinking the repository
+### Repository size — done, and the part that isn't
 
-`.git` is ~377 MB against a ~10 MB working tree. Almost all of it is
-Playwright `trace.zip` artifacts committed before `test-results/` was
-gitignored — the largest single blob is 70 MB. Deleting the files doesn't
-help; the objects live in history.
+History was rewritten with `git filter-repo` to strip `test-results/` (409 MB
+of committed Playwright `trace.zip`, largest single blob 70 MB),
+`playwright-report/` (19 MB), and two committed Microsoft SSO cookie jars
+(`playwright/.auth/user.json` and `tests/playwright/.auth/user.json`).
 
-Fixing it rewrites every commit, so it needs a force-push and every clone must
-be re-cloned. Coordinate before running this.
+**Result: a fresh clone is 5 MB, down from 377 MB. All 222 commits kept.**
+
+What a rewrite does *not* do is shrink the number Bitbucket displays. Bitbucket
+retains the now-unreachable objects until its own GC runs, which a force-push
+doesn't trigger — it still reports ~800 MB. Nothing is left to purge on the
+client; verify with:
 
 ```bash
-# 1. Back up first — this is not reversible.
-git clone --mirror <repo-url> ../avt-backup.git
-
-# 2. Confirm what you're removing.
-git rev-list --objects --all \
-  | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
-  | awk '$1=="blob"' | sort -k3 -nr | head -20
-
-# 3. Strip the artifacts and the leaked auth file.
-pip install git-filter-repo
-git filter-repo --force \
-  --path test-results/ \
-  --path tests/playwright/.auth/user.json \
-  --invert-paths
-
-# 4. Verify, then publish.
-git count-objects -vH
-git remote add origin <repo-url>
-git push --force --all
-git push --force --tags
+git clone --mirror <repo-url> /tmp/size-check && du -sh /tmp/size-check
 ```
 
-Everyone else then re-clones. Old clones will not merge cleanly.
+If that comes back ~5 MB, the repository is clean and the server-side figure is
+storage accounting, not something anyone downloads. Reclaiming it needs either
+an Atlassian support ticket asking them to GC the repo, or deleting and
+recreating it — which permanently destroys every pull request, review comment,
+branch permission and webhook. Back up first:
 
-Rotate the Microsoft account credentials whose session was in the committed
-auth file — removing it from history doesn't invalidate a cookie that has
-already been distributed.
+```bash
+git clone --mirror <repo-url> ../avt-clean-backup.git   # restore with: git push --mirror <new-url>
+```
+
+Rotate the Microsoft account credentials that were in the committed auth files.
+Removing a cookie from history does not invalidate a session already handed out.
 
 ### The AW_11_to_20 variants
 
