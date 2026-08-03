@@ -596,13 +596,27 @@ async function loadAccuracySelect(selectId, endpoint, emptyMessage) {
       const option = document.createElement('option');
       option.value = fileName;
       option.textContent = fileName;
+      // Workbook names are long enough to truncate in the closed select;
+      // the title makes the full name reachable on hover.
+      option.title = fileName;
       if (index === 0) {
         option.selected = true;
+        select.title = fileName;
       }
       select.appendChild(option);
     });
+
+    select.onchange = () => {
+      select.title = select.value;
+    };
   } catch (error) {
-    select.innerHTML = '<option value="" disabled selected>Server unreachable</option>';
+    select.textContent = '';
+    const option = document.createElement('option');
+    option.value = '';
+    option.disabled = true;
+    option.selected = true;
+    option.textContent = 'Server unreachable';
+    select.appendChild(option);
   }
 }
 

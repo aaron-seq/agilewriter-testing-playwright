@@ -22,7 +22,10 @@
         radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
       color: var(--text);
       display: flex;
-      align-items: center;
+      /* flex-start, not center: centering a container taller than the viewport
+         pushes its top edge above the scroll origin, so the page header and the
+         Accuracy Scorer header become unreachable. */
+      align-items: flex-start;
       justify-content: center;
       min-height: 100vh;
       overflow-x: hidden;
@@ -40,7 +43,7 @@
     }
 
     .card {
-      flex: 1 1 620px;
+      flex: 1 1 min(520px, 100%);
       min-width: 0;
       background: var(--card-bg);
       backdrop-filter: blur(12px);
@@ -319,7 +322,7 @@
 /* ── Stepped form ───────────────────────────────────────────────────────── */
 
 #accuracy-card {
-  flex: 1 1 380px;
+  flex: 1 1 min(380px, 100%);
   align-self: flex-start;
 }
 
@@ -483,4 +486,36 @@
 
 .btn-remove:hover {
   border-color: #fb7185;
+}
+
+/* ── Fitting smaller screens ────────────────────────────────────────────── */
+
+/* Long workbook names must not widen the card. */
+#accuracyRef,
+#accuracyRaw,
+#testFile,
+#environment {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+}
+
+/* Short viewports: a laptop at 768px tall cannot show the whole form, so keep
+   the page scrolling from the very top rather than centring what overflows. */
+@media (max-height: 850px) {
+  .container {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
 }
