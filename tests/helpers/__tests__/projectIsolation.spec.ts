@@ -79,7 +79,7 @@ test.describe('SCC-556: Project Isolation — Non-E2E tests must not trigger AW_
 
 test.describe('SCC-556: Regression Guards — E2E and health isolation unchanged', () => {
   test('AW_11_to_20 tests still include setup dependency', () => {
-    const output = listTests('tests/AW_11_to_20.spec.ts');
+    const output = listTests('tests/AW_11_to_20_QA_folder.spec.ts');
     expect(output).toContain('AW_00_10_consolidated_flow');
     expect(output).toContain('[setup]');
   });

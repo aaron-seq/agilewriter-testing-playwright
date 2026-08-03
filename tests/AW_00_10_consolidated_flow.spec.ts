@@ -97,6 +97,28 @@ async function returnHome(page: Page): Promise<void> {
   ).toBeVisible({ timeout: DASHBOARD_TIMEOUT });
 }
 
+/**
+ * Runs a dashboard-scoped block and always lands back on the dashboard.
+ *
+ * trackSoftStep() promises "if this fails, the NEXT step can still run". That
+ * only holds if the page is usable afterwards. A drawer helper that throws
+ * half-way leaves its drawer open on top of the dashboard, so the next click
+ * — on a tab the drawer is covering — times out, turning one soft failure into
+ * a hard one several lines later.
+ *
+ * Only for blocks that start and end on the dashboard. Do NOT use it around
+ * steps inside the training workspace: returning home there abandons a
+ * 20–45 minute training run.
+ */
+async function withDashboardReset(page: Page, fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } finally {
+    // Best-effort: never let cleanup replace the real failure message.
+    await returnHome(page).catch(() => undefined);
+  }
+}
+
 async function switchProviderIfAvailable(page: Page, optionName: RegExp): Promise<boolean> {
   const providerButton = page.getByRole('button', { name: SOURCE_PROVIDER_BUTTON });
   if (!(await isVisible(providerButton, 5_000))) {
@@ -442,9 +464,13 @@ async function visitServiceAndReturn(
   expectedHeading: RegExp
 ): Promise<void> {
   await returnHome(page);
-  await page.getByRole('button', { name: serviceButton }).click();
-  await expect(page.getByRole('heading', { name: expectedHeading })).toBeVisible({
-    timeout: DASHBOARD_TIMEOUT,
+  // Reset afterwards too: if the service page never renders its heading, the
+  // half-loaded service view would otherwise block the next service check.
+  await withDashboardReset(page, async () => {
+    await page.getByRole('button', { name: serviceButton }).click();
+    await expect(page.getByRole('heading', { name: expectedHeading })).toBeVisible({
+      timeout: DASHBOARD_TIMEOUT,
+    });
   });
 }
 
@@ -510,9 +536,11 @@ test.describe('Agile Writer E2E Flow (AW_00 to AW_10)', () => {
 
     await trackSoftStep(page, 'AW_03: Client Selection & Integration',
       'Open Activities, Settings, Clients drawers', 'All dashboard drawers open and close', async () => {
-        await openActivitiesAndFilters(page);
-        await openSettingsAndAdminConsole(page);
-        await openClientsAndProjectsDrawers(page);
+        await withDashboardReset(page, async () => {
+          await openActivitiesAndFilters(page);
+          await openSettingsAndAdminConsole(page);
+          await openClientsAndProjectsDrawers(page);
+        });
       });
 
     await page.getByRole('tab', { name: /Services/i }).click();

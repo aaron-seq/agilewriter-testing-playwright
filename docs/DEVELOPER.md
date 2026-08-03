@@ -66,6 +66,31 @@ lands where. They run in `npm test`.
 
 ---
 
+## Soft steps and UI state
+
+`trackStep()` fails the test. `trackSoftStep()` records the failure and lets
+the test continue. The rule in its docstring is "if this fails, can the NEXT
+step still run?"
+
+That rule is about the *test function* continuing — it says nothing about the
+*page*. A soft step that throws half-way through opening a drawer leaves that
+drawer open on top of the dashboard. The next line clicks a tab the drawer is
+covering, times out after 30 s, and reports a hard failure with a locator error
+that has nothing to do with the real cause. One soft failure, one confusing
+hard failure, several lines apart.
+
+`withDashboardReset()` in `AW_00_10_consolidated_flow.spec.ts` wraps
+dashboard-scoped blocks in a `try/finally` that always returns home, so the
+soft failure stays soft.
+
+**It is deliberately not built into `trackSoftStep()`.** Soft steps are also
+used inside the training workspace — `health-report-runner.ts` colour counts,
+and the Apply All / stage-monitoring steps in `AW_11_to_20_*`. Navigating home
+from there abandons a 20–45 minute training run. Recovery has to stay opt-in,
+applied only where the block starts and ends on the dashboard.
+
+---
+
 ## Authentication
 
 The `setup` project logs in through Microsoft SSO once and saves the session to
@@ -253,12 +278,22 @@ Rotate the Microsoft account credentials whose session was in the committed
 auth file — removing it from history doesn't invalidate a cookie that has
 already been distributed.
 
-### Known duplication
+### The AW_11_to_20 variants
 
-`tests/AW_11_to_20.spec.ts` (507 lines), `AW_11_to_20_QA_folder.spec.ts`
-(1242) and `AW_11_to_20_manual_input.spec.ts` (555) cover overlapping ground
-with substantially copied bodies. `AW_11_to_20.spec.ts` also does its own login
-instead of using the saved `storageState`.
+Two remain, and they differ only in where the documents come from:
 
-Merging them is worth doing but needs credentials and a live environment to
-verify, so it hasn't been attempted here. Don't copy a fourth variant.
+- `AW_11_to_20_QA_folder.spec.ts` — everything in the QA folder
+  (`runtimeConfig.folder`, default `QA Testing`). Covers AW_11–AW_20.
+- `AW_11_to_20_manual_input.spec.ts` — the specific template, folder, tab and
+  sources named in `runtime-config.json`. Covers AW_11–AW_20 and writes a
+  `health_<Name>.spec.ts` afterwards.
+
+A third, `AW_11_to_20.spec.ts`, was deleted. Despite the name it stopped at
+AW_12B, used none of the shared helpers (no step tracking, so it produced no
+report), and re-implemented the Microsoft login instead of reusing the saved
+`storageState` — the one file that would have broken if the auth pattern
+changed. `AW_11_to_20_QA_folder.spec.ts` is a strict superset of what it did.
+
+The two survivors still share substantially copied bodies. Merging them needs
+credentials and a live environment to verify, so it hasn't been attempted.
+Don't add a third variant — parameterise one of these instead.
