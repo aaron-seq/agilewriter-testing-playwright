@@ -101,6 +101,16 @@ test.describe('SCC-556: Project Routing — Files assigned to correct project', 
     expect(output).not.toContain('[smarter-tests]');
   });
 
+  test('AW_00_10 runs once, not once per project', () => {
+    const output = listTests('tests/AW_00_10_consolidated_flow.spec.ts');
+
+    // It defines the `setup` project. If it also matches `smarter-tests`,
+    // every run of it executes all 9 tests twice.
+    expect(output).toContain('[setup]');
+    expect(output).not.toContain('[smarter-tests]');
+    expect(output).toContain('Total: 9 tests');
+  });
+
   test('every __tests__ spec routes to the unit project, not smarter-tests', () => {
     const output = listTests('--project=unit');
     expect(output).toContain('utils\\__tests__\\gcs-uploader.spec.ts');

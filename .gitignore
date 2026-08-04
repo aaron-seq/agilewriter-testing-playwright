@@ -66,3 +66,6 @@ sc-nlx-*.json
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# A separate repo that lives inside this working tree
+test-openai-benchmark/

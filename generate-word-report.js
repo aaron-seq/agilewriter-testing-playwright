@@ -1,5 +1,6 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const htmlToDocx = require('html-to-docx');
 const { uploadToGcs } = require('./utils/gcs-uploader');
@@ -59,19 +60,121 @@ const osName =
       ? 'macOS'
       : 'Linux';
 
+const testFileName = runtimeMeta.testFile || 'Not recorded';
+
+// The URL the run actually used, which is not necessarily what the UI asked
+// for — BASEURL/BASE_URL are injected by the server per run.
+const baseUrlUsed =
+  process.env.BASEURL ||
+  process.env.BASE_URL ||
+  runtimeMeta.baseUrl ||
+  'Not recorded';
+
+function readVersion(moduleName) {
+  try {
+    return require(`${moduleName}/package.json`).version;
+  } catch {
+    return 'unknown';
+  }
+}
+
+// Reproducing a failure needs the versions, not just the outcome.
+const toolVersions = [
+  `Playwright ${readVersion('@playwright/test')}`,
+  `Node ${process.version.replace(/^v/, '')}`,
+].join(' | ');
+
 function ensureDir() {
   if (!fs.existsSync(REPORT_DIR)) {
     fs.mkdirSync(REPORT_DIR, { recursive: true });
   }
 }
 
+// Playwright colours its error text. Left in, the escape codes render as
+// literal "[2m" / "[22m" noise in Word.
+// eslint-disable-next-line no-control-regex
+const ANSI_PATTERN = /\[[0-9;]*m/g;
+
+function stripAnsi(value) {
+  return String(value ?? '').replace(ANSI_PATTERN, '');
+}
+
+// html-to-docx mangles non-ASCII into U+FFFD replacement characters, so an
+// em-dash or a middle dot reaches Word as a black diamond. Verified against
+// html-to-docx 1.8: "X · Y" comes out as "X ? Y". Map the typography we
+// use to ASCII rather than shipping garbage.
+const ASCII_FALLBACKS = [
+  [/[‘’‛]/g, "'"],
+  [/[“”]/g, '"'],
+  [/[–—]/g, '-'],
+  [/[·•]/g, '-'],
+  [/…/g, '...'],
+  [/ /g, ' '],
+  [/[→⇒]/g, '->'],
+  [/[✓✔]/g, 'PASS'],
+  [/[✗✘✖]/g, 'FAIL'],
+  [/⚠️?/g, '!'],
+];
+
+function toAscii(value) {
+  let out = String(value ?? '');
+  for (const [pattern, replacement] of ASCII_FALLBACKS) {
+    out = out.replace(pattern, replacement);
+  }
+  return out;
+}
+
 function escapeHtml(value) {
-  return String(value ?? '')
+  return toAscii(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/** Error text, de-coloured, escaped, and with newlines kept readable in Word. */
+function renderErrorText(value) {
+  const cleaned = stripAnsi(value).trim();
+  if (!cleaned) return 'No error message recorded';
+  return escapeHtml(cleaned).replace(/\n/g, '<br/>');
+}
+
+/**
+ * The headline a human reads first.
+ *
+ * summary.overallStatus stays PASS/FAIL because the manifest contract pins it
+ * to those values. But "FAIL" alone is misleading when every failure was soft:
+ * Playwright reports the run as passed, and the two disagree for no obvious
+ * reason. This separates the two cases without touching the machine field.
+ */
+function verdict(summary) {
+  if (summary.criticalFailures.length > 0) {
+    return {
+      label: `FAILED — ${summary.criticalFailures.length} critical failure(s)`,
+      colour: '#C00000',
+      meaning:
+        'A step the run depends on did not work. Everything after it is unreliable, ' +
+        'and the run did not prove what it set out to prove.',
+    };
+  }
+
+  if (summary.softFailures.length > 0) {
+    return {
+      label: `COMPLETED WITH WARNINGS — ${summary.softFailures.length} soft failure(s)`,
+      colour: '#B36B00',
+      meaning:
+        'Every critical step passed, so the main flow works. The failures below are ' +
+        'non-blocking checks — usually a changed selector or a feature that is not ' +
+        'available to this account. Playwright reports this run as passed.',
+    };
+  }
+
+  return {
+    label: 'PASSED',
+    colour: '#107C10',
+    meaning: 'Every recorded step passed.',
+  };
 }
 
 function clickableLink(url) {
@@ -112,6 +215,15 @@ function formatDuration(ms) {
   return `${s}s`;
 }
 
+
+/** Wall-clock bounds of the run, so the report shows when it actually ran. */
+function firstTimestamp(steps) {
+  return steps.length ? steps[0].timestamp : null;
+}
+
+function lastTimestamp(steps) {
+  return steps.length ? steps[steps.length - 1].timestamp : null;
+}
 
 function readSteps() {
   if (!fs.existsSync(STEP_FILE)) return [];
@@ -260,24 +372,38 @@ function renderFailures(steps, criticalOnly) {
     return `<p>None Recorded</p>`;
   }
 
-  return `
-    <ul>
-      ${rows
-      .map(
-        (r) => `
-        <li>
-          <strong>${escapeHtml(
-          r.stepName
-        )}</strong><br/>
-          ${escapeHtml(
-          r.error || 'No error message'
-        )}
-        </li>
-      `
-      )
-      .join('')}
-    </ul>
-  `;
+  // Each failure is self-contained: what was being checked, when, how long it
+  // waited, the de-coloured error, and the screenshot filename to open. Without
+  // the screenshot name a reader has to guess which of 30 images belongs here.
+  return rows
+    .map((r) => `
+      <div style="
+        border-left:4px solid ${r.critical ? '#C00000' : '#B36B00'};
+        background:#FAFAFA;
+        padding:8px 12px;
+        margin:0 0 12px 0;
+      ">
+        <p style="margin:0 0 4px 0;">
+          <strong style="font-size:12pt;">${escapeHtml(r.stepName)}</strong>
+        </p>
+        <p style="margin:0 0 6px 0;color:#555;">
+          <strong>Expected:</strong> ${escapeHtml(r.validation || 'Not recorded')}<br/>
+          <strong>Failed after:</strong> ${formatDuration(r.duration)}
+           | <strong>At:</strong> ${formatDateTime(r.timestamp)}
+          ${r.screenshot
+            ? `<br/><strong>Screenshot:</strong> ${escapeHtml(path.basename(r.screenshot))}`
+            : ''}
+        </p>
+        <p style="
+          margin:0;
+          font-family:Consolas,monospace;
+          font-size:9pt;
+          color:#333;
+          white-space:pre-wrap;
+        ">${renderErrorText(r.error)}</p>
+      </div>
+    `)
+    .join('');
 }
 
 /**
@@ -305,16 +431,6 @@ function renderTestGroup(testName, steps) {
     <p><strong>Passed:</strong> ${summary.passedSteps}</p>
     <p><strong>Failed:</strong> ${summary.failedSteps}</p>
     <p><strong>Duration:</strong> ${formatDuration(summary.totalDuration)}</p>
-
-    ${summary.criticalFailures.length ? `
-      <h3>Critical Failures</h3>
-      ${renderFailures(steps, true)}
-    ` : ''}
-
-    ${summary.softFailures.length ? `
-      <h3>Soft Failures</h3>
-      ${renderFailures(steps, false)}
-    ` : ''}
 
     <h3>Step Timeline</h3>
     ${timelineRows.length
@@ -353,58 +469,71 @@ function buildHtml(steps) {
   Agile Writer Validation Report
 </h1>
 
-<p><strong>Performed By:</strong> ${escapeHtml(
-    testerName
-  )}</p>
+<p style="text-align:center;color:#555;margin-top:-8px;">
+  ${escapeHtml(testFileName)}
+</p>
 
-<p><strong>Generated:</strong> ${formatDateTime(
-    new Date()
-  )}</p>
+<div style="
+  border:2px solid ${verdict(summary).colour};
+  padding:12px 16px;
+  margin:16px 0;
+">
+  <p style="margin:0;font-size:16pt;font-weight:bold;color:${verdict(summary).colour};">
+    ${escapeHtml(verdict(summary).label)}
+  </p>
+  <p style="margin:6px 0 0 0;color:#333;">
+    ${escapeHtml(verdict(summary).meaning)}
+  </p>
+</div>
 
-<p><strong>Application:</strong> Agile Writer</p>
+${renderTable(
+  ['', 'Result'],
+  [
+    ['Steps run', String(summary.totalSteps)],
+    ['Passed', String(summary.passedSteps)],
+    ['Critical failures', String(summary.criticalFailures.length)],
+    ['Soft failures', String(summary.softFailures.length)],
+    ['Total step time', formatDuration(summary.totalDuration)],
+    ['First step', formatDateTime(firstTimestamp(steps))],
+    ['Last step', formatDateTime(lastTimestamp(steps))],
+  ]
+)}
 
-<p><strong>Application URL:</strong> ${clickableLink(
-    appUrl
-  )}</p>
+<h2 style="color:#1F4E78;">Run Details</h2>
 
-<p><strong>Environment:</strong> ${escapeHtml(
-    envName
-  )}</p>
+${renderTable(
+  ['', ''],
+  [
+    ['Performed by', escapeHtml(testerName)],
+    ['Report generated', formatDateTime(new Date())],
+    ['Test script', escapeHtml(testFileName)],
+    ['Environment', escapeHtml(envName)],
+    ['Base URL used', clickableLink(baseUrlUsed)],
+    ['Sign-in URL', clickableLink(appUrl)],
+    ['Session ID', escapeHtml(SESSION_ID || 'local run (no session)')],
+    ['Machine', escapeHtml(`${osName} | ${os.hostname()}`)],
+    ['Tooling', escapeHtml(toolVersions)],
+    ['Step data', escapeHtml(STEP_FILE)],
+  ]
+)}
 
-<p><strong>Operating System:</strong> ${escapeHtml(
-    osName
-  )}</p>
+${summary.criticalFailures.length || summary.softFailures.length ? `
+<h2 style="color:#1F4E78;">What Failed</h2>
+<p style="color:#555;">
+  Screenshots for each failure are in the <strong>screenshots</strong> folder beside
+  this report, named at the end of each entry.
+</p>
 
-<p><strong>Tracked File:</strong> ${escapeHtml(
-    STEP_FILE
-  )}</p>
+${summary.criticalFailures.length ? `
+  <h3 style="color:#C00000;">Critical - these break the run</h3>
+  ${renderFailures(steps, true)}
+` : ''}
 
-<hr/>
-
-<h2 style="color:#1F4E78;">Overall Summary</h2>
-
-<p><strong>Status:</strong> ${statusBadge(
-    summary.overallStatus
-  )}</p>
-
-<p><strong>Total Steps:</strong> ${summary.totalSteps
-    }</p>
-
-<p><strong>Passed:</strong> ${summary.passedSteps
-    }</p>
-
-<p><strong>Failed:</strong> ${summary.failedSteps
-    }</p>
-
-<p><strong>Critical Failures:</strong> ${summary.criticalFailures.length
-    }</p>
-
-<p><strong>Soft Failures:</strong> ${summary.softFailures.length
-    }</p>
-
-<p><strong>Total Duration:</strong> ${formatDuration(
-      summary.totalDuration
-    )}</p>
+${summary.softFailures.length ? `
+  <h3 style="color:#B36B00;">Soft - recorded, did not stop the run</h3>
+  ${renderFailures(steps, false)}
+` : ''}
+` : ''}
 
 <hr/>
 
@@ -414,14 +543,18 @@ ${Object.entries(groupByTestName(steps))
 
 <hr/>
 
-<h2 style="color:#1F4E78;">Notes</h2>
+<h2 style="color:#1F4E78;">How to read this report</h2>
 
 <ul>
-<li>Green = Passed</li>
-<li>Red = Failed</li>
-<li>Tables use alternating row colors for readability</li>
-<li>Links are clickable in Word</li>
-<li>Screenshots remain in reports/screenshots</li>
+<li><strong>Critical</strong> steps stop the run. A critical failure means the
+    result cannot be trusted.</li>
+<li><strong>Soft</strong> steps are recorded and the run continues. Playwright
+    still reports the run as passed, which is why this report can say
+    "completed with warnings" while the console says passed.</li>
+<li>Every failure above names its screenshot. They are in the
+    <strong>screenshots</strong> folder next to this file.</li>
+<li>A soft failure that repeats across runs is usually a changed selector or a
+    permission the test account lacks - not a flake.</li>
 </ul>
 
 </body>
@@ -447,7 +580,6 @@ function filterStepsForReport(steps, testFile) {
 }
 
 // ── Report Generation Failure Guardrails ──
-const os = require('os');
 
 function getFallbackDir() {
   const dirs = [

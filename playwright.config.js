@@ -1,10 +1,13 @@
 // playwright.config.js
 const { defineConfig } = require('@playwright/test');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 // Everything that must NOT be pulled into the authenticated E2E project.
 // Kept as one constant so a new category is added in exactly one place.
-const NON_E2E = /(health_.*\.spec\.ts|diagnostics[\\/]|infrastructure[\\/]|__tests__[\\/]|integration[\\/]|api[\\/]|accuracy\.spec\.ts)/;
+// AW_00_10 is listed here because it is already the whole of the `setup`
+// project. Without it, running that file matched `setup` AND `smarter-tests`
+// and executed all 9 tests twice — 18 tests, ~8 minutes instead of ~4.
+const NON_E2E = /(AW_00_10_consolidated_flow\.spec\.ts|health_.*\.spec\.ts|diagnostics[\\/]|infrastructure[\\/]|__tests__[\\/]|integration[\\/]|api[\\/]|accuracy\.spec\.ts)/;
 
 module.exports = defineConfig({
   globalSetup: require.resolve('./global-setup'),

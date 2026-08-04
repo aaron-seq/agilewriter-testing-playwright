@@ -404,7 +404,18 @@ async function openSettingsAndAdminConsole(page: Page): Promise<void> {
     timeout: UI_TIMEOUT,
   });
 
-  await page.getByRole('button', { name: /Open admin console/i }).click();
+  // Probe before clicking. Clicking a control that isn't there burns the full
+  // 30s action timeout on every run and then reports a generic
+  // "locator.click: Timeout exceeded", which says nothing about the cause.
+  const adminConsoleButton = page.getByRole('button', { name: /Open admin console/i });
+  if (!(await isVisible(adminConsoleButton, 5_000))) {
+    throw new Error(
+      'Admin console button is not present in the Settings menu. Either the ' +
+      'control was renamed/removed, or this account lacks admin rights.'
+    );
+  }
+
+  await adminConsoleButton.click();
   await expect(page.getByRole('heading', { name: /Organization Users/i })).toBeVisible({
     timeout: UI_TIMEOUT,
   });

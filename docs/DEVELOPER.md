@@ -134,6 +134,44 @@ falls back to `os.tmpdir()/agility-reports`.
 
 ---
 
+## Reading a run's output
+
+Three things report on the same run and they do **not** agree, by design:
+
+| Source | Counts | Says "passed" when |
+|---|---|---|
+| Playwright's `N passed` | tests | no test threw — soft step failures are invisible to it |
+| `saveResults()` console summary | steps | printed at the end of every run, names each failure |
+| The DOCX verdict | steps | distinguishes critical from soft |
+
+So a run can legitimately print `10 passed` while the DOCX says
+"COMPLETED WITH WARNINGS - 9 soft failures". That is not a contradiction:
+Playwright counts tests, the report counts steps.
+
+The DOCX verdict has three states:
+
+- **PASSED** - every step passed.
+- **COMPLETED WITH WARNINGS** - critical steps all passed, some soft steps
+  failed. The flow works; the failures are non-blocking checks.
+- **FAILED** - at least one critical step failed, so the result is untrustworthy.
+
+`summary.overallStatus` stays `PASS`/`FAIL` underneath because
+`report_manifest.json` pins `execution.status` to `PASS | FAIL | UNKNOWN`, and
+`generateWordReportGuardrails.spec.ts` asserts that contract. The three-state
+verdict lives only in the document.
+
+### Gotchas in the generator
+
+- **html-to-docx destroys non-ASCII.** An em-dash or middle dot arrives in Word
+  as `?`. `toAscii()` inside `escapeHtml()` maps the typography we use down to
+  ASCII. Don't bypass `escapeHtml` for display text.
+- **Playwright error text is ANSI-coloured.** Unstripped, `[2m` and `[22m`
+  appear literally in the document. `stripAnsi()` handles it.
+- Every failure entry names its screenshot file, because "screenshots are in
+  the screenshots folder" is useless when there are thirty of them.
+
+---
+
 ## Accuracy scoring
 
 Separate from health. Compares what the app produced against a hand-checked

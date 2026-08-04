@@ -597,10 +597,14 @@ async function createPendingSourceAddition(page: Page): Promise<void> {
   await openPlaceholderWithSourceAction(page, 'add');
   await addSourceButton(page).click();
 
+  // .first(): the dialog carries an aria-label AND contains a matching <h2>, so
+  // the .or() chain resolves to both and trips strict mode. Either one proves
+  // the picker opened.
   await expect(
     page.getByRole('heading', { name: /Select Source/i })
       .or(page.getByRole('dialog', { name: /Select Source/i }))
       .or(page.getByRole('dialog', { name: /Select Destination/i }))
+      .first()
   ).toBeVisible({ timeout: UI_TIMEOUT });
 
   await selectSourceHeadings(page);
@@ -677,7 +681,12 @@ test('AW_11_to_20 QA Folder: Document Generation Stage', async ({ page }) => {
   let selectedTemplateName = '';
   let outputFileName = '';
   let expectedCount = 0;
-  let placeholders: Locator;
+  // Built here, not inside a step. page.locator() is a lazy selector — it
+  // touches no DOM — so there is no reason to defer it, and deferring it meant
+  // that when the stage-monitoring soft step failed before its assignment, the
+  // next step crashed with "Cannot read properties of undefined
+  // (reading 'evaluateAll')" instead of reporting the real failure.
+  const placeholders: Locator = page.locator('.doc-placeholder');
   let count = 0;
   let placeholderRegex: RegExp;
 
@@ -952,8 +961,6 @@ test('AW_11_to_20 QA Folder: Document Generation Stage', async ({ page }) => {
   // Wait for stage pipeline to begin — placeholders appear during processing
   await expect(page.getByText(/Indexing Sources/i).first())
     .toBeVisible({ timeout: UI_TIMEOUT });
-
-  placeholders = page.locator('.doc-placeholder');
 
   await expect.poll(
     async () => {

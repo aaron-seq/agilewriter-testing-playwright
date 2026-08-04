@@ -207,10 +207,23 @@ naming exactly what's absent:
 
 ### Reading the report
 
-Written to `sessions/<sessionId>/` as a DOCX with a step-by-step timeline.
+Written to `sessions/<sessionId>/` as a DOCX. It opens with the verdict, then
+run details, then every failure with its screenshot name, then the full step
+timeline.
 
-`Overall Status` is `PASS` only if steps were recorded and none failed. Zero
-steps means it crashed before starting — that reports `FAIL`.
+| Verdict | Means |
+|---|---|
+| **PASSED** | Every step passed. |
+| **COMPLETED WITH WARNINGS** | All critical steps passed — the flow works. Some non-blocking checks failed. |
+| **FAILED** | A critical step failed. The result can't be trusted. |
+
+**Playwright's `N passed` and the report can disagree, and that's correct.**
+Playwright counts *tests*; the report counts *steps*. A run where nine soft
+steps failed still prints `10 passed`, because no test threw. The console also
+prints a step-level summary at the end of every run naming each failure — read
+that, not just the Playwright line.
+
+Zero steps recorded means it crashed before starting, which reports `FAILED`.
 
 | Colour | Placeholder meaning |
 |---|---|

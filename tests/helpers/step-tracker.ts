@@ -382,12 +382,52 @@ export async function countPlaceholderColors(page: Page): Promise<ColorCounts> {
 }
 
 /**
- * Save results — no-op because results are already saved in real-time.
+ * Print the end-of-run summary.
  *
- * WHY this exists: For API compatibility with Inayat's original design.
- * Called in test.afterAll() but does nothing because appendToResults()
- * already writes to disk after every step.
+ * Steps are already on disk — appendToResults() writes after every step — so
+ * this saves nothing. What it does is end the console output with the verdict.
+ * Without it you have to scroll back through hundreds of lines to find out
+ * whether anything failed, because Playwright's own "N passed" counts tests,
+ * not steps, and reports a run as passed when only soft steps failed.
  */
 export function saveResults(): void {
-  // Results are already saved in real-time within trackStep
+  if (!steps.length) {
+    console.log('\n  No steps were recorded — the run failed before it started.\n');
+    return;
+  }
+
+  const failed = steps.filter((s) => s.status === 'FAIL');
+  const critical = failed.filter((s) => s.critical);
+  const soft = failed.filter((s) => !s.critical);
+  const totalMs = steps.reduce((sum, s) => sum + Number(s.duration || 0), 0);
+
+  const verdict = critical.length
+    ? `FAILED — ${critical.length} critical`
+    : soft.length
+      ? `COMPLETED WITH WARNINGS — ${soft.length} soft failure(s)`
+      : 'PASSED';
+
+  const line = '─'.repeat(64);
+  console.log(`\n${line}`);
+  console.log(`  ${verdict}`);
+  console.log(
+    `  ${steps.length - failed.length}/${steps.length} steps passed` +
+    `  ·  ${(totalMs / 1000 / 60).toFixed(1)} min of step time`
+  );
+
+  if (failed.length) {
+    console.log('');
+    for (const step of failed) {
+      const kind = step.critical ? 'CRITICAL' : 'soft';
+      // First line only — the full text is in the DOCX and step-results.json.
+      const reason = String(step.error || '')
+        .replace(/\[[0-9;]*m/g, '')
+        .split('\n')[0]
+        .trim();
+      console.log(`  [${kind}] ${step.testName} → ${step.stepName}`);
+      console.log(`           ${reason || 'no message recorded'}`);
+    }
+  }
+
+  console.log(`${line}\n`);
 }

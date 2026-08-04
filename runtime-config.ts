@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '.env'), quiet: true });
 
 const CONFIG_FILE = process.env.SESSION_ID
   ? `sessions/${process.env.SESSION_ID}/runtime-config.json`

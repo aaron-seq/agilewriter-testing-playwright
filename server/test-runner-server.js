@@ -6,7 +6,7 @@ const { spawn } = require('child_process');
 const crypto = require('crypto');
 const XLSX = require('xlsx');
 const { normalizeBaseUrl } = require('./normalizeBaseUrl');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 const { getMissingHealthEnvVars, HEALTH_SPEC_CONFIG_MAP } = require('../utils/validateHealthEnv');
 const { uploadToGcs } = require('../utils/gcs-uploader');
 
