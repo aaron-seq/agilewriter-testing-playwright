@@ -560,10 +560,91 @@ function toggleAccuracyPanel() {
     panel.style.display = 'block';
     icon.style.transform = 'rotate(180deg)';
     refreshAccuracyDropdowns();
+    loadTemplateList();
   } else {
     panel.style.display = 'none';
     icon.style.transform = 'rotate(0deg)';
   }
+}
+
+async function loadTemplateList() {
+  const select = document.getElementById('inventoryTemplate');
+  if (!select) return;
+
+  try {
+    const data = await (await fetch(buildApiUrl('/api/placeholders/templates'))).json();
+    select.textContent = '';
+
+    const files = Array.isArray(data.files) ? data.files : [];
+    if (!files.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.disabled = true;
+      option.selected = true;
+      option.textContent = 'No .docx in templates\\ — drop one in';
+      select.appendChild(option);
+      return;
+    }
+
+    files.forEach((name, index) => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      option.title = name;
+      if (index === 0) option.selected = true;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Could not load templates:', error);
+  }
+}
+
+async function runPlaceholderExtraction() {
+  const button = document.getElementById('extractBtn');
+  const result = document.getElementById('inventory-result');
+  const template = document.getElementById('inventoryTemplate').value;
+
+  if (!template) {
+    showInventoryResult(result, 'Pick a template first.', false);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Extracting…';
+  result.style.display = 'none';
+
+  try {
+    const response = await fetch(buildApiUrl('/api/placeholders/extract'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showInventoryResult(result, data.detail || data.error || 'Extraction failed.', false);
+      return;
+    }
+
+    showInventoryResult(
+      result,
+      `${data.count} placeholders extracted to ${data.output}. It is now in the Raw QA list below.`,
+      true
+    );
+    // The new file belongs in the dropdown straight away.
+    await refreshAccuracyDropdowns();
+  } catch (error) {
+    showInventoryResult(result, `Server unreachable: ${error.message}`, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Extract placeholders';
+  }
+}
+
+function showInventoryResult(element, message, ok) {
+  element.textContent = message;
+  element.className = ok ? 'callout callout-ok' : 'callout callout-warn';
+  element.style.display = 'block';
 }
 
 async function refreshAccuracyDropdowns() {
@@ -692,6 +773,44 @@ function buildTrendSummary(currentOverall, previousSummary) {
   };
 }
 
+/**
+ * Reference coverage - how many placeholders in the raw file had no matching
+ * row in the reference.
+ *
+ * This is the number that tells you the two files are actually aligned, and it
+ * was previously computed by the server and then thrown away. A stale or
+ * mistyped reference row shows up here as a "Missing Reference" and otherwise
+ * silently drags the accuracy percentage down with no explanation.
+ */
+function buildCoverageBanner(scoreResponse) {
+  const missing = Number(scoreResponse.missingReferenceCount || 0);
+  const total = Number(scoreResponse.rowCount || scoreResponse.summary.total || 0);
+
+  if (!total) {
+    return '';
+  }
+
+  if (missing === 0) {
+    return `
+      <div style="margin-bottom: 1rem; padding: 0.6rem 0.85rem; border-radius: 8px;
+                  background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+                  color: #34d399; font-size: 0.78rem;">
+        Every placeholder matched a reference row - the two files line up.
+      </div>`;
+  }
+
+  const percent = ((missing / total) * 100).toFixed(1);
+  return `
+    <div style="margin-bottom: 1rem; padding: 0.6rem 0.85rem; border-radius: 8px;
+                background: rgba(250,204,21,0.12); border: 1px solid rgba(250,204,21,0.35);
+                color: #facc15; font-size: 0.78rem; line-height: 1.5;">
+      <strong>${missing} of ${total} placeholders (${percent}%) had no reference row.</strong><br/>
+      They score as "Missing Reference" and pull the overall figure down. Usually the
+      reference is for a different document version, or a row was mistyped.
+      Check the "Missing Reference" rows in the Excel report.
+    </div>`;
+}
+
 function buildAccuracyResultCard(scoreResponse, previousSummary) {
   const summary = scoreResponse.summary;
   const matched = Object.values(summary.byType).reduce(
@@ -731,6 +850,7 @@ function buildAccuracyResultCard(scoreResponse, previousSummary) {
         <span>Matched: <strong style="color: #34d399;">${matched}</strong></span>
         <span>Skipped: <strong style="color: #94a3b8;">${skipped}</strong></span>
       </div>
+      ${buildCoverageBanner(scoreResponse)}
       <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; color: var(--text);">
         <thead>
           <tr style="border-bottom: 2px solid var(--border);">

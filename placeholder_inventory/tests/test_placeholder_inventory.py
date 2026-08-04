@@ -162,6 +162,41 @@ def test_workbook_matches_the_qa_shape(tmp_path):
 
 # ── Against the real template ─────────────────────────────────────────────
 
+CSR_TEMPLATE = PROJECT_ROOT / "benchmarking_automation" / "tests" / "CSR_Template_20FEB2026.docx"
+CSR_REFERENCE = PROJECT_ROOT / "reference_files" / "ref_CSR_v3.xlsx"
+
+
+def _scorer_normalise(value) -> str:
+    """The contract normalizePlaceholderName() uses in accuracy-scorer.ts."""
+    import re
+    text = str(value or "").replace("<", "").replace(">", "").replace("’", "'")
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+@pytest.mark.skipif(
+    not (CSR_TEMPLATE.is_file() and CSR_REFERENCE.is_file()),
+    reason="CSR template or reference not present",
+)
+def test_extracts_every_reference_placeholder_from_the_csr_template():
+    """
+    A different template family from ICF, to prove the extractor is not tuned
+    to one document. ref_CSR_v3 stores some names with doubled spaces; the
+    scorer collapses whitespace before comparing, so this does too.
+    """
+    import openpyxl
+
+    book = openpyxl.load_workbook(CSR_REFERENCE)
+    sheet = book[book.sheetnames[0]]
+    expected = {
+        _scorer_normalise(row[0])
+        for row in sheet.iter_rows(min_row=2, values_only=True)
+        if row[0]
+    }
+    found = {_scorer_normalise(p.name) for p in extract(str(CSR_TEMPLATE))}
+
+    assert expected - found == set(), "placeholders in the reference but not extracted"
+
+
 @pytest.mark.skipif(not ICF_TEMPLATE.is_file(), reason="ICF template not present")
 def test_extracts_every_reference_placeholder_from_the_real_template():
     """

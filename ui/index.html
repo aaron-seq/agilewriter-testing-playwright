@@ -209,10 +209,30 @@
       </div>
 
       <div id="accuracy-panel" style="display: none; margin-top: 1.25rem;">
+        <details class="inventory-block">
+          <summary>Build a raw QA file from a template</summary>
+          <p class="callout-muted">
+            Extracts every placeholder from a <code>.docx</code> in
+            <code>templates\</code> and writes a QA workbook into
+            <code>raw_qa_files\</code>. Values stay blank for QA to fill.
+          </p>
+
+          <div class="form-group">
+            <label for="inventoryTemplate">Template</label>
+            <select id="inventoryTemplate"><option value="">Loading…</option></select>
+          </div>
+
+          <div class="actions" style="margin-top: 0.75rem;">
+            <button class="btn-secondary" id="extractBtn" onclick="runPlaceholderExtraction()">
+              Extract placeholders
+            </button>
+          </div>
+
+          <div id="inventory-result" class="callout" style="display: none;"></div>
+        </details>
+
         <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1rem; line-height: 1.5;">
-          Run your health script first, then drop the QA output into
-          <code style="color: #a78bfa; background: rgba(167,139,250,0.15); padding: 1px 5px; border-radius: 4px;">raw_qa_files\</code>
-          and score it here.
+          Then pick the raw QA file and a matching reference file, and score them.
         </p>
 
         <div

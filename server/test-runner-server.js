@@ -22,9 +22,10 @@ const TESTING_DIR = path.join(ROOT_DIR, 'tests');
 const REFERENCE_DIR = path.join(ROOT_DIR, 'reference_files');
 const RAW_QA_DIR = path.join(ROOT_DIR, 'raw_qa_files');
 const ACCURACY_REPORTS_DIR = path.join(ROOT_DIR, 'reports', 'accuracy');
+const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
 
 // We keep these directories eagerly created so every route can assume a stable filesystem shape.
-[SESSIONS_DIR, REFERENCE_DIR, RAW_QA_DIR, ACCURACY_REPORTS_DIR].forEach((dirPath) => {
+[SESSIONS_DIR, REFERENCE_DIR, RAW_QA_DIR, ACCURACY_REPORTS_DIR, TEMPLATES_DIR].forEach((dirPath) => {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
@@ -699,6 +700,81 @@ app.get('/download-report', (req, res) => {
   console.log(`[Download] File mtime: ${stats.mtime}`);
 
   return res.download(reportFile, files[0]);
+});
+
+// ── Placeholder inventory ────────────────────────────────────────────────
+// Extracts placeholders from a .docx template into a QA workbook, so a tester
+// can produce the raw file the Accuracy Scorer needs without touching a CLI.
+
+app.get('/api/placeholders/templates', (_req, res) => {
+  try {
+    const files = fs
+      .readdirSync(TEMPLATES_DIR)
+      .filter((name) => name.toLowerCase().endsWith('.docx'))
+      // Word writes ~$lockfiles alongside open documents; they are not templates.
+      .filter((name) => !name.startsWith('~$'))
+      .sort((left, right) => left.localeCompare(right));
+
+    return res.json({ files });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return res.status(500).json({ error: `Failed to list templates: ${message}` });
+  }
+});
+
+app.post('/api/placeholders/extract', (req, res) => {
+  const template = String(req.body.template || '');
+  if (!template) {
+    return res.status(400).json({ error: 'template is required.' });
+  }
+
+  // Never let a request escape the templates folder.
+  const safeName = path.basename(template);
+  const templatePath = path.join(TEMPLATES_DIR, safeName);
+  if (!safeName.toLowerCase().endsWith('.docx') || !fs.existsSync(templatePath)) {
+    return res.status(404).json({ error: `Template not found: ${safeName}` });
+  }
+
+  const outputName = `${path.basename(safeName, '.docx')} placeholders.xlsx`;
+  const outputPath = path.join(RAW_QA_DIR, outputName);
+
+  const python = path.join(ROOT_DIR, 'benchmarking_automation', 'venv', 'Scripts', 'python.exe');
+  const interpreter = fs.existsSync(python) ? python : 'python';
+
+  const child = spawn(
+    interpreter,
+    ['-m', 'placeholder_inventory', templatePath, '-o', outputPath],
+    { cwd: ROOT_DIR },
+  );
+
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+
+  child.on('error', (error) => {
+    res.status(500).json({
+      error: `Could not run the extractor: ${error.message}`,
+      hint: 'Create the Python venv — see placeholder_inventory/README.md.',
+    });
+  });
+
+  child.on('close', (code) => {
+    if (code !== 0) {
+      return res.status(500).json({
+        error: 'Placeholder extraction failed.',
+        detail: (stderr || stdout).slice(-600),
+      });
+    }
+
+    const match = stdout.match(/(\d+)\s+placeholders/);
+    return res.json({
+      template: safeName,
+      output: outputName,
+      count: match ? Number(match[1]) : null,
+      message: `Written to raw_qa_files/${outputName}`,
+    });
+  });
 });
 
 app.get('/api/accuracy/reference-files', (_req, res) => {

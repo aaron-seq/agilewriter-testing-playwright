@@ -128,6 +128,48 @@ test.describe('POST /run-test — validation gate', () => {
   });
 });
 
+test.describe('Placeholder inventory', () => {
+  test('GET /api/placeholders/templates lists the .docx templates', async ({ request }) => {
+    const response = await request.get(`${BASE}/api/placeholders/templates`);
+
+    expect(response.status()).toBe(200);
+    expect(Array.isArray((await response.json()).files)).toBe(true);
+  });
+
+  test('POST /api/placeholders/extract rejects a request with no template', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/placeholders/extract`, { data: {} });
+
+    expect(response.status()).toBe(400);
+    expect((await response.json()).error).toContain('template is required');
+  });
+
+  test('POST /api/placeholders/extract 404s for an unknown template', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/placeholders/extract`, {
+      data: { template: 'does-not-exist.docx' },
+    });
+
+    expect(response.status()).toBe(404);
+  });
+
+  test('POST /api/placeholders/extract refuses to escape the templates folder', async ({ request }) => {
+    // The name is joined onto a directory, so traversal must be stripped
+    // before it reaches the filesystem.
+    const response = await request.post(`${BASE}/api/placeholders/extract`, {
+      data: { template: '../../../../Windows/System32/drivers/etc/hosts' },
+    });
+
+    expect(response.status()).toBe(404);
+  });
+
+  test('POST /api/placeholders/extract refuses a non-docx file', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/placeholders/extract`, {
+      data: { template: 'notes.txt' },
+    });
+
+    expect(response.status()).toBe(404);
+  });
+});
+
 test.describe('GET /stream', () => {
   test('404s for an unknown session instead of hanging open', async ({ request }) => {
     const response = await request.get(`${BASE}/stream?sessionId=not-a-real-session`);
