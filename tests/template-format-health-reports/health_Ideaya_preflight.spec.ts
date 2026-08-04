@@ -8,10 +8,10 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { runtimeConfig } from '../runtime-config';
-import { initTracker, saveResults } from './helpers/step-tracker';
-import { runHealthReport, HealthReportConfig } from './helpers/health-report-runner';
-import { validateHealthEnv } from '../utils/validateHealthEnv';
+import { runtimeConfig } from '../../runtime-config';
+import { initTracker, saveResults } from '../helpers/step-tracker';
+import { runHealthReport, HealthReportConfig } from '../helpers/health-report-runner';
+import { validateHealthEnv } from '../../utils/validateHealthEnv';
 
 test.describe('Health Report: Ideaya PRODTEST Preflight', () => {
   test.describe.configure({ timeout: 900_000 });

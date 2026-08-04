@@ -54,6 +54,23 @@ let scoringInProgress = false;
 let accuracyModules = null;
 let accuracyModulesError = null;
 
+/** Every *.spec.ts under dir, as paths relative to dir using forward slashes. */
+function listSpecsRecursively(dir, prefix = '') {
+  const found = [];
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+
+    if (entry.isDirectory()) {
+      found.push(...listSpecsRecursively(path.join(dir, entry.name), relPath));
+    } else if (entry.name.endsWith('.spec.ts')) {
+      found.push(relPath);
+    }
+  }
+
+  return found.sort((left, right) => left.localeCompare(right));
+}
+
 function ensureSessionDir(sessionId) {
   const dirPath = path.join(SESSIONS_DIR, sessionId);
   fs.mkdirSync(dirPath, { recursive: true });
@@ -395,13 +412,18 @@ app.get('/list-tests', (_req, res) => {
     return res.status(404).json({ error: 'Tests directory not found.' });
   }
 
-  // accuracy.spec.ts is excluded because it needs file arguments — the
-  // Accuracy Scorer panel drives it instead. AW_11_to_20_* used to be excluded
-  // too, which hid the only spec the Template/Source form actually configures.
-  const specFiles = fs
-    .readdirSync(TESTING_DIR)
-    .filter((fileName) => fileName.endsWith('.spec.ts'))
-    .filter((fileName) => fileName !== 'accuracy.spec.ts');
+  // Recursive: health specs live in tests/template-format-health-reports/, and
+  // a flat readdir silently dropped them from the dropdown.
+  // Paths are returned relative to tests/ with forward slashes, because they
+  // are handed straight back to `playwright test <path>`.
+  // Only what a tester would actually launch from the UI. Everything excluded
+  // here is either developer tooling or needs arguments the form cannot supply.
+  const NOT_USER_FACING = ['__tests__/', 'api/', 'infrastructure/', 'integration/', 'diagnostics/'];
+
+  const specFiles = listSpecsRecursively(TESTING_DIR)
+    // accuracy.spec.ts needs file arguments; the Accuracy Scorer panel drives it.
+    .filter((relPath) => path.basename(relPath) !== 'accuracy.spec.ts')
+    .filter((relPath) => !NOT_USER_FACING.some((prefix) => relPath.includes(prefix)));
 
   return res.json(specFiles);
 });
@@ -469,9 +491,12 @@ app.post('/run-test', (req, res) => {
   // Fires only for health_*.spec.ts — all other specs pass through.
   // Returns 400 synchronously before any session, directory, or
   // Playwright process is created. Zero side effects on failure.
-  const isHealthSpec = /^health_.*\.spec\.ts$/.test(testFile);
+  // testFile now arrives as a path relative to tests/, so match on the
+  // basename — HEALTH_SPEC_CONFIG_MAP is keyed by filename.
+  const specName = path.basename(testFile);
+  const isHealthSpec = /^health_.*\.spec\.ts$/.test(specName);
   if (isHealthSpec) {
-    const configKey = HEALTH_SPEC_CONFIG_MAP[testFile];
+    const configKey = HEALTH_SPEC_CONFIG_MAP[specName];
     if (!configKey) {
       return res.status(400).json({
         error: 'Health spec not found in validation map.',

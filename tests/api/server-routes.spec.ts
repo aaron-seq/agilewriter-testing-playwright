@@ -54,14 +54,18 @@ test.describe('GET /list-tests', () => {
 
     const files = await response.json();
     expect(Array.isArray(files)).toBe(true);
-    expect(files).toContain('health_CSR.spec.ts');
+    // Paths are relative to tests/ - health specs live in their own folder.
+    expect(files).toContain('template-format-health-reports/health_CSR.spec.ts');
   });
 
-  test('excludes accuracy.spec.ts, which the Accuracy panel drives instead', async ({ request }) => {
-    const files = await (await request.get(`${BASE}/list-tests`)).json();
+  test('offers only specs a tester can actually launch', async ({ request }) => {
+    const files: string[] = await (await request.get(`${BASE}/list-tests`)).json();
 
-    // It needs file arguments, so it cannot be launched from the script dropdown.
+    // accuracy.spec.ts needs file arguments; the rest are developer tooling.
     expect(files).not.toContain('accuracy.spec.ts');
+    for (const excluded of ['__tests__/', 'api/', 'infrastructure/', 'integration/', 'diagnostics/']) {
+      expect(files.filter((f) => f.includes(excluded))).toHaveLength(0);
+    }
   });
 
   test('offers the manual-input spec the Template/Source form configures', async ({ request }) => {

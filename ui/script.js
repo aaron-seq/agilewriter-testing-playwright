@@ -54,7 +54,11 @@ const HEALTH_SUMMARY =
   'One full document-generation run for this format, end to end, producing a DOCX ' +
   'report in sessions/. Fails in about a second if its .env variables are missing.';
 
-function scriptInfoFor(fileName) {
+function scriptInfoFor(filePath) {
+  // /list-tests returns paths relative to tests/ now that health specs live in
+  // their own folder. The lookup and the labels key off the filename.
+  const fileName = filePath.split('/').pop();
+
   if (SCRIPT_INFO[fileName]) {
     return SCRIPT_INFO[fileName];
   }
@@ -192,9 +196,10 @@ async function loadTestList() {
     testSelect.textContent = '';
 
     // Group so the list reads as choices, not a directory listing.
+    const basename = (f) => f.split('/').pop();
     const groups = [
-      { label: 'End-to-end flows', match: (f) => f.startsWith('AW_') },
-      { label: 'Health checks', match: (f) => f.startsWith('health_') },
+      { label: 'End-to-end flows', match: (f) => basename(f).startsWith('AW_') },
+      { label: 'Template format health reports', match: (f) => basename(f).startsWith('health_') },
       { label: 'Other', match: () => true },
     ];
 
