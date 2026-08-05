@@ -11,7 +11,8 @@ from placeholder_inventory.classify import KEY_VALUE, LIST, PARAGRAPH, TABLE, cl
 from placeholder_inventory.extractor import extract
 from placeholder_inventory.workbook import HEADERS, build
 
-ICF_TEMPLATE = PROJECT_ROOT / "benchmarking_automation" / "tests" / "ICF_docx" / "ICF_SET0 (1).docx"
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
+ICF_TEMPLATE = FIXTURES / "ICF_SET0.docx"
 REFERENCE = PROJECT_ROOT / "reference_files" / "ref_ICF_Full.xlsx"
 
 DOC_XML = "word/document.xml"
@@ -162,7 +163,7 @@ def test_workbook_matches_the_qa_shape(tmp_path):
 
 # ── Against the real template ─────────────────────────────────────────────
 
-CSR_TEMPLATE = PROJECT_ROOT / "benchmarking_automation" / "tests" / "CSR_Template_20FEB2026.docx"
+CSR_TEMPLATE = FIXTURES / "CSR_Template_20FEB2026.docx"
 CSR_REFERENCE = PROJECT_ROOT / "reference_files" / "ref_CSR_v3.xlsx"
 
 

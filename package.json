@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test --project=unit --project=infrastructure --project=api",
-    "test:py": "benchmarking_automation\\venv\\Scripts\\python -m pytest benchmarking_automation placeholder_inventory -q",
-    "placeholders": "benchmarking_automation\\venv\\Scripts\\python -m placeholder_inventory",
+    "test:py": "python -m pytest placeholder_inventory -q",
+    "placeholders": "python -m placeholder_inventory",
     "test:e2e": "playwright test --project=smarter-tests",
     "test:health": "playwright test --project=health",
     "report": "node generate-word-report.js",

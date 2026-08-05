@@ -170,6 +170,40 @@ test.describe('Placeholder inventory', () => {
   });
 });
 
+test.describe('QA expected-value entry', () => {
+  test('GET /api/placeholders/rows requires a file', async ({ request }) => {
+    const response = await request.get(`${BASE}/api/placeholders/rows`);
+
+    expect(response.status()).toBe(400);
+    expect((await response.json()).error).toContain('file is required');
+  });
+
+  test('GET /api/placeholders/rows 404s for an unknown workbook', async ({ request }) => {
+    const response = await request.get(`${BASE}/api/placeholders/rows?file=nope.xlsx`);
+
+    expect(response.status()).toBe(404);
+  });
+
+  test('POST /api/placeholders/rows requires file and values', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/placeholders/rows`, {
+      data: { file: 'something.xlsx' },
+    });
+
+    expect(response.status()).toBe(400);
+    expect((await response.json()).error).toContain('values are required');
+  });
+
+  test('POST /api/placeholders/save-reference refuses a workbook with no values', async ({ request }) => {
+    // A reference with no expected text would score everything as missing,
+    // so this has to fail loudly rather than write an empty file.
+    const response = await request.post(`${BASE}/api/placeholders/save-reference`, {
+      data: { file: 'nope.xlsx' },
+    });
+
+    expect(response.status()).toBe(404);
+  });
+});
+
 test.describe('GET /stream', () => {
   test('404s for an unknown session instead of hanging open', async ({ request }) => {
     const response = await request.get(`${BASE}/stream?sessionId=not-a-real-session`);

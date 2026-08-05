@@ -1,6 +1,6 @@
 # Automation Validation Tests
 
-Playwright test suite for Agile Writer, plus a Python benchmarking pipeline.
+Playwright test suite for Agile Writer, plus a placeholder extractor for templates.
 
 **Docs:** this file (setup & running) · [Adding tests](docs/ADDING_TESTS.md) · [How it works](docs/DEVELOPER.md)
 
@@ -34,7 +34,7 @@ variables — see [Health suites](#health-suites).
 
 ```bash
 # One file
-npx playwright test tests/health_CSR.spec.ts
+npx playwright test tests/template-format-health-reports/health_CSR.spec.ts
 
 # One test inside a file, by name
 npx playwright test -g "AW_03"
@@ -43,10 +43,10 @@ npx playwright test -g "AW_03"
 npx playwright test --project=unit
 
 # See what WOULD run, without running it
-npx playwright test tests/health_CSR.spec.ts --list
+npx playwright test tests/template-format-health-reports/health_CSR.spec.ts --list
 
 # Watch it happen in a real browser
-npx playwright test tests/health_CSR.spec.ts --headed
+npx playwright test tests/template-format-health-reports/health_CSR.spec.ts --headed
 ```
 
 ### The flag that saves you 20 minutes
@@ -69,7 +69,7 @@ Groups that never need `--no-deps`, because they don't depend on login at all:
 
 ```bash
 npm test            # unit + api + infrastructure — ~1 min, no credentials
-npm run test:py     # Python suite — ~5 s
+npm run test:py     # placeholder extractor — ~1 s
 npm run test:e2e    # browser E2E — slow, needs .env and the live app
 npm run test:health # all 7 health suites — hours
 ```
@@ -183,7 +183,7 @@ One full document-generation run per format, ending in a DOCX report.
 
 ```bash
 npx playwright test --project=health --list   # what's available
-npx playwright test tests/health_CSR.spec.ts  # just one
+npx playwright test tests/template-format-health-reports/health_CSR.spec.ts  # just one
 ```
 
 Each needs its own `.env` variables. A missing one fails in about a second,
@@ -255,17 +255,19 @@ A hosted instance exists too; ask your team lead for the URL.
 
 ---
 
-## Python suite
+## Placeholder inventory
 
-`benchmarking_automation/` — docx parsing, placeholder classification,
-accuracy scoring. Independent of Playwright.
+Extract every placeholder from a `.docx` template into a QA workbook, fill in
+the expected values, and score against them - all from the web runner.
 
 ```bash
-cd benchmarking_automation
-python -m venv venv
-./venv/Scripts/python -m pip install -r requirements.txt
-cd .. && npm run test:py
+npm run server        # then open the Accuracy Scorer panel
+npm run placeholders -- "templates/My Template.docx"   # or from the CLI
+npm run test:py       # 20 tests
 ```
+
+Drop templates in `templates/`. See
+[placeholder_inventory/README.md](placeholder_inventory/README.md).
 
 ---
 

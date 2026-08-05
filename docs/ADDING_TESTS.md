@@ -20,7 +20,7 @@ drag the whole 9-test login flow along with it.
 | runs a shell script (`deploy.sh`, `develop.sh`) | `tests/infrastructure/`    | `infrastructure` | no             |
 | needs Docker                                        | `tests/integration/`       | `standalone`     | no             |
 | drives the app in a browser                         | `tests/`                   | `smarter-tests`  | yes            |
-| is a full document-generation run                   | `tests/health_*.spec.ts`   | `health`         | yes            |
+| is a full document-generation run                   | `tests/template-format-health-reports/` | `health` | yes |
 | is a throwaway debugging script                     | `tests/diagnostics/`       | `diagnostics`    | yes            |
 
 Any `__tests__/` folder anywhere in the repo routes to `unit` automatically —
@@ -190,8 +190,8 @@ on the `HealthConfigKey` union. That file is a typed wrapper; don't copy
 **3. Add the runtime config** — `runtime-config.ts`, so
 `runtimeConfig.health.mySuite` resolves.
 
-**4. Write the spec** — `tests/health_MySuite.spec.ts`, copying the shape of
-`tests/health_CSR.spec.ts`:
+**4. Write the spec** — `tests/template-format-health-reports/health_MySuite.spec.ts`, copying the shape of
+`tests/template-format-health-reports/health_CSR.spec.ts`:
 
 ```ts
 test.describe('Health Report: My Suite', () => {
@@ -216,31 +216,25 @@ catches suites that silently disappear.
 
 ---
 
-## 5. Adding a benchmarking test
+## 5. Adding a placeholder-extraction test
 
-`benchmarking_automation/` is the Python side — a docx parser and
-placeholder-classification pipeline, tested with pytest, entirely separate from
-Playwright.
+`placeholder_inventory/` is the Python side — it turns a `.docx` template into
+a QA workbook. Tests live in `placeholder_inventory/tests/`.
 
 ```bash
-cd benchmarking_automation
-python -m venv venv
-./venv/Scripts/python -m pip install -r requirements.txt
-./venv/Scripts/python -m pytest -q          # or: npm run test:py
+npm run test:py        # 20 tests, about a second
 ```
 
-Tests go in `benchmarking_automation/tests/`, named `test_*.py` — pytest only
-collects that prefix. Files there *without* it (`us01_s4_run_pipeline.py`,
-`generate_document_tree_json.py`, `run_document_replacement_pipeline.py`) are
-manual runner scripts that execute on import; keep it that way, because a
-collected script would run the whole pipeline during the test suite.
+Most tests build a throwaway `.docx` in `tmp_path` with the `_docx()` and
+`_para()` helpers rather than committing fixtures. Note that `_para()` escapes
+angle brackets — Word stores `<Sponsor>` as `&lt;Sponsor&gt;`, and a fixture
+with raw `<` is invalid XML that the parser silently drops.
 
-Test inputs are the `.docx` files in `tests/` plus
-`tests/output/inventory*.json`, all checked in. Everything else those scripts
-write — `output/`, `final_outputs/`, `tests/output/generated_document_tree.json`
-— is gitignored generated output. Don't commit it, and don't write a test that
-depends on it; build what you need from the `.docx` the way
-`tests/doc_parser/test_canonical_document_builder.py` does.
+Two tests do use real templates, from `placeholder_inventory/fixtures/`. They
+assert full recall against `reference_files/`, and they use the same
+normalisation contract as `accuracy-scorer.ts` — collapse whitespace, strip
+angle brackets, lowercase — because a stricter comparison reports failures the
+product would never see.
 
 ---
 
@@ -249,7 +243,7 @@ depends on it; build what you need from the `.docx` the way
 ```bash
 npx tsc --noEmit    # types
 npm test            # unit + infrastructure + api, ~1 min, no credentials
-npm run test:py     # pytest, if you touched benchmarking_automation
+npm run test:py     # pytest, if you touched placeholder_inventory
 ```
 
 If you touched `playwright.config.js`, `projectIsolation.spec.ts` and

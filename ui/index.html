@@ -254,6 +254,32 @@
           </select>
         </div>
 
+        <details class="inventory-block" id="values-block">
+          <summary>Fill in expected values</summary>
+          <p class="callout-muted">
+            Type what each placeholder <em>should</em> contain. Save, then turn the
+            result into a reference file and score a real AI run against it.
+          </p>
+
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button class="btn-secondary" id="loadValuesBtn" onclick="loadPlaceholderValues()">
+              Load placeholders from the selected raw QA file
+            </button>
+          </div>
+
+          <div id="values-status" class="callout" style="display: none;"></div>
+          <div id="values-grid" style="display: none;"></div>
+
+          <div class="actions" id="values-actions" style="display: none; margin-top: 0.75rem;">
+            <button class="btn-primary" id="saveValuesBtn" onclick="savePlaceholderValues()">
+              Save expected values
+            </button>
+            <button class="btn-secondary" id="makeRefBtn" onclick="savePlaceholdersAsReference()">
+              Create reference file from these values
+            </button>
+          </div>
+        </details>
+
         <div class="actions" style="margin-top: 1rem;">
           <button
             class="btn-primary"

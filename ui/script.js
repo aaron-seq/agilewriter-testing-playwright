@@ -647,6 +647,176 @@ function showInventoryResult(element, message, ok) {
   element.style.display = 'block';
 }
 
+// ── QA expected-value entry ──────────────────────────────────────────────
+
+let loadedValuesFile = '';
+
+async function loadPlaceholderValues() {
+  const file = document.getElementById('accuracyRaw').value;
+  const status = document.getElementById('values-status');
+  const grid = document.getElementById('values-grid');
+  const actions = document.getElementById('values-actions');
+
+  if (!file) {
+    showInventoryResult(status, 'Pick a raw QA file above first.', false);
+    return;
+  }
+
+  try {
+    const response = await fetch(buildApiUrl(`/api/placeholders/rows?file=${encodeURIComponent(file)}`));
+    const data = await response.json();
+
+    if (!response.ok) {
+      grid.style.display = 'none';
+      actions.style.display = 'none';
+      showInventoryResult(status, data.error || 'Could not read that workbook.', false);
+      return;
+    }
+
+    loadedValuesFile = data.file;
+    renderValuesGrid(grid, data.placeholders);
+
+    const filled = data.placeholders.filter((p) => p.expected).length;
+    showInventoryResult(
+      status,
+      `${data.placeholders.length} placeholders loaded from ${data.file} — ${filled} already have a value.`,
+      true
+    );
+    grid.style.display = 'block';
+    actions.style.display = 'flex';
+  } catch (error) {
+    showInventoryResult(status, `Server unreachable: ${error.message}`, false);
+  }
+}
+
+/**
+ * Built with DOM nodes, not innerHTML: every value here comes out of a
+ * spreadsheet a tester edited, so it is untrusted text.
+ */
+function renderValuesGrid(container, placeholders) {
+  container.textContent = '';
+
+  const table = document.createElement('table');
+  table.className = 'values-table';
+
+  const head = document.createElement('tr');
+  for (const label of ['Placeholder', 'Type', 'Expected value']) {
+    const th = document.createElement('th');
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  table.appendChild(head);
+
+  for (const placeholder of placeholders) {
+    const tr = document.createElement('tr');
+
+    const nameCell = document.createElement('td');
+    nameCell.textContent = placeholder.name;
+    nameCell.title = placeholder.instruction || placeholder.name;
+    tr.appendChild(nameCell);
+
+    const typeCell = document.createElement('td');
+    typeCell.textContent = placeholder.type;
+    typeCell.className = 'values-type';
+    tr.appendChild(typeCell);
+
+    const valueCell = document.createElement('td');
+    const input = document.createElement('textarea');
+    input.rows = 2;
+    input.value = placeholder.expected || '';
+    input.dataset.row = String(placeholder.row);
+    input.placeholder = placeholder.instruction
+      ? placeholder.instruction.slice(0, 90)
+      : 'What should replace this placeholder?';
+    valueCell.appendChild(input);
+    tr.appendChild(valueCell);
+
+    table.appendChild(tr);
+  }
+
+  container.appendChild(table);
+}
+
+function collectValues() {
+  const values = {};
+  document.querySelectorAll('#values-grid textarea').forEach((input) => {
+    values[input.dataset.row] = input.value;
+  });
+  return values;
+}
+
+async function savePlaceholderValues() {
+  const button = document.getElementById('saveValuesBtn');
+  const status = document.getElementById('values-status');
+
+  button.disabled = true;
+  button.textContent = 'Saving…';
+
+  try {
+    const response = await fetch(buildApiUrl('/api/placeholders/rows'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: loadedValuesFile, values: collectValues() }),
+    });
+    const data = await response.json();
+
+    showInventoryResult(
+      status,
+      response.ok
+        ? `Saved ${data.written} values into ${data.file}.`
+        : data.error || 'Save failed.',
+      response.ok
+    );
+  } catch (error) {
+    showInventoryResult(status, `Server unreachable: ${error.message}`, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Save expected values';
+  }
+}
+
+async function savePlaceholdersAsReference() {
+  const button = document.getElementById('makeRefBtn');
+  const status = document.getElementById('values-status');
+
+  button.disabled = true;
+  button.textContent = 'Creating…';
+
+  try {
+    // Save first, so the reference reflects what is on screen.
+    await fetch(buildApiUrl('/api/placeholders/rows'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: loadedValuesFile, values: collectValues() }),
+    });
+
+    const response = await fetch(buildApiUrl('/api/placeholders/save-reference'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: loadedValuesFile }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showInventoryResult(status, data.hint || data.error || 'Could not create the reference.', false);
+      return;
+    }
+
+    const skipped = data.skipped ? ` ${data.skipped} placeholders had no value and were left out.` : '';
+    showInventoryResult(
+      status,
+      `Created ${data.output} with ${data.rows} rows.${skipped} Pick it as the Reference File above and score.`,
+      true
+    );
+    await refreshAccuracyDropdowns();
+  } catch (error) {
+    showInventoryResult(status, `Server unreachable: ${error.message}`, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Create reference file from these values';
+  }
+}
+
 async function refreshAccuracyDropdowns() {
   await loadAccuracySelect(
     'accuracyRef',

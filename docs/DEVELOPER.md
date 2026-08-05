@@ -9,6 +9,8 @@ Reference for people changing this repo. For setup see the
 
 ```
 tests/            Playwright specs
+  template-format-health-reports/  one full run per document format
+  api/            HTTP tests against the web runner
   helpers/        shared logic — navigation, step tracking, scoring
   helpers/__tests__/  unit tests for those helpers
   infrastructure/ tests for deploy.sh / develop.sh
@@ -21,6 +23,8 @@ ui/               static dashboard served at /ui
 scripts/          manual smoke script for the accuracy routes
 reference_files/  expected-value workbooks for accuracy scoring
 raw_qa_files/     app-produced QA workbooks to score
+placeholder_inventory/  .docx template → QA workbook (+ fixtures, tests)
+templates/        drop .docx templates here for the UI to extract
 runtime-config.ts env → typed config for health suites
 generate-word-report.js  step results → DOCX
 ```
@@ -242,40 +246,41 @@ this reason. Do the same for anything you add.
 
 ---
 
-## Benchmarking automation
+## Placeholder inventory
 
-`benchmarking_automation/` is a self-contained Python project: parse a `.docx`
-into a canonical tree, classify placeholders, resolve replacements, and report
-accuracy. It shares no code with the Playwright suite.
+`placeholder_inventory/` extracts every placeholder from a `.docx` template and
+writes a QA workbook the accuracy scorer reads unchanged. It replaced
+`placeholder_inventory/`, whose extraction logic it absorbed along with the
+run-flattening and all-parts scanning from `test-openai-benchmark`.
 
-```
-doc_parser/              docx XML → canonical tree
-classification/          placeholder type rules (structural + syntax)
-placeholders/            detection and context extraction
-replacement_resolution/  match placeholders to source content
-replacement_extraction/  build replacement fragments
-reporting/               xlsx + json output
-app/                     pipeline entry points
-main.py                  classification pipeline runner
+```bash
+npm run placeholders -- "templates/My Template.docx"
+npm run test:py
 ```
 
-Setup and run are in [Adding tests](ADDING_TESTS.md#5-adding-a-benchmarking-test);
-`npm run test:py` is the shortcut once the venv exists. 100 tests, ~5 seconds.
+Measured 100% extraction on two unrelated template families (ICF_SET0 and
+CSR_Template_20FEB2026), with the fixtures kept in
+`placeholder_inventory/fixtures/`. See its README for the caveats about the
+reference files.
 
-`requirements.txt` pins direct dependencies only — `lxml`, `openpyxl`,
-`python-docx`, `pytest`. It used to be a `pip freeze` dump in UTF-16, which pip
-cannot read, and it was missing `python-docx` entirely, so one test failed on a
-clean install.
+### The QA loop in the web runner
 
-Generated output (`output/`, `final_outputs/`,
-`tests/output/generated_document_tree.json`) is gitignored — it was ~3 MB of
-committed build artifacts. Regenerate with `python main.py` and
-`python tests/doc_parser/generate_document_tree_json.py`.
+The Accuracy Scorer panel closes the whole circuit without a CLI:
 
-`tests/ICF_docx/` is 2.6 MB of source documents used only by the manual
-`run_document_replacement_pipeline.py` and `compare_accuracy*.py` scripts, not
-by any test. It's kept because those inputs can't be regenerated — delete it
-only if you're also retiring those scripts.
+1. **Build a raw QA file from a template** - pick a `.docx` from `templates/`,
+   extract. The workbook lands in `raw_qa_files/` and the dropdown refreshes.
+2. **Fill in expected values** - loads every placeholder into an editable grid.
+   Saving writes the Expected Value column back into that workbook.
+3. **Create reference file from these values** - writes a
+   reference-shaped workbook into `reference_files/`, skipping placeholders
+   with no value.
+4. **Run Accuracy Score** - against any raw/reference pair.
+
+Routes: `GET|POST /api/placeholders/rows`, `POST /api/placeholders/save-reference`,
+`GET /api/placeholders/templates`, `POST /api/placeholders/extract`.
+
+The grid is built with DOM nodes rather than `innerHTML` - every value in it
+came out of a spreadsheet someone else edited.
 
 ---
 

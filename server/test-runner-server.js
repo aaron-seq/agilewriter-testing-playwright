@@ -738,8 +738,9 @@ app.post('/api/placeholders/extract', (req, res) => {
   const outputName = `${path.basename(safeName, '.docx')} placeholders.xlsx`;
   const outputPath = path.join(RAW_QA_DIR, outputName);
 
-  const python = path.join(ROOT_DIR, 'benchmarking_automation', 'venv', 'Scripts', 'python.exe');
-  const interpreter = fs.existsSync(python) ? python : 'python';
+  // A project venv wins if one exists; otherwise the interpreter on PATH.
+  const venvPython = path.join(ROOT_DIR, 'venv', 'Scripts', 'python.exe');
+  const interpreter = fs.existsSync(venvPython) ? venvPython : 'python';
 
   const child = spawn(
     interpreter,
@@ -774,6 +775,134 @@ app.post('/api/placeholders/extract', (req, res) => {
       count: match ? Number(match[1]) : null,
       message: `Written to raw_qa_files/${outputName}`,
     });
+  });
+});
+
+// ── QA value entry ───────────────────────────────────────────────────────
+// An extracted workbook has every placeholder but no expected values. These
+// routes let QA fill them in from the browser and turn the result into a
+// reference file the Accuracy Scorer can score against.
+
+const QA_HEADER_ROWS = 2;   // group band + column headers
+const COL_NAME = 0;
+const COL_TYPE = 2;
+const COL_EXPECTED = 3;
+const COL_SOURCE = 4;
+const COL_INSTRUCTION = 5;
+
+function readQaSheet(fileName) {
+  const filePath = path.join(RAW_QA_DIR, path.basename(fileName));
+  if (!fs.existsSync(filePath)) {
+    return { error: `Raw QA file not found: ${path.basename(fileName)}` };
+  }
+
+  const workbook = XLSX.readFile(filePath);
+  const sheet = workbook.Sheets.QA;
+  if (!sheet) {
+    return { error: 'That workbook has no "QA" sheet. Extract it with the Placeholder Inventory panel.' };
+  }
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const placeholders = rows
+    .slice(QA_HEADER_ROWS)
+    .map((row, index) => ({
+      // 1-based row in the sheet, so a save writes back to the right line.
+      row: index + QA_HEADER_ROWS + 1,
+      name: cellText(row[COL_NAME]),
+      type: cellText(row[COL_TYPE]),
+      expected: cellText(row[COL_EXPECTED]),
+      source: cellText(row[COL_SOURCE]),
+      instruction: cellText(row[COL_INSTRUCTION]),
+    }))
+    .filter((row) => row.name);
+
+  return { filePath, workbook, placeholders };
+}
+
+app.get('/api/placeholders/rows', (req, res) => {
+  const fileName = String(req.query.file || '');
+  if (!fileName) {
+    return res.status(400).json({ error: 'file is required.' });
+  }
+
+  const result = readQaSheet(fileName);
+  if (result.error) {
+    return res.status(404).json({ error: result.error });
+  }
+
+  return res.json({ file: path.basename(fileName), placeholders: result.placeholders });
+});
+
+app.post('/api/placeholders/rows', (req, res) => {
+  const fileName = String(req.body.file || '');
+  const values = req.body.values;
+
+  if (!fileName || !values || typeof values !== 'object') {
+    return res.status(400).json({ error: 'file and values are required.' });
+  }
+
+  const result = readQaSheet(fileName);
+  if (result.error) {
+    return res.status(404).json({ error: result.error });
+  }
+
+  const sheet = result.workbook.Sheets.QA;
+  let written = 0;
+
+  for (const [rowNumber, expected] of Object.entries(values)) {
+    const rowIndex = Number(rowNumber) - 1;
+    if (!Number.isInteger(rowIndex) || rowIndex < QA_HEADER_ROWS) {
+      continue;
+    }
+    const address = XLSX.utils.encode_cell({ r: rowIndex, c: COL_EXPECTED });
+    sheet[address] = { t: 's', v: String(expected ?? '') };
+    written += 1;
+  }
+
+  // Widen the used range so newly written cells are not clipped out.
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+  range.e.c = Math.max(range.e.c, COL_INSTRUCTION);
+  sheet['!ref'] = XLSX.utils.encode_range(range);
+
+  XLSX.writeFile(result.workbook, result.filePath);
+
+  return res.json({ file: path.basename(fileName), written });
+});
+
+app.post('/api/placeholders/save-reference', (req, res) => {
+  const fileName = String(req.body.file || '');
+  if (!fileName) {
+    return res.status(400).json({ error: 'file is required.' });
+  }
+
+  const result = readQaSheet(fileName);
+  if (result.error) {
+    return res.status(404).json({ error: result.error });
+  }
+
+  const filled = result.placeholders.filter((row) => row.expected);
+  if (!filled.length) {
+    return res.status(400).json({
+      error: 'No expected values filled in yet.',
+      hint: 'Enter at least one expected value and save before creating a reference file.',
+    });
+  }
+
+  // reference-file-loader.ts reads sheet 0: name, type, expected, source, notes.
+  const headers = ['Placeholder Name', 'Placeholder Type', 'Expected Text', 'Source Document', 'Notes'];
+  const body = filled.map((row) => [row.name, row.type, row.expected, row.source, '']);
+
+  const referenceName = `ref_${path.basename(fileName, '.xlsx').replace(/\s+placeholders$/i, '')}.xlsx`;
+  const outputPath = path.join(REFERENCE_DIR, referenceName);
+
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([headers, ...body]), 'QA');
+  XLSX.writeFile(book, outputPath);
+
+  return res.json({
+    output: referenceName,
+    rows: filled.length,
+    skipped: result.placeholders.length - filled.length,
   });
 });
 
