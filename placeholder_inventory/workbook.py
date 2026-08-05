@@ -169,3 +169,54 @@ def _finish(sheet) -> None:
 
 def write(placeholders: list[Placeholder], template_name: str, output_path: str) -> None:
     build(placeholders, template_name).save(output_path)
+
+
+# ── Reference draft ───────────────────────────────────────────────────────
+# A reference file is what QA authors: "this is what each placeholder SHOULD
+# contain". Extracting a template gives you every placeholder with the expected
+# text still blank - the starting point for that job, not an AgileWriter output.
+#
+# reference-file-loader.ts reads sheet 0, columns:
+#   0 name | 1 type | 2 expected text | 3 source document | 4 notes
+
+REFERENCE_HEADERS = [
+    "Placeholder Name",
+    "Placeholder Type",
+    "Expected Text",
+    "Source Document",
+    "Notes",
+]
+
+
+def build_reference(placeholders: list[Placeholder]) -> Workbook:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "QA"
+
+    sheet.append(REFERENCE_HEADERS)
+    for cell in sheet[1]:
+        cell.font = _HEADER_FONT
+        cell.fill = _HEADER_FILL
+
+    for placeholder in placeholders:
+        sheet.append([
+            f"<{placeholder.name}>",
+            classify(placeholder.name, placeholder.structure),
+            "",                      # Expected Text - QA fills this in
+            "",                      # Source Document - QA fills this in
+            placeholder.context,     # the sentence it sits in, as a hint
+        ])
+
+    for column, width in {"A": 52, "B": 16, "C": 60, "D": 26, "E": 70}.items():
+        sheet.column_dimensions[column].width = width
+
+    sheet.freeze_panes = sheet["A2"]
+    for row in sheet.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(vertical="top", wrap_text=True)
+
+    return workbook
+
+
+def write_reference(placeholders: list[Placeholder], output_path: str) -> None:
+    build_reference(placeholders).save(output_path)

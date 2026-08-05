@@ -74,3 +74,7 @@ test-openai-benchmark/
 raw_qa_files/*placeholders.xlsx
 templates/*.docx
 reference_files/ref_*_Template_*.xlsx
+generated_documents/*.docx
+
+# AgileWriter outputs dropped at the repo root - real study documents
+/*.docx

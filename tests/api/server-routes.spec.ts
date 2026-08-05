@@ -193,11 +193,23 @@ test.describe('QA expected-value entry', () => {
     expect((await response.json()).error).toContain('values are required');
   });
 
-  test('POST /api/placeholders/save-reference refuses a workbook with no values', async ({ request }) => {
-    // A reference with no expected text would score everything as missing,
-    // so this has to fail loudly rather than write an empty file.
-    const response = await request.post(`${BASE}/api/placeholders/save-reference`, {
-      data: { file: 'nope.xlsx' },
+  test('GET /api/documents lists the generated .docx files', async ({ request }) => {
+    const response = await request.get(`${BASE}/api/documents`);
+
+    expect(response.status()).toBe(200);
+    expect(Array.isArray((await response.json()).files)).toBe(true);
+  });
+
+  test('POST /api/documents/verify requires a document', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/documents/verify`, { data: {} });
+
+    expect(response.status()).toBe(400);
+    expect((await response.json()).error).toContain('document is required');
+  });
+
+  test('POST /api/documents/verify refuses to escape generated_documents', async ({ request }) => {
+    const response = await request.post(`${BASE}/api/documents/verify`, {
+      data: { document: '../../../../Windows/System32/drivers/etc/hosts' },
     });
 
     expect(response.status()).toBe(404);

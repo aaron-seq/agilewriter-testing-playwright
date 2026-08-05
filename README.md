@@ -255,19 +255,33 @@ A hosted instance exists too; ask your team lead for the URL.
 
 ---
 
-## Placeholder inventory
+## Checking AgileWriter's accuracy
 
-Extract every placeholder from a `.docx` template into a QA workbook, fill in
-the expected values, and score against them - all from the web runner.
+Two files go into scoring, and they are not the same thing:
+
+| | What it is | Where it comes from |
+|---|---|---|
+| **Reference file** | What the document *should* say | QA writes it |
+| **Raw QA file** | What AgileWriter actually produced | AgileWriter's Excel export |
+
+The Accuracy Scorer panel (`npm run server`) walks the whole job:
+
+1. **Start a reference file from a template** - pulls every placeholder out of a
+   `.docx` in `templates/`, expected text blank
+2. **Fill in the expected text** - an editable grid; this is the answer key
+3. **Check AgileWriter's document for gaps** - drop its final `.docx` into
+   `generated_documents/` to find placeholders it never replaced
+4. **Run Accuracy Score** - AgileWriter's Excel against your reference file
+
+Step 3 is worth doing every time: a document can be marked *Final* and still
+contain unreplaced placeholders.
 
 ```bash
-npm run server        # then open the Accuracy Scorer panel
-npm run placeholders -- "templates/My Template.docx"   # or from the CLI
-npm run test:py       # 20 tests
+npm run placeholders -- "templates/My Template.docx" --reference   # CLI
+npm run test:py                                                    # 20 tests
 ```
 
-Drop templates in `templates/`. See
-[placeholder_inventory/README.md](placeholder_inventory/README.md).
+See [placeholder_inventory/README.md](placeholder_inventory/README.md).
 
 ---
 

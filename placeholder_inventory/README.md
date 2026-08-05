@@ -1,17 +1,25 @@
 # placeholder_inventory
 
-Extracts every placeholder from a `.docx` template and writes a QA workbook the
-accuracy scorer can read directly.
+Extracts every placeholder from a `.docx`.
 
 ```bash
-python -m placeholder_inventory "path/to/Template.docx" -o inventory.xlsx
-python -m placeholder_inventory "path/to/Template.docx" --list   # just print them
+python -m placeholder_inventory "Template.docx" --reference -o ref_Template.xlsx
+python -m placeholder_inventory "Template.docx" --list    # print them
+python -m placeholder_inventory "Final.docx"    --json    # machine-readable
 ```
 
-The output workbook has the same shape as the files in `raw_qa_files/`, so it
-drops straight into the Accuracy Scorer. **Expected Value and AI Replaced Text
-are left blank on purpose — QA fills those in.** Everything that describes the
-placeholder (name, type, surrounding sentence) is filled automatically.
+## The two jobs it does
+
+**Starting a reference file.** A reference file is what QA authors: what each
+placeholder *should* contain. `--reference` gives you every placeholder with
+the expected text blank, ready to fill in. That is the answer key.
+
+**Checking AgileWriter's output.** Run it against a generated `.docx` and any
+placeholder it finds was never replaced. `IDE196-002_CSR_Draft1_Final.docx`
+shipped with 12 of them, so this is worth doing every time.
+
+> A **raw QA file** is AgileWriter's own Excel output. This tool does not
+> produce one and cannot - only AgileWriter can.
 
 ## Where it came from
 

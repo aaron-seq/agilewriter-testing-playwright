@@ -209,36 +209,83 @@
       </div>
 
       <div id="accuracy-panel" style="display: none; margin-top: 1.25rem;">
+        <p class="callout-muted">
+          <strong>Reference file</strong> = what the document <em>should</em> say, written by QA.
+          <strong>AgileWriter output</strong> = what it actually produced.
+          Scoring compares the two.
+        </p>
+
         <details class="inventory-block">
-          <summary>Build a raw QA file from a template</summary>
+          <summary>Step 1 &middot; Start a reference file from a template</summary>
           <p class="callout-muted">
-            Extracts every placeholder from a <code>.docx</code> in
-            <code>templates\</code> and writes a QA workbook into
-            <code>raw_qa_files\</code>. Values stay blank for QA to fill.
+            Pulls every placeholder out of a <code>.docx</code> in
+            <code>templates\</code> and writes a reference file with the expected
+            text left blank, ready for you to fill in.
           </p>
 
           <div class="form-group">
             <label for="inventoryTemplate">Template</label>
-            <select id="inventoryTemplate"><option value="">Loading…</option></select>
+            <select id="inventoryTemplate"><option value="">Loading&hellip;</option></select>
           </div>
 
           <div class="actions" style="margin-top: 0.75rem;">
             <button class="btn-secondary" id="extractBtn" onclick="runPlaceholderExtraction()">
-              Extract placeholders
+              Create reference file
             </button>
           </div>
 
           <div id="inventory-result" class="callout" style="display: none;"></div>
         </details>
 
-        <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1rem; line-height: 1.5;">
-          Then pick the raw QA file and a matching reference file, and score them.
-        </p>
+        <details class="inventory-block" id="values-block">
+          <summary>Step 2 &middot; Fill in the expected text</summary>
+          <p class="callout-muted">
+            Type what each placeholder should contain. This is the answer key the
+            AgileWriter output gets scored against.
+          </p>
 
-        <div
-          id="accuracy-watch-banner"
-          style="display: none; margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.3); color: #7dd3fc; font-size: 0.8rem;"
-        ></div>
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button class="btn-secondary" id="loadValuesBtn" onclick="loadPlaceholderValues()">
+              Load placeholders from the selected reference file
+            </button>
+          </div>
+
+          <div id="values-status" class="callout" style="display: none;"></div>
+          <div id="values-grid" style="display: none;"></div>
+
+          <div class="actions" id="values-actions" style="display: none; margin-top: 0.75rem;">
+            <button class="btn-primary" id="saveValuesBtn" onclick="savePlaceholderValues()">
+              Save expected text
+            </button>
+          </div>
+        </details>
+
+        <details class="inventory-block" id="verify-block">
+          <summary>Step 3 &middot; Check AgileWriter&rsquo;s document for gaps</summary>
+          <p class="callout-muted">
+            Drop the final <code>.docx</code> you downloaded from AgileWriter into
+            <code>generated_documents\</code>. This finds any placeholder it left
+            unreplaced &mdash; a document can be marked Final and still have them.
+          </p>
+
+          <div class="form-group">
+            <label for="verifyDocument">Generated document</label>
+            <select id="verifyDocument"><option value="">Loading&hellip;</option></select>
+          </div>
+
+          <div class="actions" style="margin-top: 0.75rem;">
+            <button class="btn-secondary" id="verifyBtn" onclick="verifyGeneratedDocument()">
+              Check for unreplaced placeholders
+            </button>
+          </div>
+
+          <div id="verify-status" class="callout" style="display: none;"></div>
+          <div id="verify-grid" style="display: none;"></div>
+        </details>
+
+        <p class="callout-muted" style="margin-top: 1rem;">
+          <strong>Step 4</strong> &middot; Score the AgileWriter Excel against your reference file.
+        </p>
 
         <div class="form-group">
           <label for="accuracyRef">Reference File (from reference_files\)</label>

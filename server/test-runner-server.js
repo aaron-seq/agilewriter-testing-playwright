@@ -23,9 +23,10 @@ const REFERENCE_DIR = path.join(ROOT_DIR, 'reference_files');
 const RAW_QA_DIR = path.join(ROOT_DIR, 'raw_qa_files');
 const ACCURACY_REPORTS_DIR = path.join(ROOT_DIR, 'reports', 'accuracy');
 const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
+const GENERATED_DIR = path.join(ROOT_DIR, 'generated_documents');
 
 // We keep these directories eagerly created so every route can assume a stable filesystem shape.
-[SESSIONS_DIR, REFERENCE_DIR, RAW_QA_DIR, ACCURACY_REPORTS_DIR, TEMPLATES_DIR].forEach((dirPath) => {
+[SESSIONS_DIR, REFERENCE_DIR, RAW_QA_DIR, ACCURACY_REPORTS_DIR, TEMPLATES_DIR, GENERATED_DIR].forEach((dirPath) => {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
@@ -735,8 +736,8 @@ app.post('/api/placeholders/extract', (req, res) => {
     return res.status(404).json({ error: `Template not found: ${safeName}` });
   }
 
-  const outputName = `${path.basename(safeName, '.docx')} placeholders.xlsx`;
-  const outputPath = path.join(RAW_QA_DIR, outputName);
+  const outputName = `ref_${path.basename(safeName, '.docx')}.xlsx`;
+  const outputPath = path.join(REFERENCE_DIR, outputName);
 
   // A project venv wins if one exists; otherwise the interpreter on PATH.
   const venvPython = path.join(ROOT_DIR, 'venv', 'Scripts', 'python.exe');
@@ -744,7 +745,7 @@ app.post('/api/placeholders/extract', (req, res) => {
 
   const child = spawn(
     interpreter,
-    ['-m', 'placeholder_inventory', templatePath, '-o', outputPath],
+    ['-m', 'placeholder_inventory', templatePath, '--reference', '-o', outputPath],
     { cwd: ROOT_DIR },
   );
 
@@ -773,7 +774,7 @@ app.post('/api/placeholders/extract', (req, res) => {
       template: safeName,
       output: outputName,
       count: match ? Number(match[1]) : null,
-      message: `Written to raw_qa_files/${outputName}`,
+      message: `Reference draft written to reference_files/${outputName}`,
     });
   });
 });
@@ -783,40 +784,43 @@ app.post('/api/placeholders/extract', (req, res) => {
 // routes let QA fill them in from the browser and turn the result into a
 // reference file the Accuracy Scorer can score against.
 
-const QA_HEADER_ROWS = 2;   // group band + column headers
+// Reference format, as read by reference-file-loader.ts:
+//   0 name | 1 type | 2 expected text | 3 source document | 4 notes
+const REF_HEADER_ROWS = 1;
 const COL_NAME = 0;
-const COL_TYPE = 2;
-const COL_EXPECTED = 3;
-const COL_SOURCE = 4;
-const COL_INSTRUCTION = 5;
+const COL_TYPE = 1;
+const COL_EXPECTED = 2;
+const COL_SOURCE = 3;
+const COL_NOTES = 4;
 
-function readQaSheet(fileName) {
-  const filePath = path.join(RAW_QA_DIR, path.basename(fileName));
+function readReferenceSheet(fileName) {
+  const filePath = path.join(REFERENCE_DIR, path.basename(fileName));
   if (!fs.existsSync(filePath)) {
-    return { error: `Raw QA file not found: ${path.basename(fileName)}` };
+    return { error: `Reference file not found: ${path.basename(fileName)}` };
   }
 
   const workbook = XLSX.readFile(filePath);
-  const sheet = workbook.Sheets.QA;
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
   if (!sheet) {
-    return { error: 'That workbook has no "QA" sheet. Extract it with the Placeholder Inventory panel.' };
+    return { error: 'That workbook has no sheets.' };
   }
 
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
   const placeholders = rows
-    .slice(QA_HEADER_ROWS)
+    .slice(REF_HEADER_ROWS)
     .map((row, index) => ({
       // 1-based row in the sheet, so a save writes back to the right line.
-      row: index + QA_HEADER_ROWS + 1,
+      row: index + REF_HEADER_ROWS + 1,
       name: cellText(row[COL_NAME]),
       type: cellText(row[COL_TYPE]),
       expected: cellText(row[COL_EXPECTED]),
       source: cellText(row[COL_SOURCE]),
-      instruction: cellText(row[COL_INSTRUCTION]),
+      instruction: cellText(row[COL_NOTES]),
     }))
     .filter((row) => row.name);
 
-  return { filePath, workbook, placeholders };
+  return { filePath, workbook, sheetName, placeholders };
 }
 
 app.get('/api/placeholders/rows', (req, res) => {
@@ -825,7 +829,7 @@ app.get('/api/placeholders/rows', (req, res) => {
     return res.status(400).json({ error: 'file is required.' });
   }
 
-  const result = readQaSheet(fileName);
+  const result = readReferenceSheet(fileName);
   if (result.error) {
     return res.status(404).json({ error: result.error });
   }
@@ -841,17 +845,17 @@ app.post('/api/placeholders/rows', (req, res) => {
     return res.status(400).json({ error: 'file and values are required.' });
   }
 
-  const result = readQaSheet(fileName);
+  const result = readReferenceSheet(fileName);
   if (result.error) {
     return res.status(404).json({ error: result.error });
   }
 
-  const sheet = result.workbook.Sheets.QA;
+  const sheet = result.workbook.Sheets[result.sheetName];
   let written = 0;
 
   for (const [rowNumber, expected] of Object.entries(values)) {
     const rowIndex = Number(rowNumber) - 1;
-    if (!Number.isInteger(rowIndex) || rowIndex < QA_HEADER_ROWS) {
+    if (!Number.isInteger(rowIndex) || rowIndex < REF_HEADER_ROWS) {
       continue;
     }
     const address = XLSX.utils.encode_cell({ r: rowIndex, c: COL_EXPECTED });
@@ -861,7 +865,7 @@ app.post('/api/placeholders/rows', (req, res) => {
 
   // Widen the used range so newly written cells are not clipped out.
   const range = XLSX.utils.decode_range(sheet['!ref']);
-  range.e.c = Math.max(range.e.c, COL_INSTRUCTION);
+  range.e.c = Math.max(range.e.c, COL_NOTES);
   sheet['!ref'] = XLSX.utils.encode_range(range);
 
   XLSX.writeFile(result.workbook, result.filePath);
@@ -875,7 +879,7 @@ app.post('/api/placeholders/save-reference', (req, res) => {
     return res.status(400).json({ error: 'file is required.' });
   }
 
-  const result = readQaSheet(fileName);
+  const result = readReferenceSheet(fileName);
   if (result.error) {
     return res.status(404).json({ error: result.error });
   }
@@ -903,6 +907,78 @@ app.post('/api/placeholders/save-reference', (req, res) => {
     output: referenceName,
     rows: filled.length,
     skipped: result.placeholders.length - filled.length,
+  });
+});
+
+
+// ── Generated-document check ─────────────────────────────────────────────
+// AgileWriter's final .docx should contain no placeholders at all. Anything
+// still shaped like <Study Title> was never replaced. IDE196-002_CSR_Draft1_
+// Final.docx shipped with 12 of them, so this is worth checking every time.
+
+app.get('/api/documents', (_req, res) => {
+  try {
+    const files = fs
+      .readdirSync(GENERATED_DIR)
+      .filter((name) => name.toLowerCase().endsWith('.docx') && !name.startsWith('~$'))
+      .sort((left, right) => left.localeCompare(right));
+
+    return res.json({ files });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return res.status(500).json({ error: `Failed to list documents: ${message}` });
+  }
+});
+
+app.post('/api/documents/verify', (req, res) => {
+  const safeName = path.basename(String(req.body.document || ''));
+  if (!safeName) {
+    return res.status(400).json({ error: 'document is required.' });
+  }
+
+  const documentPath = path.join(GENERATED_DIR, safeName);
+  if (!safeName.toLowerCase().endsWith('.docx') || !fs.existsSync(documentPath)) {
+    return res.status(404).json({ error: `Document not found: ${safeName}` });
+  }
+
+  const venvPython = path.join(ROOT_DIR, 'venv', 'Scripts', 'python.exe');
+  const interpreter = fs.existsSync(venvPython) ? venvPython : 'python';
+
+  const child = spawn(
+    interpreter,
+    ['-m', 'placeholder_inventory', documentPath, '--json'],
+    { cwd: ROOT_DIR },
+  );
+
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+
+  child.on('error', (error) => {
+    res.status(500).json({ error: `Could not run the extractor: ${error.message}` });
+  });
+
+  child.on('close', (code) => {
+    if (code !== 0) {
+      return res.status(500).json({
+        error: 'Could not read that document.',
+        detail: (stderr || stdout).slice(-600),
+      });
+    }
+
+    let remaining;
+    try {
+      remaining = JSON.parse(stdout);
+    } catch {
+      return res.status(500).json({ error: 'Extractor returned unreadable output.' });
+    }
+
+    return res.json({
+      document: safeName,
+      unreplaced: remaining,
+      clean: remaining.length === 0,
+    });
   });
 });
 

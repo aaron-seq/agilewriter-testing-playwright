@@ -561,6 +561,7 @@ function toggleAccuracyPanel() {
     icon.style.transform = 'rotate(180deg)';
     refreshAccuracyDropdowns();
     loadTemplateList();
+    loadGeneratedDocuments();
   } else {
     panel.style.display = 'none';
     icon.style.transform = 'rotate(0deg)';
@@ -628,7 +629,7 @@ async function runPlaceholderExtraction() {
 
     showInventoryResult(
       result,
-      `${data.count} placeholders extracted to ${data.output}. It is now in the Raw QA list below.`,
+      `${data.count} placeholders written to ${data.output}. Pick it as the Reference File below, then fill in step 2.`,
       true
     );
     // The new file belongs in the dropdown straight away.
@@ -637,7 +638,7 @@ async function runPlaceholderExtraction() {
     showInventoryResult(result, `Server unreachable: ${error.message}`, false);
   } finally {
     button.disabled = false;
-    button.textContent = 'Extract placeholders';
+    button.textContent = 'Create reference file';
   }
 }
 
@@ -647,18 +648,142 @@ function showInventoryResult(element, message, ok) {
   element.style.display = 'block';
 }
 
+
+// ── Generated-document check ─────────────────────────────────────────────
+
+async function loadGeneratedDocuments() {
+  const select = document.getElementById('verifyDocument');
+  if (!select) return;
+
+  try {
+    const data = await (await fetch(buildApiUrl('/api/documents'))).json();
+    select.textContent = '';
+
+    const files = Array.isArray(data.files) ? data.files : [];
+    if (!files.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.disabled = true;
+      option.selected = true;
+      option.textContent = 'No .docx in generated_documents\ - drop one in';
+      select.appendChild(option);
+      return;
+    }
+
+    files.forEach((name, index) => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      option.title = name;
+      if (index === 0) option.selected = true;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Could not load documents:', error);
+  }
+}
+
+async function verifyGeneratedDocument() {
+  const button = document.getElementById('verifyBtn');
+  const status = document.getElementById('verify-status');
+  const grid = document.getElementById('verify-grid');
+  const document_ = document.getElementById('verifyDocument').value;
+
+  if (!document_) {
+    showInventoryResult(status, 'Drop a .docx into generated_documents\ first.', false);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Checking…';
+  grid.style.display = 'none';
+
+  try {
+    const response = await fetch(buildApiUrl('/api/documents/verify'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document: document_ }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showInventoryResult(status, data.detail || data.error || 'Check failed.', false);
+      return;
+    }
+
+    if (data.clean) {
+      showInventoryResult(status, `${data.document} is clean - every placeholder was replaced.`, true);
+      return;
+    }
+
+    const occurrences = data.unreplaced.reduce((sum, row) => sum + row.count, 0);
+    showInventoryResult(
+      status,
+      `${data.unreplaced.length} placeholders were never replaced ` +
+      `(${occurrences} occurrences). AgileWriter left these in the document.`,
+      false
+    );
+    renderUnreplacedGrid(grid, data.unreplaced);
+    grid.style.display = 'block';
+  } catch (error) {
+    showInventoryResult(status, `Server unreachable: ${error.message}`, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Check for unreplaced placeholders';
+  }
+}
+
+/** DOM nodes, not innerHTML - this text comes straight out of a .docx. */
+function renderUnreplacedGrid(container, rows) {
+  container.textContent = '';
+
+  const table = document.createElement('table');
+  table.className = 'values-table';
+
+  const head = document.createElement('tr');
+  for (const label of ['Placeholder left in document', 'Type', 'Times']) {
+    const th = document.createElement('th');
+    th.textContent = label;
+    head.appendChild(th);
+  }
+  table.appendChild(head);
+
+  for (const row of rows) {
+    const tr = document.createElement('tr');
+
+    const name = document.createElement('td');
+    name.textContent = `<${row.name}>`;
+    name.title = row.context || row.name;
+    tr.appendChild(name);
+
+    const type = document.createElement('td');
+    type.textContent = row.type;
+    type.className = 'values-type';
+    tr.appendChild(type);
+
+    const count = document.createElement('td');
+    count.textContent = String(row.count);
+    count.className = 'values-type';
+    tr.appendChild(count);
+
+    table.appendChild(tr);
+  }
+
+  container.appendChild(table);
+}
+
 // ── QA expected-value entry ──────────────────────────────────────────────
 
 let loadedValuesFile = '';
 
 async function loadPlaceholderValues() {
-  const file = document.getElementById('accuracyRaw').value;
+  const file = document.getElementById('accuracyRef').value;
   const status = document.getElementById('values-status');
   const grid = document.getElementById('values-grid');
   const actions = document.getElementById('values-actions');
 
   if (!file) {
-    showInventoryResult(status, 'Pick a raw QA file above first.', false);
+    showInventoryResult(status, 'Pick a reference file above first.', false);
     return;
   }
 
@@ -679,7 +804,7 @@ async function loadPlaceholderValues() {
     const filled = data.placeholders.filter((p) => p.expected).length;
     showInventoryResult(
       status,
-      `${data.placeholders.length} placeholders loaded from ${data.file} — ${filled} already have a value.`,
+      `${data.placeholders.length} placeholders in ${data.file} - ${filled} already have expected text.`,
       true
     );
     grid.style.display = 'block';
@@ -763,7 +888,7 @@ async function savePlaceholderValues() {
     showInventoryResult(
       status,
       response.ok
-        ? `Saved ${data.written} values into ${data.file}.`
+        ? `Saved ${data.written} entries into ${data.file}.`
         : data.error || 'Save failed.',
       response.ok
     );
@@ -771,7 +896,7 @@ async function savePlaceholderValues() {
     showInventoryResult(status, `Server unreachable: ${error.message}`, false);
   } finally {
     button.disabled = false;
-    button.textContent = 'Save expected values';
+    button.textContent = 'Save expected text';
   }
 }
 
